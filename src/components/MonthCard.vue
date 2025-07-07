@@ -63,7 +63,13 @@ const handleDelete = (entryId: string): void => {
           >
           <el-dropdown-item
             @click="
-              dialogStore.open({ month: new Date(formatYearMonth(month)) })
+              dialogStore.open(
+                {
+                  month: new Date(formatYearMonth(month)),
+                  ...entry,
+                },
+                entry.id
+              )
             "
             ><el-text size="large" type="warning"
               >编辑</el-text
