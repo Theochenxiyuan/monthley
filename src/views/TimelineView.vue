@@ -24,10 +24,12 @@
       <el-timeline-item
         v-for="timelineMonth in timelineStore.timelineWithCurrentMonth"
         :timestamp="
-          formatMonthToChinese(`${timelineMonth.year}-${timelineMonth.month}`) +
-          (isCurrentMonth({ ...timelineMonth }) ? '（当前）' : '')
+          formatMonthToChinese(formatYearMonth(timelineMonth)) +
+          (isCurrentMonth(formatYearMonth(timelineMonth)) ? '（当前）' : '')
         "
-        :type="isCurrentMonth({ ...timelineMonth }) ? 'primary' : undefined"
+        :type="
+          isCurrentMonth(formatYearMonth(timelineMonth)) ? 'primary' : undefined
+        "
         placement="top"
       >
         <MonthCard :month="timelineMonth" is-open></MonthCard>
@@ -49,6 +51,7 @@ import {
   formatMonthToChinese,
   smartFormatDateTime,
   isCurrentMonth,
+  formatYearMonth,
 } from '@/utils/formatDate';
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();

@@ -1,86 +1,63 @@
-export function formatMonthToChinese(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+import {
+  format,
+  parseISO,
+  isValid,
+  isThisMonth,
+  differenceInSeconds,
+  differenceInMinutes,
+  differenceInHours,
+  differenceInDays,
+} from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 
-  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-    throw new Error('Invalid date input');
-  }
+// 安全解析日期
+const safeParse = (date: Date | string): Date => {
+  if (date instanceof Date) return date;
+  const parsed = parseISO(date);
+  return isValid(parsed) ? parsed : new Date(); // 无效时返回当前日期
+};
 
-  const year = dateObj.getFullYear();
-  const month = dateObj.getMonth() + 1;
+// 月份格式化
+export const formatMonthToChinese = (date: Date | string): string => {
+  return format(safeParse(date), 'yyyy年M月', { locale: zhCN });
+};
 
-  return `${year}年${month}月`;
-}
+// 判断是否当前月
+export const isCurrentMonth = (date: Date | string): boolean => {
+  return isThisMonth(safeParse(date));
+};
 
-export function formatDateToChinese(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-
-  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-    throw new Error('Invalid date input');
-  }
-
-  const year = dateObj.getFullYear();
-  const month = dateObj.getMonth() + 1;
-  const day = dateObj.getDate();
-
-  return `${year}年${month}月${day}日`;
-}
-
-export function smartFormatDateTime(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-
-  // 检查日期是否有效
-  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-    throw new Error('Invalid date input');
-  }
-
-  const now = new Date();
-  // 修正：使用 getTime() 获取时间戳后再相减
-  const diffInSeconds = Math.floor((now.getTime() - dateObj.getTime()) / 1000);
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
-
-  // 格式化时间为xx:xx:xx
-  const formatTime = (): string => {
-    const hours = dateObj.getHours().toString().padStart(2, '0');
-    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-    const seconds = dateObj.getSeconds().toString().padStart(2, '0');
-    return `${hours}:${minutes}:${seconds}`;
-  };
-
-  // 格式化日期为xxxx年x月x日
-  const formatDate = (): string => {
-    const year = dateObj.getFullYear();
-    const month = dateObj.getMonth() + 1;
-    const day = dateObj.getDate();
-    return `${year}年${month}月${day}日`;
-  };
-
-  // 相对时间判断
-  if (diffInSeconds < 60) {
-    return `${diffInSeconds}秒前`;
-  } else if (diffInMinutes < 60) {
-    return `${diffInMinutes}分钟前`;
-  } else if (diffInHours < 24) {
-    return `${diffInHours}小时前`;
-  } else if (diffInDays === 0) {
-    return `今天 ${formatTime()}`;
-  } else if (diffInDays === 1) {
-    return `昨天 ${formatTime()}`;
-  } else if (diffInDays === 2) {
-    return `前天 ${formatTime()}`;
-  } else {
-    return `${formatDate()} ${formatTime()}`;
-  }
-}
-
-export function isCurrentMonth(monthYear: {
-  month: number;
+export const formatYearMonth = (yearMonth: {
   year: number;
-}): boolean {
-  const currentYear = new Date().getFullYear();
-  if (currentYear !== monthYear.year) return false;
-  const currentMonth = new Date().getMonth() + 1;
-  if (currentMonth !== monthYear.month) return false;
-  return true;
-}
+  month: number;
+}): string => {
+  return `${yearMonth.year}-${yearMonth.month < 10 ? '0' : ''}${
+    yearMonth.month
+  }`;
+};
+
+export const smartFormatDateTime = (date: Date | string): string => {
+  const dateObj = safeParse(date);
+  const now = new Date();
+
+  // 计算时间差
+  const seconds = differenceInSeconds(now, dateObj);
+  const minutes = differenceInMinutes(now, dateObj);
+  const hours = differenceInHours(now, dateObj);
+  const days = differenceInDays(now, dateObj);
+
+  // 时间部分格式化
+  const timeStr = format(dateObj, 'HH:mm:ss');
+
+  if (seconds < 60) return `${seconds}秒前`;
+  if (minutes < 60) return `${minutes}分钟前`;
+  if (hours < 24) return `${hours}小时前`;
+
+  // 日期部分格式化
+  const dateStr = format(dateObj, 'yyyy年M月d日', { locale: zhCN });
+
+  if (days === 0) return `今天 ${timeStr}`;
+  if (days === 1) return `昨天 ${timeStr}`;
+  if (days === 2) return `前天 ${timeStr}`;
+  return `${dateStr} ${timeStr}`;
+};

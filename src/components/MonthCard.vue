@@ -4,6 +4,7 @@ import EntryItem from './EntryItem.vue';
 import { useDialogStore } from '@/stores/dialog';
 import { useTimelineStore } from '@/stores/timeline';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { formatYearMonth } from '@/utils/formatDate';
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
 const props = defineProps<{
@@ -62,15 +63,7 @@ const handleDelete = (entryId: string): void => {
           >
           <el-dropdown-item
             @click="
-              dialogStore.open(
-                {
-                  month: new Date(
-                    String(month.year) + '-' + String(month.month)
-                  ),
-                  ...entry,
-                },
-                entry.id
-              )
+              dialogStore.open({ month: new Date(formatYearMonth(month)) })
             "
             ><el-text size="large" type="warning"
               >编辑</el-text
@@ -89,13 +82,10 @@ const handleDelete = (entryId: string): void => {
       type="primary"
       text
       size="small"
-      @click="
-        dialogStore.open({
-          month: new Date(String(month.year) + '-' + String(month.month)),
-        })
-      "
-      ><el-icon size="18"><Plus /></el-icon
-    ></ElButton>
+      @click="dialogStore.open({ month: new Date(formatYearMonth(month)) })"
+    >
+      <el-icon size="18"><Plus /></el-icon>
+    </ElButton>
   </ElCard>
 </template>
 
