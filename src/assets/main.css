@@ -1,0 +1,29 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 10px;
+}
+
+.action-bar {
+  display: flex;
+  height: 45px;
+  align-items: center;
+  z-index: 1000;
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--el-menu-border-color);
+  justify-content: space-between;
+  padding: 5px;
+  background-color: var(--el-menu-bg-color);
+}
+
+.dark {
+  --el-menu-bg-color: #111111 !important;
+}
