@@ -34,7 +34,13 @@ const handleDelete = (entryId: string): void => {
 
 <template>
   <ElCard
-    body-style="padding: 15px;display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center"
+    :body-style="{
+      padding: '15px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '0.5rem',
+      alignItems: 'center',
+    }"
   >
     <el-dropdown
       placement="bottom"
@@ -94,5 +100,3 @@ const handleDelete = (entryId: string): void => {
     </ElButton>
   </ElCard>
 </template>
-
-<style></style>

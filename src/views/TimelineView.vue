@@ -4,9 +4,9 @@
       ><el-icon size="24"><Operation /></el-icon
     ></el-button>
     <el-text
-      >同步于：{{
-        timelineStore.lastSynced
-          ? smartFormatDateTime(timelineStore.lastSynced)
+      >更新于：{{
+        timelineStore.lastUpdated
+          ? smartFormatDateTime(timelineStore.lastUpdated)
           : '无记录'
       }}</el-text
     >
@@ -23,6 +23,7 @@
 
       <el-timeline-item
         v-for="timelineMonth in timelineStore.timelineWithCurrentMonth"
+        :key="formatYearMonth(timelineMonth)"
         :timestamp="
           formatMonthToChinese(formatYearMonth(timelineMonth)) +
           (isCurrentMonth(formatYearMonth(timelineMonth)) ? '（当前）' : '')

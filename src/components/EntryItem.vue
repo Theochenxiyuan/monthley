@@ -76,9 +76,9 @@ const getStatusText = (entry: TimelineEntry): string => {
 
 <style>
 .entry-item {
-  display: inline;
-  cursor: pointer;
   position: relative;
+  display: inline-block;
+  cursor: pointer;
 }
 
 .complete-cover {

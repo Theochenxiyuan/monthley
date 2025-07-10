@@ -16,7 +16,7 @@ const getNextStatus = (status: EntryStatus): EntryStatus => {
 export const useTimelineStore = defineStore('timeline', {
   state: (): TimelineState => ({
     months: [],
-    lastSynced: null,
+    lastUpdated: null,
   }),
   getters: {
     count(): number {
@@ -63,31 +63,40 @@ export const useTimelineStore = defineStore('timeline', {
         if (saved) {
           const timeline = JSON.parse(saved);
           this.months = timeline.months;
-          this.lastSynced = timeline.lastSynced
-            ? new Date(timeline.lastSynced)
+          this.lastUpdated = timeline.lastUpdated
+            ? new Date(timeline.lastUpdated)
             : null;
         }
       } catch (err) {
         console.error('Error loading local data:', err);
       }
     },
+    _saveNow() {
+      try {
+        localStorage.setItem(
+          'timeline',
+          JSON.stringify({
+            months: this.months,
+            lastUpdated: this.lastUpdated?.toISOString(),
+          })
+        );
+      } catch (err) {
+        console.error('Save failed:', err);
+      }
+    },
     saveLocal() {
       if (this._saveTimer) clearTimeout(this._saveTimer);
-      this._saveTimer = setTimeout(() => {
-        try {
-          localStorage.setItem(
-            'timeline',
-            JSON.stringify({
-              months: this.months,
-              lastSynced: this.lastSynced?.toISOString(),
-            })
-          );
-        } catch (err) {
-          console.error('Error saving local data:', err);
-        } finally {
-          this._saveTimer = null;
-        }
-      }, 500);
+
+      // 添加时间戳验证
+      const saveTime = this.lastUpdated?.getTime() || 0;
+      const now = Date.now();
+
+      // 避免过于频繁的保存（5秒内变化只存最后一次）
+      if (now - saveTime < 5000) {
+        this._saveTimer = setTimeout(() => this._saveNow(), 500);
+      } else {
+        this._saveNow();
+      }
     },
     addEntry(
       monthYear: Omit<TimelineMonth, 'entries'>,
@@ -107,6 +116,7 @@ export const useTimelineStore = defineStore('timeline', {
         this.months.push({ ...monthYear, entries: [newEntry] });
         this.sortMonths();
       }
+      this.lastUpdated = new Date();
       this.saveLocal();
     },
     deleteEntry(monthYear: Omit<TimelineMonth, 'entries'>, entryId: string) {
@@ -118,6 +128,7 @@ export const useTimelineStore = defineStore('timeline', {
         if (month.entries.length === 0) {
           this.months = this.months.filter((m) => m !== month);
         }
+        this.lastUpdated = new Date();
         this.saveLocal();
       }
     },
@@ -135,6 +146,7 @@ export const useTimelineStore = defineStore('timeline', {
             entry.name = newEntryData.name;
             entry.status = newEntryData.status;
             entry.type = newEntryData.type;
+            this.lastUpdated = new Date();
             this.saveLocal();
             return;
           }
@@ -170,7 +182,7 @@ export const useTimelineStore = defineStore('timeline', {
       }
 
       targetMonth.entries.push(entryToMove);
-
+      this.lastUpdated = new Date();
       this.saveLocal();
       return true;
     },
@@ -182,6 +194,7 @@ export const useTimelineStore = defineStore('timeline', {
         month.entries.forEach((entry) => {
           if (entry.id === entryId) {
             entry.status = getNextStatus(entry.status);
+            this.lastUpdated = new Date();
             this.saveLocal();
             return;
           }
@@ -197,7 +210,7 @@ export const useTimelineStore = defineStore('timeline', {
 
     clearData() {
       this.months = [];
-      this.lastSynced = null;
+      this.lastUpdated = null;
       localStorage.removeItem('timeline');
     },
   },

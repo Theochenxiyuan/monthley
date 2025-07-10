@@ -20,7 +20,7 @@ export interface TimelineMonth {
 // 时间线状态（Pinia Store 类型）
 export interface TimelineState {
   months: TimelineMonth[];
-  lastSynced: Date | null;
+  lastUpdated: Date | null;
 }
 
 export interface EntryFormData {
