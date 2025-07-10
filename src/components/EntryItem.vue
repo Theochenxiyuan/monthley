@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TimelineEntry, EntryStatus } from '@/types/models';
+import { statusMap, typeMap } from '@/types/models';
 import { Reading, School } from '@element-plus/icons-vue';
 
 const props = defineProps<{
@@ -17,19 +18,6 @@ const getEntryColorFromStatus = (
   return statusColors[status] || 'info';
 };
 const getStatusText = (entry: TimelineEntry): string => {
-  const statusMap = {
-    not_started: '准备',
-    in_progress: '正在',
-    completed: '已',
-  };
-
-  const typeMap = {
-    learn: '学',
-    play: '玩',
-    watch: '看',
-    read: '读',
-  };
-
   return `${statusMap[entry.status] || ''}${
     typeMap[entry.type as keyof typeof typeMap] || entry.type
   }`;

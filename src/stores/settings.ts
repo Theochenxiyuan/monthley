@@ -5,7 +5,9 @@ export const useSettingsStore = defineStore('settings', {
   state: () => ({
     isDark: useDark(),
     language: 'zh-CN',
-    syncInterval: 30, // 分钟
+    expandAll: false,
+    showEntriesCollapsed: false,
+    showNumCollapsed: true,
   }),
 
   actions: {
@@ -17,6 +19,9 @@ export const useSettingsStore = defineStore('settings', {
       if (saved) {
         const settings = JSON.parse(saved);
         this.isDark = settings.isDark;
+        this.expandAll = settings.expandAll;
+        this.showEntriesCollapsed = settings.showEntriesCollapsed;
+        this.showNumCollapsed = settings.showNumCollapsed;
       }
       document.documentElement.classList.toggle('dark', this.isDark);
     },
