@@ -23,7 +23,7 @@
         <el-tooltip class="box-item" placement="top">
           <template #content>
             <div style="max-width: 80vw">
-              如果不选择展开，默认会将“已完成所有条目的过去月份”和“全条目都未开始的未来月份”折叠起来
+              如果不选择展开，默认会将“已完成所有条目的过去月份”和“所有条目都未开始的未来月份”折叠起来，并显示精简文字
             </div>
           </template>
           <el-text

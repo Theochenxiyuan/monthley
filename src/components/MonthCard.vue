@@ -168,7 +168,10 @@ const hiddenCount = computed(() => {
       </template>
     </el-dropdown>
 
-    <el-text v-show="filtersStore.isActive" type="warning" size="small"
+    <el-text
+      v-show="filtersStore.isActive && hiddenCount > 0"
+      type="warning"
+      size="small"
       >({{ hiddenCount }}个已隐藏)</el-text
     >
     <ElButton
