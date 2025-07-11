@@ -31,7 +31,7 @@ const getStatusText = (entry: TimelineEntry): string => {
       :type="getEntryColorFromStatus(entry.status)"
       disable-transitions
     >
-      <div style="display: flex; align-items: center">
+      <div style="display: flex; align-items: center" class="not-selectable">
         <span style="margin-right: 3px">
           <el-icon size="16">
             <SwitchFilled v-if="entry.type === 'play'" />
@@ -92,5 +92,11 @@ const getStatusText = (entry: TimelineEntry): string => {
   top: 50%;
   transform: translate(-50%, -50%);
   transition: 1s;
+}
+.not-selectable {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 </style>
