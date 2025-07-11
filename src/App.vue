@@ -14,7 +14,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="app">
+  <div id="app" v-auto-animate>
     <router-view></router-view>
 
     <div class="navbar">

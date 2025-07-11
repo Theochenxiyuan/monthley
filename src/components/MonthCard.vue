@@ -44,7 +44,7 @@ function isFutureMonthAllNotStarted(month: TimelineMonth): boolean {
 }
 function shouldExpandMonth(month: TimelineMonth): boolean {
   if (
-    isCurrentMonth(formatYearMonth(props.month)) || // 当前月
+    isCurrentMonth(props.month) || // 当前月
     month.entries.length === 0 ||
     props.month.entries.some((e) => e.status === 'in_progress') // 有进行中
   )
@@ -129,150 +129,207 @@ const hiddenCount = computed(() => {
     :body-style="{
       padding: '15px',
     }"
-    v-if="isExpanded"
+    @click="manualExpanded = !manualExpanded"
   >
-    <Draggable
-      v-model="month.entries"
-      group="timeline"
-      item-key="id"
-      :style="{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '0.5rem',
-        alignItems: 'center',
-      }"
-      @change="
-        manualExpanded = true;
-        timelineStore.lastUpdated = new Date();
-        timelineStore.saveLocal();
-      "
-    >
-      <template #item="entry">
-        <el-dropdown
-          placement="bottom"
-          trigger="click"
-          size="large"
-          style="order: 1"
-          v-show="!shouldHideEntry(entry.element.type, entry.element.status)"
-          teleported
+    <div v-auto-animate>
+      <div v-if="isExpanded">
+        <Draggable
+          v-model="month.entries"
+          group="timeline"
+          item-key="id"
+          :style="{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+            alignItems: 'center',
+          }"
+          @change="
+            manualExpanded = true;
+            timelineStore.lastUpdated = new Date();
+            timelineStore.saveLocal();
+          "
+          :delay="300"
+          :delayOnTouchOnly="true"
+          drag-class="drag"
+          ghost-class="ghost"
+          chosen-class="chosen"
+          :animation="300"
         >
-          <EntryItem :entry="entry.element" />
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item
-                v-if="entry.element.status !== 'completed'"
-                @click="
-                  timelineStore.toNextStatus(
-                    { year: month.year, month: month.month },
-                    entry.element.id
-                  )
-                "
-                ><el-text
-                  size="large"
-                  :type="
-                    entry.element.status === 'in_progress'
-                      ? 'success'
-                      : 'primary'
-                  "
-                  >{{
-                    entry.element.status === 'in_progress' ? '完成' : '开始'
-                  }}</el-text
-                ></el-dropdown-item
+          <template #item="entry">
+            <div
+              style="order: 1"
+              v-show="
+                !shouldHideEntry(entry.element.type, entry.element.status)
+              "
+            >
+              <el-dropdown
+                placement="bottom"
+                trigger="click"
+                size="large"
+                teleported
               >
-              <el-dropdown-item
-                @click="
-                  dialogStore.open(
-                    {
-                      month: new Date(formatYearMonth(month)),
-                      ...entry.element,
-                    },
-                    entry.element.id
-                  )
-                "
-                ><el-text size="large" type="warning"
-                  >编辑</el-text
-                ></el-dropdown-item
-              >
-              <el-dropdown-item @click="handleDelete(entry.element.id)"
-                ><el-text size="large" type="danger"
-                  >删除</el-text
-                ></el-dropdown-item
-              >
-            </el-dropdown-menu>
+                <EntryItem :entry="entry.element" />
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-if="entry.element.status !== 'completed'"
+                      @click="
+                        timelineStore.toNextStatus(
+                          { year: month.year, month: month.month },
+                          entry.element.id
+                        )
+                      "
+                      ><el-text
+                        size="large"
+                        :type="
+                          entry.element.status === 'in_progress'
+                            ? 'success'
+                            : 'primary'
+                        "
+                        >{{
+                          entry.element.status === 'in_progress'
+                            ? '完成'
+                            : '开始'
+                        }}</el-text
+                      ></el-dropdown-item
+                    >
+                    <el-dropdown-item
+                      @click="
+                        dialogStore.open(
+                          {
+                            month: new Date(formatYearMonth(month)),
+                            ...entry.element,
+                          },
+                          entry.element.id
+                        )
+                      "
+                      ><el-text size="large" type="warning"
+                        >编辑</el-text
+                      ></el-dropdown-item
+                    >
+                    <el-dropdown-item @click="handleDelete(entry.element.id)"
+                      ><el-text size="large" type="danger"
+                        >删除</el-text
+                      ></el-dropdown-item
+                    >
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
-        </el-dropdown>
-      </template>
 
-      <template #footer>
-        <div v-show="month.entries.length === 0" style="order: 1">
-          <el-text type="warning"
-            ><el-icon><InfoFilled /></el-icon>
-            空月份将在应用重启后自动清除</el-text
-          >
-        </div>
+          <template #footer>
+            <div
+              v-show="month.entries.length === 0 && !isCurrentMonth(month)"
+              style="order: 1"
+            >
+              <el-text type="warning"
+                ><el-icon><InfoFilled /></el-icon>
+                空月份将在应用重启后自动清除</el-text
+              >
+            </div>
 
-        <div v-show="hiddenCount > 0" style="order: 2">
-          <el-text type="warning" size="small"
-            >({{ hiddenCount }}个已隐藏)</el-text
-          >
-        </div>
+            <div v-show="hiddenCount > 0" style="order: 2">
+              <el-text type="warning" size="small"
+                >({{ hiddenCount }}个已隐藏)</el-text
+              >
+            </div>
 
-        <ElButton
-          type="primary"
-          text
-          size="small"
-          @click="dialogStore.open({ month: new Date(formatYearMonth(month)) })"
-          style="order: 2"
+            <ElButton
+              type="primary"
+              text
+              size="small"
+              @click="
+                dialogStore.open({ month: new Date(formatYearMonth(month)) })
+              "
+              style="order: 2"
+            >
+              <el-icon size="18"><Plus /></el-icon>
+            </ElButton>
+          </template>
+        </Draggable>
+      </div>
+      <div
+        :style="{
+          display: 'flex',
+          flexWrap: 'nowrap',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+        }"
+        v-else
+      >
+        <el-text
+          line-clamp="1"
+          :type="
+            isPastMonthFullyCompleted(month)
+              ? 'success'
+              : isFutureMonthAllNotStarted(month)
+              ? 'info'
+              : ''
+          "
         >
-          <el-icon size="18"><Plus /></el-icon>
-        </ElButton>
-      </template>
-    </Draggable>
-  </ElCard>
+          <span v-show="settingsStore.showNumCollapsed">{{
+            String(month.entries.length) + '个'
+          }}</span>
+          <span>
+            {{
+              isPastMonthFullyCompleted(month)
+                ? '已完成'
+                : isFutureMonthAllNotStarted(month)
+                ? '已计划'
+                : ''
+            }}</span
+          >
 
-  <ElCard
-    :body-style="{
-      padding: '0.8rem 1rem',
-      display: 'flex',
-      flexWrap: 'nowrap',
-      justifyContent: 'space-between',
-      cursor: 'pointer',
-    }"
-    @click="manualExpanded = true"
-    v-else
-  >
-    <el-text
-      line-clamp="1"
-      :type="
-        isPastMonthFullyCompleted(month)
-          ? 'success'
-          : isFutureMonthAllNotStarted(month)
-          ? 'info'
-          : ''
-      "
-    >
-      <span v-show="settingsStore.showNumCollapsed">{{
-        String(month.entries.length) + '个'
-      }}</span>
-      <span>
-        {{
-          isPastMonthFullyCompleted(month)
-            ? '已完成'
-            : isFutureMonthAllNotStarted(month)
-            ? '已计划'
-            : ''
-        }}</span
-      >
+          <span v-show="settingsStore.showEntriesCollapsed">
+            {{
+              ': ' +
+              month.entries.map((e) => typeMap[e.type] + e.name).join('，')
+            }}</span
+          >
+        </el-text>
 
-      <span v-show="settingsStore.showEntriesCollapsed">
-        {{
-          ': ' + month.entries.map((e) => typeMap[e.type] + e.name).join('，')
-        }}</span
-      >
-    </el-text>
-
-    <el-text type="primary" size="small"
-      ><el-icon size="18"><ArrowDown /></el-icon
-    ></el-text>
+        <el-text type="primary" size="small"
+          ><el-icon size="18"><ArrowDown /></el-icon
+        ></el-text>
+      </div>
+    </div>
   </ElCard>
 </template>
+
+<style scoped>
+.drag > div {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  opacity: 0.9;
+}
+.chosen > div {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  background: var(--el-color-primary-light-9);
+  border-radius: 6px;
+  opacity: 1;
+}
+.chosen > div::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px solid var(--el-color-primary);
+  border-radius: 8px; /* 比主元素稍大 */
+  pointer-events: none;
+}
+.ghost {
+  background: var(--el-color-primary-light-8);
+  border-radius: 6px;
+  border: 2px dashed var(--el-color-primary);
+  opacity: 0.6;
+}
+.ghost > div {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+</style>

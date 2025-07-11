@@ -7,6 +7,7 @@ import 'element-plus/dist/index.css';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 import 'element-plus/theme-chalk/dark/css-vars.css';
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue';
 import App from './App.vue';
 import router from './router';
 
@@ -18,6 +19,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(ElementPlus, {
   locale: zhCn,
 });
+app.use(autoAnimatePlugin);
 app.use(createPinia());
 app.use(router);
 

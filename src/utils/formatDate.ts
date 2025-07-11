@@ -23,8 +23,11 @@ export const formatMonthToChinese = (date: Date | string): string => {
 };
 
 // 判断是否当前月
-export const isCurrentMonth = (date: Date | string): boolean => {
-  return isThisMonth(safeParse(date));
+export const isCurrentMonth = (month: {
+  year: number;
+  month: number;
+}): boolean => {
+  return isThisMonth(safeParse(formatYearMonth(month)));
 };
 
 export const formatYearMonth = (yearMonth: {

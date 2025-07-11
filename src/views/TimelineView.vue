@@ -74,11 +74,9 @@
         :key="formatYearMonth(timelineMonth)"
         :timestamp="
           formatMonthToChinese(formatYearMonth(timelineMonth)) +
-          (isCurrentMonth(formatYearMonth(timelineMonth)) ? '（当前）' : '')
+          (isCurrentMonth(timelineMonth) ? '（当前）' : '')
         "
-        :type="
-          isCurrentMonth(formatYearMonth(timelineMonth)) ? 'primary' : undefined
-        "
+        :type="isCurrentMonth(timelineMonth) ? 'primary' : undefined"
         placement="top"
       >
         <MonthCard :month="timelineMonth"></MonthCard>
