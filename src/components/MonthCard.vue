@@ -129,7 +129,6 @@ const hiddenCount = computed(() => {
     :body-style="{
       padding: '15px',
     }"
-    @click="manualExpanded = !manualExpanded"
   >
     <div v-auto-animate>
       <div v-if="isExpanded">
@@ -256,6 +255,7 @@ const hiddenCount = computed(() => {
           justifyContent: 'space-between',
           cursor: 'pointer',
         }"
+        @click="manualExpanded = !manualExpanded"
         v-else
       >
         <el-text
