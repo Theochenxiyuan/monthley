@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { computed, onMounted, onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
 const timelineStore = useTimelineStore();
@@ -14,8 +14,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="app" v-auto-animate>
-    <router-view></router-view>
+  <div id="app">
+    <div v-auto-animate>
+      <router-view></router-view>
+    </div>
 
     <div class="navbar">
       <el-menu mode="horizontal" :default-active="activeRoute" router>
