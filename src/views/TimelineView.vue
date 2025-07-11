@@ -136,7 +136,7 @@ function resetFilters(): void {
 
 <style scoped>
 .timeline-content {
-  padding-left: 5px;
+  padding-left: 6px;
   padding-right: 10px;
   padding-top: 15px;
   padding-bottom: 50px;

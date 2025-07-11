@@ -217,7 +217,7 @@ const hiddenCount = computed(() => {
         <template #footer>
           <div
             v-show="month.entries.length === 0 && !isCurrentMonth(month)"
-            style="order: 1"
+            style="order: 2"
           >
             <el-text type="warning"
               ><el-icon><InfoFilled /></el-icon>
@@ -251,7 +251,7 @@ const hiddenCount = computed(() => {
           flexWrap: 'nowrap',
           justifyContent: 'space-between',
           cursor: 'pointer',
-          padding: '0.6rem 1rem',
+          padding: '0.75rem 1rem',
         }"
         @click="manualExpanded = !manualExpanded"
         v-else
