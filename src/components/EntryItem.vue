@@ -29,30 +29,32 @@ const getStatusText = (entry: TimelineEntry): string => {
     <el-tag
       size="large"
       :type="getEntryColorFromStatus(entry.status)"
-      :class="entry.status"
       disable-transitions
     >
-      <el-text tag="b" :type="getEntryColorFromStatus(entry.status)"
-        ><el-icon size="16" style="margin-right: 2px">
-          <SwitchFilled v-if="entry.type === 'play'" />
-          <School v-else-if="entry.type === 'learn'" />
-          <Film v-else-if="entry.type === 'watch'" />
-          <Reading v-else-if="entry.type === 'read'" />
-          <StarFilled v-else />
-        </el-icon>
+      <div style="display: flex; align-items: center">
+        <span style="margin-right: 3px">
+          <el-icon size="16">
+            <SwitchFilled v-if="entry.type === 'play'" />
+            <School v-else-if="entry.type === 'learn'" />
+            <Film v-else-if="entry.type === 'watch'" />
+            <Reading v-else-if="entry.type === 'read'" />
+            <StarFilled v-else /> </el-icon
+        ></span>
+        <el-text tag="b" :type="getEntryColorFromStatus(entry.status)">
+          {{ getStatusText(entry) }}
+        </el-text>
 
-        {{ getStatusText(entry) }}
-      </el-text>
+        <el-divider direction="vertical"></el-divider>
 
-      <el-divider direction="vertical" />
-      <el-text
-        size="default"
-        :type="getEntryColorFromStatus(entry.status)"
-        truncated
-        style="max-width: 200px"
-      >
-        {{ entry.name }}</el-text
-      >
+        <el-text
+          size="default"
+          :type="getEntryColorFromStatus(entry.status)"
+          truncated
+          style="max-width: 200px"
+        >
+          {{ entry.name }}</el-text
+        >
+      </div>
     </el-tag>
 
     <div class="complete-cover" v-show="entry.status === 'completed'"></div>

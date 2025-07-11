@@ -304,7 +304,7 @@ const hiddenCount = computed(() => {
   opacity: 0.9;
 }
 .chosen > div {
-  transform: scale(1.05);
+  transform: scale(1.02);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   background: var(--el-color-primary-light-9);
   border-radius: 6px;
@@ -324,7 +324,7 @@ const hiddenCount = computed(() => {
 .ghost {
   background: var(--el-color-primary-light-8);
   border-radius: 6px;
-  border: 2px dashed var(--el-color-primary);
+  outline: 2px dashed var(--el-color-primary);
   opacity: 0.6;
 }
 .ghost > div {
