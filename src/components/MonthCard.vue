@@ -127,133 +127,131 @@ const hiddenCount = computed(() => {
 <template>
   <ElCard
     :body-style="{
-      padding: '15px',
+      padding: '0',
     }"
   >
     <div v-auto-animate>
-      <div v-if="isExpanded">
-        <Draggable
-          v-model="month.entries"
-          group="timeline"
-          item-key="id"
-          :style="{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.5rem',
-            alignItems: 'center',
-          }"
-          @change="
-            manualExpanded = true;
-            timelineStore.lastUpdated = new Date();
-            timelineStore.saveLocal();
-          "
-          :delay="300"
-          :delayOnTouchOnly="true"
-          drag-class="drag"
-          ghost-class="ghost"
-          chosen-class="chosen"
-          :animation="300"
-        >
-          <template #item="entry">
-            <div
-              style="order: 1"
-              v-show="
-                !shouldHideEntry(entry.element.type, entry.element.status)
-              "
+      <Draggable
+        v-model="month.entries"
+        group="timeline"
+        item-key="id"
+        :style="{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+          alignItems: 'center',
+          padding: '1rem',
+        }"
+        @change="
+          manualExpanded = true;
+          timelineStore.lastUpdated = new Date();
+          timelineStore.saveLocal();
+        "
+        :delay="300"
+        :delayOnTouchOnly="true"
+        drag-class="drag"
+        ghost-class="ghost"
+        chosen-class="chosen"
+        :animation="300"
+        v-if="isExpanded"
+      >
+        <template #item="entry">
+          <div
+            style="order: 1"
+            v-show="!shouldHideEntry(entry.element.type, entry.element.status)"
+          >
+            <el-dropdown
+              placement="bottom"
+              trigger="click"
+              size="large"
+              teleported
             >
-              <el-dropdown
-                placement="bottom"
-                trigger="click"
-                size="large"
-                teleported
-              >
-                <EntryItem :entry="entry.element" />
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item
-                      v-if="entry.element.status !== 'completed'"
-                      @click="
-                        timelineStore.toNextStatus(
-                          { year: month.year, month: month.month },
-                          entry.element.id
-                        )
+              <EntryItem :entry="entry.element" />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-if="entry.element.status !== 'completed'"
+                    @click="
+                      timelineStore.toNextStatus(
+                        { year: month.year, month: month.month },
+                        entry.element.id
+                      )
+                    "
+                    ><el-text
+                      size="large"
+                      :type="
+                        entry.element.status === 'in_progress'
+                          ? 'success'
+                          : 'primary'
                       "
-                      ><el-text
-                        size="large"
-                        :type="
-                          entry.element.status === 'in_progress'
-                            ? 'success'
-                            : 'primary'
-                        "
-                        >{{
-                          entry.element.status === 'in_progress'
-                            ? '完成'
-                            : '开始'
-                        }}</el-text
-                      ></el-dropdown-item
-                    >
-                    <el-dropdown-item
-                      @click="
-                        dialogStore.open(
-                          {
-                            month: new Date(formatYearMonth(month)),
-                            ...entry.element,
-                          },
-                          entry.element.id
-                        )
-                      "
-                      ><el-text size="large" type="warning"
-                        >编辑</el-text
-                      ></el-dropdown-item
-                    >
-                    <el-dropdown-item @click="handleDelete(entry.element.id)"
-                      ><el-text size="large" type="danger"
-                        >删除</el-text
-                      ></el-dropdown-item
-                    >
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-          </template>
+                      >{{
+                        entry.element.status === 'in_progress' ? '完成' : '开始'
+                      }}</el-text
+                    ></el-dropdown-item
+                  >
+                  <el-dropdown-item
+                    @click="
+                      dialogStore.open(
+                        {
+                          month: new Date(formatYearMonth(month)),
+                          ...entry.element,
+                        },
+                        entry.element.id
+                      )
+                    "
+                    ><el-text size="large" type="warning"
+                      >编辑</el-text
+                    ></el-dropdown-item
+                  >
+                  <el-dropdown-item @click="handleDelete(entry.element.id)"
+                    ><el-text size="large" type="danger"
+                      >删除</el-text
+                    ></el-dropdown-item
+                  >
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </template>
 
-          <template #footer>
-            <div
-              v-show="month.entries.length === 0 && !isCurrentMonth(month)"
-              style="order: 1"
+        <template #footer>
+          <div
+            v-show="month.entries.length === 0 && !isCurrentMonth(month)"
+            style="order: 1"
+          >
+            <el-text type="warning"
+              ><el-icon><InfoFilled /></el-icon>
+              空月份将在应用重启后自动清除</el-text
             >
-              <el-text type="warning"
-                ><el-icon><InfoFilled /></el-icon>
-                空月份将在应用重启后自动清除</el-text
-              >
-            </div>
+          </div>
 
-            <div v-show="hiddenCount > 0" style="order: 2">
-              <el-text type="warning" size="small"
-                >({{ hiddenCount }}个已隐藏)</el-text
-              >
-            </div>
-
-            <ElButton
-              type="primary"
-              text
-              size="small"
-              @click="
-                dialogStore.open({ month: new Date(formatYearMonth(month)) })
-              "
-              style="order: 2"
+          <div v-show="hiddenCount > 0" style="order: 2">
+            <el-text type="warning" size="small"
+              >({{ hiddenCount }}个已隐藏)</el-text
             >
-              <el-icon size="18"><Plus /></el-icon>
-            </ElButton>
-          </template>
-        </Draggable>
-      </div>
+          </div>
+
+          <ElButton
+            type="primary"
+            text
+            size="small"
+            @click="
+              dialogStore.open({ month: new Date(formatYearMonth(month)) })
+            "
+            style="order: 2"
+          >
+            <el-icon size="18"><Plus /></el-icon>
+          </ElButton>
+        </template>
+      </Draggable>
+
       <div
         :style="{
           display: 'flex',
           flexWrap: 'nowrap',
           justifyContent: 'space-between',
           cursor: 'pointer',
+          padding: '0.6rem 1rem',
         }"
         @click="manualExpanded = !manualExpanded"
         v-else
@@ -302,6 +300,7 @@ const hiddenCount = computed(() => {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   opacity: 0.9;
+  z-index: 100;
 }
 .chosen > div {
   transform: scale(1.02);
