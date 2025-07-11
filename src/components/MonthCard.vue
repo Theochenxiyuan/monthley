@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TimelineMonth } from '@/types/models';
+import type { EntryStatus, EntryType, TimelineMonth } from '@/types/models';
 import { typeMap } from '@/types/models';
 import EntryItem from './EntryItem.vue';
 import { useDialogStore } from '@/stores/dialog';
@@ -10,6 +10,7 @@ import { computed, ref } from 'vue';
 import { isCurrentMonth } from '@/utils/formatDate';
 import { useSettingsStore } from '@/stores/settings';
 import { useFiltersStore } from '@/stores/filters';
+import Draggable from 'vuedraggable';
 const settingsStore = useSettingsStore();
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
@@ -44,6 +45,7 @@ function isFutureMonthAllNotStarted(month: TimelineMonth): boolean {
 function shouldExpandMonth(month: TimelineMonth): boolean {
   if (
     isCurrentMonth(formatYearMonth(props.month)) || // 当前月
+    month.entries.length === 0 ||
     props.month.entries.some((e) => e.status === 'in_progress') // 有进行中
   )
     return true;
@@ -91,21 +93,34 @@ const handleDelete = (entryId: string): void => {
     .catch(() => {});
 };
 
-const filteredEntries = computed(() => {
-  if (!filtersStore.isActive) return props.month.entries;
+function shouldHideEntry(type: EntryType, status: EntryStatus): boolean {
+  const { isTypeFilterActive, activeFilters, isStatusFilterActive } =
+    filtersStore;
+
+  const typeCondition = isTypeFilterActive
+    ? !activeFilters.type.includes(type)
+    : false;
+
+  const statusCondition = isStatusFilterActive
+    ? !activeFilters.status.includes(status)
+    : false;
+
+  return typeCondition || statusCondition;
+}
+
+const hiddenCount = computed(() => {
+  if (!filtersStore.isActive) return 0;
 
   const { isTypeFilterActive, activeFilters, isStatusFilterActive } =
     filtersStore;
 
-  return props.month.entries.filter(
-    (entry) =>
-      (!isTypeFilterActive || activeFilters.type.includes(entry.type)) &&
-      (!isStatusFilterActive || activeFilters.status.includes(entry.status))
-  );
-});
+  return props.month.entries.reduce((count, entry) => {
+    const shouldHide =
+      (isTypeFilterActive && !activeFilters.type.includes(entry.type)) ||
+      (isStatusFilterActive && !activeFilters.status.includes(entry.status));
 
-const hiddenCount = computed(() => {
-  return props.month.entries.length - filteredEntries.value.length;
+    return count + (shouldHide ? 1 : 0);
+  }, 0);
 });
 </script>
 
@@ -113,75 +128,106 @@ const hiddenCount = computed(() => {
   <ElCard
     :body-style="{
       padding: '15px',
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.5rem',
-      alignItems: 'center',
     }"
     v-if="isExpanded"
   >
-    <el-dropdown
-      placement="bottom"
-      trigger="click"
-      v-for="entry in filteredEntries"
-      :key="entry.id"
-      size="large"
-      teleported
+    <Draggable
+      v-model="month.entries"
+      group="timeline"
+      item-key="id"
+      :style="{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '0.5rem',
+        alignItems: 'center',
+      }"
+      @change="
+        manualExpanded = true;
+        timelineStore.lastUpdated = new Date();
+        timelineStore.saveLocal();
+      "
     >
-      <EntryItem :entry="entry" />
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item
-            v-if="entry.status !== 'completed'"
-            @click="
-              timelineStore.toNextStatus(
-                { year: month.year, month: month.month },
-                entry.id
-              )
-            "
-            ><el-text
-              size="large"
-              :type="entry.status === 'in_progress' ? 'success' : 'primary'"
-              >{{ entry.status === 'in_progress' ? '完成' : '开始' }}</el-text
-            ></el-dropdown-item
-          >
-          <el-dropdown-item
-            @click="
-              dialogStore.open(
-                {
-                  month: new Date(formatYearMonth(month)),
-                  ...entry,
-                },
-                entry.id
-              )
-            "
-            ><el-text size="large" type="warning"
-              >编辑</el-text
-            ></el-dropdown-item
-          >
-          <el-dropdown-item @click="handleDelete(entry.id)"
-            ><el-text size="large" type="danger"
-              >删除</el-text
-            ></el-dropdown-item
-          >
-        </el-dropdown-menu>
+      <template #item="entry">
+        <el-dropdown
+          placement="bottom"
+          trigger="click"
+          size="large"
+          style="order: 1"
+          v-show="!shouldHideEntry(entry.element.type, entry.element.status)"
+          teleported
+        >
+          <EntryItem :entry="entry.element" />
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                v-if="entry.element.status !== 'completed'"
+                @click="
+                  timelineStore.toNextStatus(
+                    { year: month.year, month: month.month },
+                    entry.element.id
+                  )
+                "
+                ><el-text
+                  size="large"
+                  :type="
+                    entry.element.status === 'in_progress'
+                      ? 'success'
+                      : 'primary'
+                  "
+                  >{{
+                    entry.element.status === 'in_progress' ? '完成' : '开始'
+                  }}</el-text
+                ></el-dropdown-item
+              >
+              <el-dropdown-item
+                @click="
+                  dialogStore.open(
+                    {
+                      month: new Date(formatYearMonth(month)),
+                      ...entry.element,
+                    },
+                    entry.element.id
+                  )
+                "
+                ><el-text size="large" type="warning"
+                  >编辑</el-text
+                ></el-dropdown-item
+              >
+              <el-dropdown-item @click="handleDelete(entry.element.id)"
+                ><el-text size="large" type="danger"
+                  >删除</el-text
+                ></el-dropdown-item
+              >
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </template>
-    </el-dropdown>
 
-    <el-text
-      v-show="filtersStore.isActive && hiddenCount > 0"
-      type="warning"
-      size="small"
-      >({{ hiddenCount }}个已隐藏)</el-text
-    >
-    <ElButton
-      type="primary"
-      text
-      size="small"
-      @click="dialogStore.open({ month: new Date(formatYearMonth(month)) })"
-    >
-      <el-icon size="18"><Plus /></el-icon>
-    </ElButton>
+      <template #footer>
+        <div v-show="month.entries.length === 0" style="order: 1">
+          <el-text type="warning"
+            ><el-icon><InfoFilled /></el-icon>
+            空月份将在应用重启后自动清除</el-text
+          >
+        </div>
+
+        <div v-show="hiddenCount > 0" style="order: 2">
+          <el-text type="warning" size="small"
+            >({{ hiddenCount }}个已隐藏)</el-text
+          >
+        </div>
+
+        <ElButton
+          type="primary"
+          text
+          size="small"
+          @click="dialogStore.open({ month: new Date(formatYearMonth(month)) })"
+          style="order: 2"
+        >
+          <el-icon size="18"><Plus /></el-icon>
+        </ElButton>
+      </template>
+    </Draggable>
   </ElCard>
 
   <ElCard

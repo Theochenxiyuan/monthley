@@ -64,6 +64,7 @@
 }
 .setting-content {
   text-align: center;
+  padding: 0.5rem;
 }
 .setting-item {
   vertical-align: middle;

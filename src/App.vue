@@ -8,7 +8,7 @@ const settingsStore = useSettingsStore();
 const route = useRoute();
 const activeRoute = computed(() => route.path);
 onMounted(() => {
-  timelineStore.loadLocal();
+  timelineStore.init();
   settingsStore.init();
 });
 </script>

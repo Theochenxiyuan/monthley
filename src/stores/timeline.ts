@@ -57,6 +57,10 @@ export const useTimelineStore = defineStore('timeline', {
   },
   actions: {
     _saveTimer: null as number | null,
+    init() {
+      this.loadLocal();
+      this.clearEmptyMonths();
+    },
     loadLocal() {
       try {
         const saved = localStorage.getItem('timeline');
@@ -108,7 +112,6 @@ export const useTimelineStore = defineStore('timeline', {
       const newEntry: TimelineEntry = {
         ...entry,
         id: crypto.randomUUID(),
-        orderIndex: (targetMonth?.entries.length || 0) + 1,
       };
       if (targetMonth) {
         targetMonth.entries.push(newEntry);
@@ -125,10 +128,6 @@ export const useTimelineStore = defineStore('timeline', {
       );
       if (month) {
         month.entries = month.entries.filter((entry) => entry.id !== entryId);
-        if (month.entries.length === 0) {
-          this.months = this.months.filter((m) => m !== month);
-        }
-        this.lastUpdated = new Date();
         this.saveLocal();
       }
     },
@@ -168,10 +167,6 @@ export const useTimelineStore = defineStore('timeline', {
 
       const [entryToMove] = sourceMonth.entries.splice(entryIndex, 1);
 
-      if (sourceMonth.entries.length === 0) {
-        this.months = this.months.filter((m) => m !== sourceMonth);
-      }
-
       let targetMonth = this.months.find(
         (m) => m.year === newMonth.year && m.month === newMonth.month
       );
@@ -207,7 +202,11 @@ export const useTimelineStore = defineStore('timeline', {
         return a.month - b.month;
       });
     },
-
+    clearEmptyMonths() {
+      // 过滤掉没有 entries 的月份
+      this.months = this.months.filter((month) => month.entries.length > 0);
+      this.saveLocal();
+    },
     clearData() {
       this.months = [];
       this.lastUpdated = null;

@@ -27,7 +27,6 @@ export interface TimelineEntry {
   name: string;
   type: EntryType;
   status: EntryStatus;
-  orderIndex: number;
   notes?: string; // 可选备注
 }
 

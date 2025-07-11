@@ -45,7 +45,12 @@ const getStatusText = (entry: TimelineEntry): string => {
       </el-text>
 
       <el-divider direction="vertical" />
-      <el-text size="default" :type="getEntryColorFromStatus(entry.status)">
+      <el-text
+        size="default"
+        :type="getEntryColorFromStatus(entry.status)"
+        truncated
+        style="max-width: 200px"
+      >
         {{ entry.name }}</el-text
       >
     </el-tag>
