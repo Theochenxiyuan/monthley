@@ -155,7 +155,7 @@ const groupedDisplayText = computed(() => {
     }
   });
 
-  return parts.join('; '); // 使用分号分隔不同类型
+  return parts.join('；'); // 使用分号分隔不同类型
 });
 </script>
 
