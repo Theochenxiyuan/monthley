@@ -38,31 +38,36 @@ onMounted(() => {
 <style scoped>
 #app {
   height: 100vh;
-  max-width: 800px;
+  max-width: 1200px; /* Increased from 800px */
+  width: 100%;
   position: relative;
   margin: auto;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 60px; /* Space for navbar */
 }
 
 .navbar {
   position: fixed;
   bottom: 0;
-  width: 800px;
-  max-width: 100vw;
+  width: 100%;
+  max-width: 1200px;
   height: auto;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-top: 1px solid var(--el-menu-border-color);
   background-color: var(--el-menu-bg-color);
+  z-index: 1000;
 }
+
 .navbar .el-menu {
   width: 100%;
   display: flex;
   justify-content: space-around;
-}
-.tab-label {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 </style>

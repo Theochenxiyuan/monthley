@@ -1,11 +1,22 @@
 <script setup lang="ts">
 import type { TimelineEntry, EntryStatus } from '@/types/models';
 import { statusMap, typeMap } from '@/types/models';
-import { Reading, School } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
 
 const props = defineProps<{
   entry: TimelineEntry;
 }>();
+
+const iconMap: Record<string, string> = {
+  play: 'codicon:game',
+  learn: 'mdi:school',
+  watch: 'mdi:filmstrip',
+  read: 'mdi:book-open-page-variant',
+};
+
+const getEntryIcon = (entry: TimelineEntry): string => {
+  return iconMap[entry.type] || iconMap.play;
+};
 
 const getEntryColorFromStatus = (
   status: EntryStatus
@@ -33,13 +44,8 @@ const getStatusText = (entry: TimelineEntry): string => {
     >
       <div style="display: flex; align-items: center" class="not-selectable">
         <span style="margin-right: 3px">
-          <el-icon size="16">
-            <SwitchFilled v-if="entry.type === 'play'" />
-            <School v-else-if="entry.type === 'learn'" />
-            <Film v-else-if="entry.type === 'watch'" />
-            <Reading v-else-if="entry.type === 'read'" />
-            <StarFilled v-else /> </el-icon
-        ></span>
+          <Icon :icon="getEntryIcon(entry)" width="16" height="16"
+        /></span>
         <el-text tag="b" :type="getEntryColorFromStatus(entry.status)">
           {{ getStatusText(entry) }}
         </el-text>

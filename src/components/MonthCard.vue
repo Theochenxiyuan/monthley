@@ -61,7 +61,7 @@ function shouldExpandMonth(month: TimelineMonth): boolean {
   return true;
 }
 
-const manualExpanded = ref(false); // For manual toggle state
+const manualExpanded = ref(shouldExpandMonth(props.month)); // For manual toggle state
 
 const isExpanded = computed(() => {
   // Force-expanded cases
@@ -121,6 +121,41 @@ const hiddenCount = computed(() => {
 
     return count + (shouldHide ? 1 : 0);
   }, 0);
+});
+// 新增：按类型分组条目
+const groupedEntries = computed(() => {
+  const groups: Record<EntryType, string[]> = {} as Record<EntryType, string[]>;
+
+  // 初始化所有类型
+  const entryTypes = ['learn', 'play', 'watch', 'read'] as const;
+  entryTypes.forEach((type) => {
+    groups[type as EntryType] = [];
+  });
+
+  // 分组条目名称
+  props.month.entries.forEach((entry) => {
+    groups[entry.type].push(entry.name);
+  });
+
+  return groups;
+});
+
+const groupedDisplayText = computed(() => {
+  const parts: string[] = [];
+
+  Object.entries(groupedEntries.value).forEach(([type, names]) => {
+    if (names.length > 0) {
+      const typeChar = typeMap[type as EntryType];
+      // 如果条目名称较长，可以限制显示数量
+      const displayNames =
+        names.length > 3
+          ? [...names.slice(0, 3), `等${names.length}项`]
+          : names;
+      parts.push(`${typeChar}${displayNames.join('、')}`);
+    }
+  });
+
+  return parts.join('; '); // 使用分号分隔不同类型
 });
 </script>
 
@@ -276,14 +311,11 @@ const hiddenCount = computed(() => {
                 : isFutureMonthAllNotStarted(month)
                 ? '已计划'
                 : ''
-            }}</span
-          >
+            }}
+          </span>
 
           <span v-show="settingsStore.showEntriesCollapsed">
-            {{
-              ': ' +
-              month.entries.map((e) => typeMap[e.type] + e.name).join('，')
-            }}</span
+            {{ '：' + groupedDisplayText }}</span
           >
         </el-text>
 
