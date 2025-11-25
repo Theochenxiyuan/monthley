@@ -30,36 +30,13 @@ export const useTimelineStore = defineStore('timeline', {
         return a.month - b.month;
       });
     },
-    timelineWithCurrentMonth(): TimelineMonth[] {
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1; // 1-12
-
-      // 检查是否已存在当前月
-      const hasCurrentMonth = this.months.some(
-        (m) => m.year === currentYear && m.month === currentMonth
-      );
-
-      // 合并现有月份和当前月（如不存在）
-      const months = hasCurrentMonth
-        ? [...this.months]
-        : [
-            ...this.months,
-            { year: currentYear, month: currentMonth, entries: [] },
-          ];
-
-      // 按时间排序
-      return months.sort((a, b) => {
-        if (a.year !== b.year) return a.year - b.year;
-        return a.month - b.month;
-      });
-    },
   },
   actions: {
     _saveTimer: null as number | null,
     init() {
       this.loadLocal();
       this.clearEmptyMonths();
+      this.addCurrentMonthIfMissing();
     },
     loadLocal() {
       try {
@@ -86,6 +63,26 @@ export const useTimelineStore = defineStore('timeline', {
         );
       } catch (err) {
         console.error('Save failed:', err);
+      }
+    },
+    addCurrentMonthIfMissing() {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1;
+
+      // 检查是否已存在当前月，如果不存在则创建
+      const hasCurrentMonth = this.months.some(
+        (m) => m.year === currentYear && m.month === currentMonth
+      );
+
+      if (!hasCurrentMonth) {
+        // 直接添加到 store 中，而不是返回时临时添加
+        this.months.push({
+          year: currentYear,
+          month: currentMonth,
+          entries: [],
+        });
+        this.sortMonths();
       }
     },
     saveLocal() {

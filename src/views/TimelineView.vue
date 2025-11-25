@@ -70,7 +70,7 @@
       ></el-timeline-item>
 
       <el-timeline-item
-        v-for="timelineMonth in timelineStore.timelineWithCurrentMonth"
+        v-for="timelineMonth in timelineStore.allMonths"
         :key="formatYearMonth(timelineMonth)"
         :timestamp="
           formatMonthToChinese(formatYearMonth(timelineMonth)) +
