@@ -24,6 +24,7 @@ export default {
     topReached: '已经到顶了',
     bottomReached: '已经到底了',
     current: '当前',
+    noRecord: '无记录',
   },
   entry: {
     title: '记录详情',

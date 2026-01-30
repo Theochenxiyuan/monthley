@@ -90,14 +90,12 @@ import { useSettingsStore } from '../stores/settings';
 const { t, locale } = useI18n();
 const settingsStore = useSettingsStore();
 const currentLanguage = computed({
-  get: () => settingsStore.language,
+  get: () => locale.value,
   set: (value) => {
-    settingsStore.language = value;
     locale.value = value;
   },
 });
 const changeLanguage = (lang: string) => {
-  settingsStore.language = lang;
   locale.value = lang;
 };
 </script>

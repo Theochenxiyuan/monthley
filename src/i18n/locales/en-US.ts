@@ -24,6 +24,7 @@ export default {
     topReached: 'This is the start of the timeline',
     bottomReached: 'This is the end of the timeline',
     current: 'Current',
+    noRecord: 'No record',
   },
   entry: {
     title: 'Entry',

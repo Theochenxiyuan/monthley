@@ -13,6 +13,13 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
+// 类型映射
+const typeMap: Record<string, string> = {
+  learn: t('entryItem.types.learn'),
+  play: t('entryItem.types.play'),
+  watch: t('entryItem.types.watch'),
+  read: t('entryItem.types.read'),
+};
 const settingsStore = useSettingsStore();
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
@@ -20,13 +27,6 @@ const filtersStore = useFiltersStore();
 const props = defineProps<{
   month: TimelineMonth;
 }>();
-
-const typeMap = computed(() => ({
-  learn: t('entryItem.types.learn'),
-  play: t('entryItem.types.play'),
-  watch: t('entryItem.types.watch'),
-  read: t('entryItem.types.read'),
-}));
 // 过去月份是否全部已完成
 function isPastMonthFullyCompleted(month: TimelineMonth): boolean {
   const now = new Date();
@@ -161,7 +161,8 @@ const groupedDisplayText = computed(() => {
 
   Object.entries(groupedEntries.value).forEach(([type, names]) => {
     if (names.length > 0) {
-      const typeChar = typeMap.value[type as EntryType];
+      const typeChar = typeMap[type as EntryType];
+      // 如果条目名称较长，可以限制显示数量
       const displayNames =
         names.length > 3
           ? [
@@ -175,7 +176,7 @@ const groupedDisplayText = computed(() => {
     }
   });
 
-  return parts.join(typeSeparator);
+  return parts.join(typeSeparator); // 使用语言特定的类型分隔符
 });
 </script>
 

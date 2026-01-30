@@ -27,7 +27,7 @@ const safeParse = (date: Date | string): Date => {
 
 // 获取当前语言对应的locale
 export const getCurrentLocale = () => {
-  const locale = i18n.global.locale.value;
+  const locale = i18n.global.locale;
   return localeMap[locale as keyof typeof localeMap] || localeMap['en-US']; // 默认使用en-US
 };
 
@@ -35,12 +35,16 @@ export const getCurrentLocale = () => {
 export const formatMonth = (date: Date | string): string => {
   try {
     const formatString = i18n.global.t('date.formats.month');
-    return format(safeParse(date), formatString, { locale: getCurrentLocale() });
+    return format(safeParse(date), formatString, {
+      locale: getCurrentLocale(),
+    });
   } catch (error) {
     // 降级处理，防止翻译键不存在时出错
-    const locale = i18n.global.locale.value;
+    const locale = i18n.global.locale;
     const formatString = locale === 'zh-CN' ? 'yyyy年M月' : 'MMMM yyyy';
-    return format(safeParse(date), formatString, { locale: getCurrentLocale() });
+    return format(safeParse(date), formatString, {
+      locale: getCurrentLocale(),
+    });
   }
 };
 
@@ -85,7 +89,7 @@ export const smartFormatDateTime = (date: Date | string): string => {
     return `${dateStr} ${timeStr}`;
   } catch (error) {
     // 降级处理，防止翻译键不存在时出错
-    const locale = i18n.global.locale.value;
+    const locale = i18n.global.locale;
     const dateFormat = locale === 'zh-CN' ? 'yyyy年M月d日' : 'MMMM d, yyyy';
     const dateStr = format(dateObj, dateFormat, { locale: getCurrentLocale() });
 
@@ -96,7 +100,9 @@ export const smartFormatDateTime = (date: Date | string): string => {
       return locale === 'zh-CN' ? `昨天 ${timeStr}` : `Yesterday ${timeStr}`;
     }
     if (days === 2) {
-      return locale === 'zh-CN' ? `前天 ${timeStr}` : `Day before yesterday ${timeStr}`;
+      return locale === 'zh-CN'
+        ? `前天 ${timeStr}`
+        : `Day before yesterday ${timeStr}`;
     }
     return `${dateStr} ${timeStr}`;
   }
