@@ -9,19 +9,6 @@ export type EntryType = (typeof entryTypes)[number];
 
 export type EntryStatus = (typeof entryStatuses)[number];
 
-export const statusMap = {
-  not_started: '准备',
-  in_progress: '正在',
-  completed: '已',
-} as const;
-
-export const typeMap = {
-  learn: '学',
-  play: '玩',
-  watch: '看',
-  read: '读',
-} as const;
-
 export interface TimelineEntry {
   id: string; // 唯一标识
   name: string;

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { TimelineEntry, EntryStatus } from '@/types/models';
-import { statusMap, typeMap } from '@/types/models';
+import { useI18n } from 'vue-i18n';
 import { Icon } from '@iconify/vue';
 
+const { t } = useI18n();
 const props = defineProps<{
   entry: TimelineEntry;
 }>();
@@ -19,7 +20,7 @@ const getEntryIcon = (entry: TimelineEntry): string => {
 };
 
 const getEntryColorFromStatus = (
-  status: EntryStatus
+  status: EntryStatus,
 ): 'success' | 'primary' | 'info' => {
   const statusColors = {
     not_started: 'info',
@@ -28,10 +29,22 @@ const getEntryColorFromStatus = (
   } as const;
   return statusColors[status] || 'info';
 };
+
+const typeMap: Record<string, string> = {
+  learn: t('entryItem.types.learn'),
+  play: t('entryItem.types.play'),
+  watch: t('entryItem.types.watch'),
+  read: t('entryItem.types.read'),
+};
+
+const statusMap: Record<string, string> = {
+  not_started: t('entryItem.statuses.not_started'),
+  in_progress: t('entryItem.statuses.in_progress'),
+  completed: t('entryItem.statuses.completed'),
+};
+
 const getStatusText = (entry: TimelineEntry): string => {
-  return `${statusMap[entry.status] || ''}${
-    typeMap[entry.type as keyof typeof typeMap] || entry.type
-  }`;
+  return t(`entryItem.statusType.${entry.status}.${entry.type}`);
 };
 </script>
 

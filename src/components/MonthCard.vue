@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import type { EntryStatus, EntryType, TimelineMonth } from '@/types/models';
-import { typeMap } from '@/types/models';
 import EntryItem from './EntryItem.vue';
 import { useDialogStore } from '@/stores/dialog';
 import { useTimelineStore } from '@/stores/timeline';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { formatYearMonth } from '@/utils/formatDate';
+import { formatYearMonth, isCurrentMonth } from '@/utils/dateFormatter';
 import { computed, ref } from 'vue';
-import { isCurrentMonth } from '@/utils/formatDate';
 import { useSettingsStore } from '@/stores/settings';
 import { useFiltersStore } from '@/stores/filters';
 import Draggable from 'vuedraggable';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
+
+// 类型映射
+const typeMap: Record<string, string> = {
+  learn: t('entryItem.types.learn'),
+  play: t('entryItem.types.play'),
+  watch: t('entryItem.types.watch'),
+  read: t('entryItem.types.read'),
+};
 const settingsStore = useSettingsStore();
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
@@ -75,19 +84,23 @@ const isExpanded = computed(() => {
 });
 
 const handleDelete = (entryId: string): void => {
-  ElMessageBox.confirm('请确认是否要删除本条目，此操作无法撤回', '删除条目', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-    type: 'info',
-  })
+  ElMessageBox.confirm(
+    t('monthCard.confirmDelete'),
+    t('monthCard.deleteEntry'),
+    {
+      confirmButtonText: t('monthCard.confirm'),
+      cancelButtonText: t('monthCard.cancel'),
+      type: 'info',
+    },
+  )
     .then(() => {
       timelineStore.deleteEntry(
         { year: props.month.year, month: props.month.month },
-        entryId
+        entryId,
       );
       ElMessage({
         type: 'success',
-        message: '删除成功',
+        message: t('monthCard.deleteSuccess'),
       });
     })
     .catch(() => {});
@@ -142,6 +155,9 @@ const groupedEntries = computed(() => {
 
 const groupedDisplayText = computed(() => {
   const parts: string[] = [];
+  const listSeparator = t('punctuation.space.listSeparator');
+  const typeSeparator = t('punctuation.space.typeSeparator');
+  const betweenTypeAndName = t('punctuation.space.betweenTypeAndName');
 
   Object.entries(groupedEntries.value).forEach(([type, names]) => {
     if (names.length > 0) {
@@ -149,13 +165,18 @@ const groupedDisplayText = computed(() => {
       // 如果条目名称较长，可以限制显示数量
       const displayNames =
         names.length > 3
-          ? [...names.slice(0, 3), `等${names.length}项`]
+          ? [
+              ...names.slice(0, 3),
+              t('monthCard.andMore', { count: names.length }),
+            ]
           : names;
-      parts.push(`${typeChar}${displayNames.join('、')}`);
+      parts.push(
+        `${typeChar}${betweenTypeAndName}${displayNames.join(listSeparator)}`,
+      );
     }
   });
 
-  return parts.join('；'); // 使用分号分隔不同类型
+  return parts.join(typeSeparator); // 使用语言特定的类型分隔符
 });
 </script>
 
@@ -209,7 +230,7 @@ const groupedDisplayText = computed(() => {
                     @click="
                       timelineStore.toNextStatus(
                         { year: month.year, month: month.month },
-                        entry.element.id
+                        entry.element.id,
                       )
                     "
                     ><el-text
@@ -220,7 +241,9 @@ const groupedDisplayText = computed(() => {
                           : 'primary'
                       "
                       >{{
-                        entry.element.status === 'in_progress' ? '完成' : '开始'
+                        entry.element.status === 'in_progress'
+                          ? t('monthCard.complete')
+                          : t('monthCard.start')
                       }}</el-text
                     ></el-dropdown-item
                   >
@@ -231,17 +254,17 @@ const groupedDisplayText = computed(() => {
                           month: new Date(formatYearMonth(month)),
                           ...entry.element,
                         },
-                        entry.element.id
+                        entry.element.id,
                       )
                     "
-                    ><el-text size="large" type="warning"
-                      >编辑</el-text
-                    ></el-dropdown-item
+                    ><el-text size="large" type="warning">{{
+                      t('monthCard.edit')
+                    }}</el-text></el-dropdown-item
                   >
                   <el-dropdown-item @click="handleDelete(entry.element.id)"
-                    ><el-text size="large" type="danger"
-                      >删除</el-text
-                    ></el-dropdown-item
+                    ><el-text size="large" type="danger">{{
+                      t('monthCard.delete')
+                    }}</el-text></el-dropdown-item
                   >
                 </el-dropdown-menu>
               </template>
@@ -256,13 +279,13 @@ const groupedDisplayText = computed(() => {
           >
             <el-text type="warning"
               ><el-icon><InfoFilled /></el-icon>
-              空月份将在应用重启后自动清除</el-text
+              {{ t('monthCard.emptyMonth') }}</el-text
             >
           </div>
 
           <div v-show="hiddenCount > 0" style="order: 2">
             <el-text type="warning" size="small"
-              >({{ hiddenCount }}个已隐藏)</el-text
+              >({{ hiddenCount }} {{ t('monthCard.hiddenEntries') }})</el-text
             >
           </div>
 
@@ -297,25 +320,28 @@ const groupedDisplayText = computed(() => {
             isPastMonthFullyCompleted(month)
               ? 'success'
               : isFutureMonthAllNotStarted(month)
-              ? 'info'
-              : ''
+                ? 'info'
+                : ''
           "
         >
-          <span v-show="settingsStore.showNumCollapsed">{{
-            String(month.entries.length) + '个'
-          }}</span>
           <span>
             {{
-              isPastMonthFullyCompleted(month)
-                ? '已完成'
+              (isPastMonthFullyCompleted(month)
+                ? t('monthCard.completed')
                 : isFutureMonthAllNotStarted(month)
-                ? '已计划'
-                : ''
+                  ? t('monthCard.planned')
+                  : '') + t('punctuation.space.betweenWords')
             }}
           </span>
 
+          <span v-show="settingsStore.showNumCollapsed">{{
+            String(month.entries.length) +
+            t('punctuation.space.betweenWords') +
+            t('monthCard.entries')
+          }}</span>
+
           <span v-show="settingsStore.showEntriesCollapsed">
-            {{ '：' + groupedDisplayText }}</span
+            {{ t('punctuation.colon') + groupedDisplayText }}</span
           >
         </el-text>
 

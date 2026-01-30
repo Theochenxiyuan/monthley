@@ -4,13 +4,16 @@
       ><el-icon size="24"><Operation /></el-icon
     ></el-button>
     <el-text
-      >更新于：{{
+      >{{ t('timeline.updatedAt') }}{{ t('punctuation.colon') }}
+      {{
         timelineStore.lastUpdated
           ? smartFormatDateTime(timelineStore.lastUpdated)
-          : '无记录'
+          : t('timeline.noEntries')
       }}</el-text
     >
-    <el-button type="primary" text @click="dialogStore.open()">添加</el-button>
+    <el-button type="primary" text @click="dialogStore.open()">{{
+      t('common.add')
+    }}</el-button>
   </header>
 
   <div class="timeline-content">
@@ -18,9 +21,9 @@
     <el-drawer
       v-model="drawerVisible"
       show-close
-      size="320px"
+      size="400px"
       modal
-      title="筛选显示条目"
+      :title="t('filters.title')"
       direction="ltr"
       @close="
         typeFilters = filtersStore.activeFilters.type;
@@ -32,7 +35,9 @@
       "
     >
       <div class="filter-item">
-        <el-text>按条目类型:</el-text>
+        <el-text
+          >{{ t('filters.categories') }}{{ t('punctuation.colon') }}</el-text
+        >
         <el-checkbox-group v-model="typeFilters" size="large">
           <el-checkbox-button
             v-for="option in typeOptions"
@@ -44,7 +49,7 @@
         </el-checkbox-group>
       </div>
       <div class="filter-item">
-        <el-text>按条目进度:</el-text>
+        <el-text>{{ t('filters.status') }}{{ t('punctuation.colon') }}</el-text>
         <el-checkbox-group v-model="statusFilters" size="large">
           <el-checkbox-button
             v-for="option in statusOptions"
@@ -56,16 +61,20 @@
         </el-checkbox-group>
       </div>
 
-      <el-text>注意：使用筛选时月份会展开显示</el-text>
+      <el-text>{{ t('filters.notes') }}</el-text>
       <template #footer>
-        <el-button type="primary" text @click="resetFilters()">重置</el-button>
-        <el-button type="primary" @click="confirmFilters()">确认</el-button>
+        <el-button type="primary" text @click="resetFilters()">{{
+          t('common.reset')
+        }}</el-button>
+        <el-button type="primary" @click="confirmFilters()">{{
+          t('common.save')
+        }}</el-button>
       </template>
     </el-drawer>
 
     <el-timeline>
       <el-timeline-item
-        timestamp="已经到顶了"
+        :timestamp="t('timeline.topReached')"
         placement="top"
       ></el-timeline-item>
 
@@ -73,8 +82,13 @@
         v-for="timelineMonth in timelineStore.allMonths"
         :key="formatYearMonth(timelineMonth)"
         :timestamp="
-          formatMonthToChinese(formatYearMonth(timelineMonth)) +
-          (isCurrentMonth(timelineMonth) ? '（当前）' : '')
+          formatMonth(formatYearMonth(timelineMonth)) +
+          (isCurrentMonth(timelineMonth)
+            ? t('punctuation.space.betweenWords') +
+              t('punctuation.bracket.round[0]') +
+              t('timeline.current') +
+              t('punctuation.bracket.round[1]')
+            : '')
         "
         :type="isCurrentMonth(timelineMonth) ? 'primary' : undefined"
         placement="top"
@@ -82,7 +96,7 @@
         <MonthCard :month="timelineMonth"></MonthCard>
       </el-timeline-item>
       <el-timeline-item
-        timestamp="已经到底了"
+        :timestamp="t('timeline.bottomReached')"
         placement="top"
       ></el-timeline-item>
     </el-timeline>
@@ -91,34 +105,36 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import EntryDialog from '@/components/EntryDialog.vue';
 import MonthCard from '@/components/MonthCard.vue';
 import { useTimelineStore } from '@/stores/timeline';
 import { useDialogStore } from '@/stores/dialog';
 import { useFiltersStore } from '@/stores/filters';
 import {
-  formatMonthToChinese,
+  formatMonth,
   smartFormatDateTime,
   isCurrentMonth,
   formatYearMonth,
-} from '@/utils/formatDate';
+} from '@/utils/dateFormatter';
 
+const { t } = useI18n();
 const drawerVisible = ref(false);
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
 const filtersStore = useFiltersStore();
 const typeOptions = [
-  { label: '学', value: 'learn' },
-  { label: '玩', value: 'play' },
-  { label: '看', value: 'watch' },
-  { label: '读', value: 'read' },
+  { label: t('entry.shortTypes.learn'), value: 'learn' },
+  { label: t('entry.shortTypes.play'), value: 'play' },
+  { label: t('entry.shortTypes.watch'), value: 'watch' },
+  { label: t('entry.shortTypes.read'), value: 'read' },
 ];
 const typeFilters = ref([...filtersStore.activeFilters.type]);
 
 const statusOptions = [
-  { label: '未开始', value: 'not_started' },
-  { label: '进行中', value: 'in_progress' },
-  { label: '已完成', value: 'completed' },
+  { label: t('entry.statuses.not_started'), value: 'not_started' },
+  { label: t('entry.statuses.in_progress'), value: 'in_progress' },
+  { label: t('entry.statuses.completed'), value: 'completed' },
 ];
 
 const statusFilters = ref([...filtersStore.activeFilters.status]);

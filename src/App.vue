@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
+const { t } = useI18n();
 const timelineStore = useTimelineStore();
 const settingsStore = useSettingsStore();
 const route = useRoute();
@@ -23,12 +25,12 @@ onMounted(() => {
       <el-menu mode="horizontal" :default-active="activeRoute" router>
         <el-menu-item index="/timeline">
           <el-icon size="24"><Calendar /></el-icon>
-          <span>时间线</span>
+          <span>{{ t('navigation.timeline') }}</span>
         </el-menu-item>
 
         <el-menu-item index="/settings">
           <el-icon size="24"><Setting /></el-icon>
-          <span>设置</span>
+          <span>{{ t('navigation.settings') }}</span>
         </el-menu-item>
       </el-menu>
     </div>
