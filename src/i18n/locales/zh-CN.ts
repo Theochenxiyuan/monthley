@@ -1,4 +1,7 @@
 export default {
+  app: {
+    title: '月理：掌握生活的旋律',
+  },
   common: {
     save: '保存',
     cancel: '取消',

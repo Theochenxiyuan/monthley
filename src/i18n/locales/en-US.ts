@@ -1,4 +1,7 @@
 export default {
+  app: {
+    title: 'Monthley',
+  },
   common: {
     save: 'Save',
     cancel: 'Cancel',

@@ -1,17 +1,27 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const timelineStore = useTimelineStore();
 const settingsStore = useSettingsStore();
 const route = useRoute();
 const activeRoute = computed(() => route.path);
+
+const updateTitle = () => {
+  document.title = t('app.title');
+};
+
 onMounted(() => {
   timelineStore.init();
   settingsStore.init();
+  updateTitle();
+});
+
+watch(locale, () => {
+  updateTitle();
 });
 </script>
 
