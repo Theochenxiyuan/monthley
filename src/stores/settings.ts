@@ -19,6 +19,7 @@ export const useSettingsStore = defineStore('settings', {
       if (saved) {
         const settings = JSON.parse(saved);
         this.isDark = settings.isDark;
+        this.language = settings.language || 'zh-CN';
         this.expandAll = settings.expandAll;
         this.showEntriesCollapsed = settings.showEntriesCollapsed;
         this.showNumCollapsed = settings.showNumCollapsed;
