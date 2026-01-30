@@ -6,12 +6,7 @@
   <div class="setting-content">
     <div class="setting-item">
       <el-text>{{ t('settings.language') }}: </el-text>
-      <el-select
-        v-model="currentLanguage"
-        size="default"
-        @change="changeLanguage"
-        style="width: 150px"
-      >
+      <el-select v-model="currentLanguage" size="default" style="width: 150px">
         <el-option label="中文" value="zh-CN"></el-option>
         <el-option label="English" value="en-US"></el-option>
       </el-select>
@@ -84,18 +79,15 @@
 </style>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '../stores/settings';
 const { t, locale } = useI18n();
 const settingsStore = useSettingsStore();
 const currentLanguage = computed({
-  get: () => locale.value,
+  get: () => settingsStore.language,
   set: (value) => {
-    locale.value = value;
+    settingsStore.setLanguage(value);
   },
 });
-const changeLanguage = (lang: string) => {
-  locale.value = lang;
-};
 </script>
