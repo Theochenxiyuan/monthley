@@ -76,6 +76,7 @@
       <el-timeline-item
         :timestamp="t('timeline.topReached')"
         placement="top"
+        class="timeline-timestamp"
       ></el-timeline-item>
 
       <el-timeline-item
@@ -92,19 +93,21 @@
         "
         :type="isCurrentMonth(timelineMonth) ? 'primary' : undefined"
         placement="top"
+        class="timeline-timestamp"
       >
         <MonthCard :month="timelineMonth"></MonthCard>
       </el-timeline-item>
       <el-timeline-item
         :timestamp="t('timeline.bottomReached')"
         placement="top"
+        class="timeline-timestamp"
       ></el-timeline-item>
     </el-timeline>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import EntryDialog from '@/components/EntryDialog.vue';
 import MonthCard from '@/components/MonthCard.vue';
@@ -123,19 +126,21 @@ const drawerVisible = ref(false);
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
 const filtersStore = useFiltersStore();
-const typeOptions = [
+
+const typeOptions = computed(() => [
   { label: t('entry.shortTypes.learn'), value: 'learn' },
   { label: t('entry.shortTypes.play'), value: 'play' },
   { label: t('entry.shortTypes.watch'), value: 'watch' },
   { label: t('entry.shortTypes.read'), value: 'read' },
-];
+]);
+
 const typeFilters = ref([...filtersStore.activeFilters.type]);
 
-const statusOptions = [
+const statusOptions = computed(() => [
   { label: t('entry.statuses.not_started'), value: 'not_started' },
   { label: t('entry.statuses.in_progress'), value: 'in_progress' },
   { label: t('entry.statuses.completed'), value: 'completed' },
-];
+]);
 
 const statusFilters = ref([...filtersStore.activeFilters.status]);
 
@@ -166,5 +171,11 @@ function resetFilters(): void {
 }
 .filter-item * {
   margin: 5px 0;
+}
+.timeline-timestamp :deep(.el-timeline-item__timestamp) {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

@@ -90,11 +90,11 @@ const dialogStore = useDialogStore();
 const timelineStore = useTimelineStore();
 const { visible, formData } = storeToRefs(dialogStore);
 
-const statusOptions = [
+const statusOptions = computed(() => [
   { label: t('entry.statuses.not_started'), value: 'not_started' },
   { label: t('entry.statuses.in_progress'), value: 'in_progress' },
   { label: t('entry.statuses.completed'), value: 'completed' },
-];
+]);
 
 function handleSubmit(formData: EntryFormData) {
   const newMonthYear = {

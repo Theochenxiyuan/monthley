@@ -2,6 +2,7 @@
 import type { TimelineEntry, EntryStatus } from '@/types/models';
 import { useI18n } from 'vue-i18n';
 import { Icon } from '@iconify/vue';
+import { computed } from 'vue';
 
 const { t } = useI18n();
 const props = defineProps<{
@@ -30,18 +31,18 @@ const getEntryColorFromStatus = (
   return statusColors[status] || 'info';
 };
 
-const typeMap: Record<string, string> = {
+const typeMap = computed(() => ({
   learn: t('entryItem.types.learn'),
   play: t('entryItem.types.play'),
   watch: t('entryItem.types.watch'),
   read: t('entryItem.types.read'),
-};
+}));
 
-const statusMap: Record<string, string> = {
+const statusMap = computed(() => ({
   not_started: t('entryItem.statuses.not_started'),
   in_progress: t('entryItem.statuses.in_progress'),
   completed: t('entryItem.statuses.completed'),
-};
+}));
 
 const getStatusText = (entry: TimelineEntry): string => {
   return t(`entryItem.statusType.${entry.status}.${entry.type}`);
