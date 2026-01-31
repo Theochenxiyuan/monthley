@@ -21,7 +21,7 @@
     <el-drawer
       v-model="drawerVisible"
       show-close
-      size="350px"
+      size="340px"
       modal
       :title="t('filters.title')"
       direction="ltr"
@@ -38,7 +38,7 @@
         <el-text
           >{{ t('filters.categories') }}{{ t('punctuation.colon') }}</el-text
         >
-        <el-checkbox-group v-model="typeFilters" size="large">
+        <el-checkbox-group v-model="typeFilters">
           <el-checkbox-button
             v-for="option in typeOptions"
             :key="option.value"
@@ -50,7 +50,7 @@
       </div>
       <div class="filter-item">
         <el-text>{{ t('filters.status') }}{{ t('punctuation.colon') }}</el-text>
-        <el-checkbox-group v-model="statusFilters" size="large">
+        <el-checkbox-group v-model="statusFilters">
           <el-checkbox-button
             v-for="option in statusOptions"
             :key="option.value"
