@@ -46,14 +46,18 @@ const getStatusText = (entry: TimelineEntry): string => {
         <span style="margin-right: 3px">
           <Icon :icon="getEntryIcon(entry)" width="16" height="16"
         /></span>
-        <el-text tag="b" :type="getEntryColorFromStatus(entry.status)">
+        <el-text
+          tag="b"
+          :type="getEntryColorFromStatus(entry.status)"
+          size="small"
+        >
           {{ getStatusText(entry) }}
         </el-text>
 
         <el-divider direction="vertical"></el-divider>
 
         <el-text
-          size="default"
+          size="small"
           :type="getEntryColorFromStatus(entry.status)"
           truncated
           style="max-width: 200px"

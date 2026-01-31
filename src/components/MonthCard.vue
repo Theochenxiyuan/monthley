@@ -310,6 +310,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
               (!settingsStore.showEntriesCollapsed &&
                 !settingsStore.showNumCollapsed)
             "
+            effect="plain"
           >
             <span v-show="settingsStore.showNumCollapsed">{{
               String(month.entries.length) +
@@ -367,6 +368,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
               :key="item"
               round
               style="margin-right: 5px; vertical-align: middle"
+              effect="plain"
             >
               {{ item }}
             </el-tag>
