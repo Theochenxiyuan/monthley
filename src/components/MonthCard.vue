@@ -303,24 +303,36 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
         v-else
       >
         <el-text line-clamp="1" :type="getTextType()">
-          <el-tag :type="getTextType()" v-show="settingsStore.showNumCollapsed">
-            <span>{{
+          <el-tag
+            :type="getTextType()"
+            v-show="
+              settingsStore.showNumCollapsed ||
+              (!settingsStore.showEntriesCollapsed &&
+                !settingsStore.showNumCollapsed)
+            "
+          >
+            <span v-show="settingsStore.showNumCollapsed">{{
               String(month.entries.length) +
               t('punctuation.space.betweenWords') +
-              t('unit.count') +
-              (isPastMonthFullyCompleted(month)
-                ? t('monthCard.completed')
-                : isFutureMonthAllNotStarted(month)
-                  ? t('monthCard.planned')
-                  : '')
+              t('unit.count')
             }}</span>
+
+            <span>
+              {{
+                isPastMonthFullyCompleted(month)
+                  ? t('monthCard.completed')
+                  : isFutureMonthAllNotStarted(month)
+                    ? t('monthCard.planned')
+                    : ''
+              }}
+            </span>
           </el-tag>
           <el-text
             v-show="
               settingsStore.showNumCollapsed &&
               settingsStore.showEntriesCollapsed
             "
-            style="margin-right: 0.5rem; margin-left: 0.5rem"
+            style="margin-right: 0.3rem; margin-left: 0.3rem"
           >
             {{ t('punctuation.dash') }}
           </el-text>
