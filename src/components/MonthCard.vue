@@ -302,7 +302,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
         @click="manualExpanded = !manualExpanded"
         v-else
       >
-        <el-text line-clamp="2" :type="getTextType()">
+        <el-text line-clamp="2" :type="getTextType()" style="line-height: 2">
           <el-tag
             :type="getTextType()"
             v-show="
@@ -354,7 +354,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
               vertical-align: middle;
             "
           >
-            <span style="margin-right: 5px; vertical-align: middle">
+            <span style="margin-right: 3px; vertical-align: middle">
               {{
                 typeMap[key as EntryType] +
                 t('punctuation.space.betweenTypeAndName')
@@ -380,6 +380,11 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
                   (k) => groupedEntries[k].length > 0,
                 ).length -
                   1
+              "
+              style="
+                margin-right: 0.25rem;
+                margin-left: 0.25rem;
+                vertical-align: middle;
               "
             />
           </el-text>
