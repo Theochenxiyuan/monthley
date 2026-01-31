@@ -369,6 +369,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
               round
               style="margin-right: 5px; vertical-align: middle"
               effect="plain"
+              size="small"
             >
               {{ item }}
             </el-tag>

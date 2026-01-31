@@ -39,7 +39,7 @@ const getStatusText = (entry: TimelineEntry): string => {
   <div :class="['entry-item']">
     <el-tag
       size="large"
-      :type="getEntryColorFromStatus(entry.status)"
+      :color="getEntryColorFromStatus(entry.status)"
       disable-transitions
     >
       <div style="display: flex; align-items: center" class="not-selectable">
@@ -57,7 +57,6 @@ const getStatusText = (entry: TimelineEntry): string => {
         <el-divider direction="vertical"></el-divider>
 
         <el-text
-          size="small"
           :type="getEntryColorFromStatus(entry.status)"
           truncated
           style="max-width: 200px"
