@@ -302,7 +302,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
         @click="manualExpanded = !manualExpanded"
         v-else
       >
-        <el-text line-clamp="1" :type="getTextType()">
+        <el-text line-clamp="2" :type="getTextType()">
           <el-tag
             :type="getTextType()"
             v-show="
@@ -332,7 +332,11 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
               settingsStore.showNumCollapsed &&
               settingsStore.showEntriesCollapsed
             "
-            style="margin-right: 0.3rem; margin-left: 0.3rem"
+            style="
+              margin-right: 0.3rem;
+              margin-left: 0.3rem;
+              vertical-align: middle;
+            "
           >
             {{ t('punctuation.dash') }}
           </el-text>
@@ -344,9 +348,13 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
             :key="key"
             :type="getTextType()"
             size="small"
-            style="margin-right: 5px"
+            style="
+              margin-right: 5px;
+              display: inline-block;
+              vertical-align: middle;
+            "
           >
-            <span style="margin-right: 5px">
+            <span style="margin-right: 5px; vertical-align: middle">
               {{
                 typeMap[key as EntryType] +
                 t('punctuation.space.betweenTypeAndName')
@@ -358,7 +366,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
               v-for="item in groupedEntries[key]"
               :key="item"
               round
-              style="margin-right: 5px"
+              style="margin-right: 5px; vertical-align: middle"
             >
               {{ item }}
             </el-tag>
