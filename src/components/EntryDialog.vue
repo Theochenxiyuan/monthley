@@ -3,7 +3,8 @@
     v-model="visible"
     :title="
       (dialogStore.isEditing ? t('common.edit') : t('common.add')) +
-      t('entry.title')
+      t('punctuation.space.betweenWords') +
+      t('common.entry')
     "
     style="width: 600px; max-width: 90vw"
     :close-on-click-modal="false"
@@ -64,7 +65,7 @@
             ?.validate()
             .then(() => handleSubmit(formData))
             .catch(() => {
-              ElMessage.error(t('entry.namePlaceholder'));
+              ElMessage.error(t('entry.validationError'));
             })
         "
         >{{ t('common.save') }}</el-button

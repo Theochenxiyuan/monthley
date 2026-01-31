@@ -13,6 +13,10 @@ export default {
     reset: '重置',
     select: '选择',
     input: '输入',
+    entry: '计划',
+  },
+  unit: {
+    count: '个',
   },
   navigation: {
     timeline: '时间线',
@@ -21,8 +25,8 @@ export default {
   timeline: {
     title: '时间线',
     month: '月',
-    addEntry: '添加条目',
-    noEntries: '暂无条目',
+    addEntry: '添加计划',
+    noEntries: '暂无计划',
     updatedAt: '更新于',
     topReached: '已经到顶了',
     bottomReached: '已经到底了',
@@ -30,12 +34,12 @@ export default {
     noRecord: '无记录',
   },
   entry: {
-    title: '记录详情',
     name: '名称',
     date: '日期',
     category: '类型',
-    categoryPlaceholder: '请选择条目类型',
-    namePlaceholder: '请输入条目名称',
+    categoryPlaceholder: '请选择计划类型',
+    namePlaceholder: '请输入计划名称',
+    validationError: '请填写完整计划信息',
     status: '进度',
     low: '低',
     medium: '中',
@@ -67,15 +71,15 @@ export default {
     dark: '深色',
     system: '系统',
     expandAll: '默认展开所有月份',
-    showEntriesCollapsed: '月份折叠时显示条目文字',
-    showNumCollapsed: '月份折叠时显示条目数量',
+    showEntriesCollapsed: '月份折叠时显示计划文字',
+    showNumCollapsed: '月份折叠时显示计划数量',
     expandAllTooltip:
-      '如果不选择展开，默认会将"已完成所有条目的过去月份"和"所有条目都未开始的未来月份"折叠起来，并显示精简文字',
+      '如果不选择展开，默认会将"已完成所有计划的过去月份"和"所有计划都未开始的未来月份"折叠起来，并显示精简文字',
   },
   filters: {
     title: '筛选',
-    categories: '按条目类型',
-    status: '按条目进度',
+    categories: '按计划类型',
+    status: '按计划进度',
     notes: '注意：使用筛选时月份会展开显示',
     dateRange: '日期范围',
   },
@@ -113,15 +117,15 @@ export default {
     },
     space: {
       betweenWords: '',
-      betweenTypeAndName: '',
+      betweenTypeAndName: ' ',
       betweenStatusAndType: '',
       listSeparator: '、',
       typeSeparator: '；',
     },
   },
   monthCard: {
-    confirmDelete: '请确认是否要删除本条目，此操作无法撤回',
-    deleteEntry: '删除条目',
+    confirmDelete: '请确认是否要删除本计划，此操作无法撤回',
+    deleteEntry: '删除计划',
     confirm: '确认',
     cancel: '取消',
     deleteSuccess: '删除成功',
@@ -137,17 +141,6 @@ export default {
     delete: '删除',
   },
   entryItem: {
-    types: {
-      learn: '学',
-      play: '玩',
-      watch: '看',
-      read: '读',
-    },
-    statuses: {
-      not_started: '准备',
-      in_progress: '正在',
-      completed: '已',
-    },
     statusType: {
       not_started: {
         learn: '准备学',

@@ -21,7 +21,7 @@
     <el-drawer
       v-model="drawerVisible"
       show-close
-      size="400px"
+      size="350px"
       modal
       :title="t('filters.title')"
       direction="ltr"

@@ -13,6 +13,10 @@ export default {
     reset: 'Reset',
     select: 'Select',
     input: 'Input',
+    entry: 'Plan',
+  },
+  unit: {
+    count: '',
   },
   navigation: {
     timeline: 'Timeline',
@@ -21,8 +25,8 @@ export default {
   timeline: {
     title: 'Timeline',
     month: 'Month',
-    addEntry: 'Add Entry',
-    noEntries: 'No entries',
+    addEntry: 'Add Plan',
+    noEntries: 'No plans',
     updatedAt: 'Updated at',
     topReached: 'This is the start of the timeline',
     bottomReached: 'This is the end of the timeline',
@@ -30,12 +34,12 @@ export default {
     noRecord: 'No record',
   },
   entry: {
-    title: 'Entry',
     name: 'Name',
     date: 'Date',
     category: 'Category',
-    categoryPlaceholder: 'Select entry category',
-    namePlaceholder: 'Enter entry name',
+    categoryPlaceholder: 'Select plan category',
+    namePlaceholder: 'Enter plan name',
+    validationError: 'Please fill in all plan information',
     status: 'Status',
     low: 'Low',
     medium: 'Medium',
@@ -47,9 +51,9 @@ export default {
       read: 'Read',
     },
     statuses: {
-      not_started: 'Not Started',
-      in_progress: 'In Progress',
-      completed: 'Completed',
+      not_started: 'To Do',
+      in_progress: 'Doing',
+      completed: 'Done',
     },
     shortTypes: {
       learn: 'Learn',
@@ -67,10 +71,10 @@ export default {
     dark: 'Dark',
     system: 'System',
     expandAll: 'Always expand all months',
-    showEntriesCollapsed: 'Show entry text when month is collapsed',
-    showNumCollapsed: 'Show entry count when month is collapsed',
+    showEntriesCollapsed: 'Show plan text when month is collapsed',
+    showNumCollapsed: 'Show plan count when month is collapsed',
     expandAllTooltip:
-      'If not selected, months with all entries completed in the past and all entries not started in the future will be collapsed by default, showing condensed text',
+      'If not selected, months with all plans completed in the past and all plans not started in the future will be collapsed by default, showing condensed text',
   },
   filters: {
     title: 'Filters',
@@ -121,14 +125,14 @@ export default {
   },
   monthCard: {
     confirmDelete:
-      'Are you sure you want to delete this entry? This action cannot be undone.',
-    deleteEntry: 'Delete Entry',
+      'Are you sure you want to delete this plan? This action cannot be undone.',
+    deleteEntry: 'Delete Plan',
     confirm: 'Confirm',
     cancel: 'Cancel',
     deleteSuccess: 'Deleted successfully',
     emptyMonth: 'Empty months will be automatically cleared after app restart',
     hiddenEntries: 'hidden',
-    entries: 'entries',
+    entries: 'plans',
     completed: 'Completed',
     planned: 'Planned',
     andMore: 'and {count} more',
@@ -138,17 +142,6 @@ export default {
     delete: 'Delete',
   },
   entryItem: {
-    types: {
-      learn: 'Learn',
-      play: 'Play',
-      watch: 'Watch',
-      read: 'Read',
-    },
-    statuses: {
-      not_started: 'To',
-      in_progress: 'In',
-      completed: 'Completed',
-    },
     statusType: {
       not_started: {
         learn: 'To Learn',

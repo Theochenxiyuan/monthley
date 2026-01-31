@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
+import zhCn from 'element-plus/es/locale/lang/zh-cn';
+import enUs from 'element-plus/es/locale/lang/en';
 const { t, locale } = useI18n();
 const timelineStore = useTimelineStore();
 const settingsStore = useSettingsStore();
@@ -13,6 +15,10 @@ const activeRoute = computed(() => route.path);
 const updateTitle = () => {
   document.title = t('app.title');
 };
+
+const currentElementPlusLocale = computed(() => {
+  return settingsStore.language === 'zh-CN' ? zhCn : enUs;
+});
 
 onMounted(() => {
   timelineStore.init();
@@ -26,25 +32,27 @@ watch(locale, () => {
 </script>
 
 <template>
-  <div id="app">
-    <div v-auto-animate>
-      <router-view></router-view>
-    </div>
+  <el-config-provider :locale="currentElementPlusLocale">
+    <div id="app">
+      <div v-auto-animate>
+        <router-view></router-view>
+      </div>
 
-    <div class="navbar">
-      <el-menu mode="horizontal" :default-active="activeRoute" router>
-        <el-menu-item index="/timeline">
-          <el-icon size="24"><Calendar /></el-icon>
-          <span>{{ t('navigation.timeline') }}</span>
-        </el-menu-item>
+      <div class="navbar">
+        <el-menu mode="horizontal" :default-active="activeRoute" router>
+          <el-menu-item index="/timeline">
+            <el-icon size="24"><Calendar /></el-icon>
+            <span>{{ t('navigation.timeline') }}</span>
+          </el-menu-item>
 
-        <el-menu-item index="/settings">
-          <el-icon size="24"><Setting /></el-icon>
-          <span>{{ t('navigation.settings') }}</span>
-        </el-menu-item>
-      </el-menu>
+          <el-menu-item index="/settings">
+            <el-icon size="24"><Setting /></el-icon>
+            <span>{{ t('navigation.settings') }}</span>
+          </el-menu-item>
+        </el-menu>
+      </div>
     </div>
-  </div>
+  </el-config-provider>
 </template>
 
 <style scoped>

@@ -14,12 +14,17 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 
 // 类型映射
-const typeMap: Record<string, string> = {
-  learn: t('entryItem.types.learn'),
-  play: t('entryItem.types.play'),
-  watch: t('entryItem.types.watch'),
-  read: t('entryItem.types.read'),
-};
+const typeMap = computed(() => {
+  const key = isPastMonthFullyCompleted(props.month)
+    ? 'completed'
+    : 'not_started';
+  return {
+    learn: t(`entryItem.statusType.${key}.learn`),
+    play: t(`entryItem.statusType.${key}.play`),
+    watch: t(`entryItem.statusType.${key}.watch`),
+    read: t(`entryItem.statusType.${key}.read`),
+  };
+});
 const settingsStore = useSettingsStore();
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
@@ -137,7 +142,7 @@ const hiddenCount = computed(() => {
 });
 // 新增：按类型分组条目
 const groupedEntries = computed(() => {
-  const groups: Record<EntryType, string[]> = {} as Record<EntryType, string[]>;
+  const groups: Record<string, string[]> = {} as Record<string, string[]>;
 
   // 初始化所有类型
   const entryTypes = ['learn', 'play', 'watch', 'read'] as const;
@@ -153,31 +158,13 @@ const groupedEntries = computed(() => {
   return groups;
 });
 
-const groupedDisplayText = computed(() => {
-  const parts: string[] = [];
-  const listSeparator = t('punctuation.space.listSeparator');
-  const typeSeparator = t('punctuation.space.typeSeparator');
-  const betweenTypeAndName = t('punctuation.space.betweenTypeAndName');
-
-  Object.entries(groupedEntries.value).forEach(([type, names]) => {
-    if (names.length > 0) {
-      const typeChar = typeMap[type as EntryType];
-      // 如果条目名称较长，可以限制显示数量
-      const displayNames =
-        names.length > 3
-          ? [
-              ...names.slice(0, 3),
-              t('monthCard.andMore', { count: names.length }),
-            ]
-          : names;
-      parts.push(
-        `${typeChar}${betweenTypeAndName}${displayNames.join(listSeparator)}`,
-      );
-    }
-  });
-
-  return parts.join(typeSeparator); // 使用语言特定的类型分隔符
-});
+const getTextType = (): 'success' | 'info' | 'primary' => {
+  return isPastMonthFullyCompleted(props.month)
+    ? 'success'
+    : isFutureMonthAllNotStarted(props.month)
+      ? 'info'
+      : 'primary';
+};
 </script>
 
 <template>
@@ -308,41 +295,74 @@ const groupedDisplayText = computed(() => {
           display: 'flex',
           flexWrap: 'nowrap',
           justifyContent: 'space-between',
+          alignItems: 'center',
           cursor: 'pointer',
           padding: '0.75rem 1rem',
         }"
         @click="manualExpanded = !manualExpanded"
         v-else
       >
-        <el-text
-          line-clamp="1"
-          :type="
-            isPastMonthFullyCompleted(month)
-              ? 'success'
-              : isFutureMonthAllNotStarted(month)
-                ? 'info'
-                : ''
-          "
-        >
-          <span>
-            {{
+        <el-text line-clamp="1" :type="getTextType()">
+          <el-tag :type="getTextType()" v-show="settingsStore.showNumCollapsed">
+            <span>{{
+              String(month.entries.length) +
+              t('punctuation.space.betweenWords') +
+              t('unit.count') +
               (isPastMonthFullyCompleted(month)
                 ? t('monthCard.completed')
                 : isFutureMonthAllNotStarted(month)
                   ? t('monthCard.planned')
-                  : '') + t('punctuation.space.betweenWords')
-            }}
-          </span>
-
-          <span v-show="settingsStore.showNumCollapsed">{{
-            String(month.entries.length) +
-            t('punctuation.space.betweenWords') +
-            t('monthCard.entries')
-          }}</span>
-
-          <span v-show="settingsStore.showEntriesCollapsed">
-            {{ t('punctuation.colon') + groupedDisplayText }}</span
+                  : '')
+            }}</span>
+          </el-tag>
+          <el-text
+            v-show="
+              settingsStore.showNumCollapsed &&
+              settingsStore.showEntriesCollapsed
+            "
+            style="margin-right: 0.5rem; margin-left: 0.5rem"
           >
+            {{ t('punctuation.dash') }}
+          </el-text>
+          <el-text
+            v-show="settingsStore.showEntriesCollapsed"
+            v-for="key in Object.keys(groupedEntries).filter(
+              (k) => groupedEntries[k].length > 0,
+            )"
+            :key="key"
+            :type="getTextType()"
+            size="small"
+            style="margin-right: 5px"
+          >
+            <span style="margin-right: 5px">
+              {{
+                typeMap[key as EntryType] +
+                t('punctuation.space.betweenTypeAndName')
+              }}</span
+            >
+
+            <el-tag
+              :type="getTextType()"
+              v-for="item in groupedEntries[key]"
+              :key="item"
+              round
+              style="margin-right: 5px"
+            >
+              {{ item }}
+            </el-tag>
+            <el-divider
+              direction="vertical"
+              v-show="
+                Object.keys(groupedEntries)
+                  .filter((k) => groupedEntries[k].length > 0)
+                  .indexOf(key) <
+                Object.keys(groupedEntries).filter(
+                  (k) => groupedEntries[k].length > 0,
+                ).length -
+                  1
+              "
+            />
+          </el-text>
         </el-text>
 
         <el-text type="primary" size="small"
