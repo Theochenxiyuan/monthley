@@ -111,7 +111,7 @@ export default {
       double: ['"', '"'],
     },
     bracket: {
-      round: ['(', ')'],
+      round: ['（', '）'],
       square: ['[', ']'],
       curly: ['{', '}'],
     },
