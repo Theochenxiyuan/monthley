@@ -5,6 +5,7 @@ import type {
   TimelineEntry,
   EntryStatus,
 } from '@/types/models';
+import { dataService } from '@/services/dataService';
 
 const getNextStatus = (status: EntryStatus): EntryStatus => {
   if (status === 'not_started') {
@@ -208,6 +209,20 @@ export const useTimelineStore = defineStore('timeline', {
       this.months = [];
       this.lastUpdated = null;
       localStorage.removeItem('timeline');
+    },
+    exportJSON() {
+      dataService.exportJSON(this);
+    },
+    async importJSON(file: File): Promise<void> {
+      try {
+        const importedData = await dataService.importJSON(file);
+        dataService.mergeImportData(this, importedData);
+        this.lastUpdated = new Date();
+        this.saveLocal();
+      } catch (error) {
+        console.error('Import failed:', error);
+        throw error;
+      }
     },
   },
 });

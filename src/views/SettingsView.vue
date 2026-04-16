@@ -62,6 +62,44 @@
         :disabled="settingsStore.expandAll"
       />
     </div>
+
+    <el-divider />
+
+    <div class="setting-item">
+      <el-button type="primary" @click="exportTimeline">
+        <el-icon><Download /></el-icon>
+        {{ t('settings.exportTimeline') }}
+      </el-button>
+    </div>
+
+    <div class="setting-item">
+      <el-button @click="triggerImport">
+        <el-icon><Upload /></el-icon>
+        {{ t('settings.importTimeline') }}
+      </el-button>
+      <input
+        ref="fileInputRef"
+        type="file"
+        accept=".json"
+        style="display: none"
+        @change="handleImport"
+      />
+    </div>
+
+    <div class="setting-item warning-text">
+      <el-text type="warning" size="small">
+        {{ t('settings.importWarning') }}
+      </el-text>
+    </div>
+
+    <el-divider />
+
+    <div class="setting-item danger-section">
+      <el-button type="danger" @click="confirmClear">
+        <el-icon><Delete /></el-icon>
+        {{ t('settings.clearTimeline') }}
+      </el-button>
+    </div>
   </div>
 </template>
 
@@ -75,19 +113,97 @@
 }
 .setting-item {
   vertical-align: middle;
+  margin: 0.5rem 0;
+}
+.warning-text {
+  margin-top: 1rem;
+}
+.danger-section {
+  margin-top: 1.5rem;
 }
 </style>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '../stores/settings';
-const { t, locale } = useI18n();
+import { useTimelineStore } from '../stores/timeline';
+import { ElMessageBox, ElMessage } from 'element-plus';
+import { Download, Upload, Delete } from '@element-plus/icons-vue';
+
+const { t } = useI18n();
 const settingsStore = useSettingsStore();
+const timelineStore = useTimelineStore();
+const fileInputRef = ref<HTMLInputElement>();
+
 const currentLanguage = computed({
   get: () => settingsStore.language,
   set: (value) => {
     settingsStore.setLanguage(value);
   },
 });
+
+const exportTimeline = () => {
+  timelineStore.exportJSON();
+  ElMessage.success(t('settings.exportSuccess'));
+};
+
+const triggerImport = () => {
+  fileInputRef.value?.click();
+};
+
+const handleImport = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+
+  if (!file) return;
+
+  if (!file.name.endsWith('.json')) {
+    ElMessage.error(t('settings.invalidFileType'));
+    return;
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      t('settings.confirmImport'),
+      t('settings.importTimeline'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning',
+      }
+    );
+
+    await timelineStore.importJSON(file);
+    ElMessage.success(t('settings.importSuccess'));
+    
+    target.value = '';
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(t('settings.importError'));
+    }
+  }
+};
+
+const confirmClear = async () => {
+  try {
+    await ElMessageBox.confirm(
+      t('settings.confirmClear'),
+      t('settings.clearTimeline'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'error',
+        distinguishCancelAndClose: true,
+      }
+    );
+
+    timelineStore.clearData();
+    ElMessage.success(t('settings.clearSuccess'));
+  } catch (error) {
+    if (error !== 'cancel' && error !== 'close') {
+      ElMessage.error(t('settings.clearError'));
+    }
+  }
+};
 </script>

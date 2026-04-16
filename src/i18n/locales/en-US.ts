@@ -14,6 +14,7 @@ export default {
     select: 'Select',
     input: 'Input',
     entry: 'Plan',
+    confirm: 'Confirm',
   },
   unit: {
     count: '',
@@ -75,6 +76,18 @@ export default {
     showNumCollapsed: 'Show plan count when month is collapsed',
     expandAllTooltip:
       'If not selected, months with all plans completed in the past and all plans not started in the future will be collapsed by default, showing condensed text',
+    exportTimeline: 'Export Timeline',
+    importTimeline: 'Import Timeline',
+    exportSuccess: 'Export successful',
+    importSuccess: 'Import successful',
+    importError: 'Import failed',
+    confirmImport: 'Import will merge with existing data, continue?',
+    importWarning: 'Note: Import will merge with existing data, not overwrite',
+    invalidFileType: 'Please select a JSON file',
+    clearTimeline: 'Clear Entire Timeline',
+    confirmClear: 'This will permanently delete all timeline data and cannot be undone! Continue?',
+    clearSuccess: 'Timeline cleared',
+    clearError: 'Failed to clear timeline',
   },
   filters: {
     title: 'Filters',

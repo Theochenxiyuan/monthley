@@ -14,6 +14,7 @@ export default {
     select: '选择',
     input: '输入',
     entry: '计划',
+    confirm: '确认',
   },
   unit: {
     count: '个',
@@ -75,6 +76,18 @@ export default {
     showNumCollapsed: '月份折叠时显示计划数量',
     expandAllTooltip:
       '如果不选择展开，默认会将"已完成所有计划的过去月份"和"所有计划都未开始的未来月份"折叠起来，并显示精简文字',
+    exportTimeline: '导出时间线',
+    importTimeline: '导入时间线',
+    exportSuccess: '导出成功',
+    importSuccess: '导入成功',
+    importError: '导入失败',
+    confirmImport: '导入将合并现有数据，确定继续？',
+    importWarning: '注意：导入会合并现有数据，不会覆盖',
+    invalidFileType: '请选择 JSON 文件',
+    clearTimeline: '清除整个时间线',
+    confirmClear: '此操作将永久删除所有时间线数据，无法恢复！确定继续？',
+    clearSuccess: '时间线已清除',
+    clearError: '清除失败',
   },
   filters: {
     title: '筛选',
