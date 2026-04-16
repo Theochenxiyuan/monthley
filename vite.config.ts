@@ -36,11 +36,6 @@ export default defineConfig({
             src: 'pwa-1024x1024.png',
             sizes: '1024x1024',
             type: 'image/png',
-          },
-          {
-            src: 'pwa-transparent.png',
-            sizes: '1024x1024',
-            type: 'image/png',
             purpose: 'any maskable',
           },
         ],
