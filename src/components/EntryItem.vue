@@ -83,6 +83,11 @@ const getStatusText = (entry: TimelineEntry): string => {
   position: relative;
   display: inline-block;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.entry-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .complete-cover {
@@ -94,6 +99,7 @@ const getStatusText = (entry: TimelineEntry): string => {
   top: 0;
   height: 100%;
   text-align: center;
+  transition: opacity 0.3s ease;
 }
 .complete-sign {
   position: absolute;

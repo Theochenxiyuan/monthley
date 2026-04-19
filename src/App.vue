@@ -29,10 +29,17 @@ onMounted(() => {
 watch(locale, () => {
   updateTitle();
 });
+
+watch(
+  () => settingsStore.isDark,
+  (newVal) => {
+    document.documentElement.classList.toggle('dark', newVal);
+  }
+);
 </script>
 
 <template>
-  <el-config-provider :locale="currentElementPlusLocale">
+  <el-config-provider :locale="currentElementPlusLocale" :theme="settingsStore.isDark ? 'dark' : 'light'">
     <div id="app">
       <div v-auto-animate>
         <router-view></router-view>

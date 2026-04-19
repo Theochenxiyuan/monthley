@@ -2,6 +2,10 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease,
+              box-shadow 0.3s ease;
 }
 
 .container {
@@ -25,5 +29,8 @@
 }
 
 .dark {
-  --el-menu-bg-color: #111111 !important;
+  --el-menu-bg-color: #1a1a1a !important;
+  --el-menu-text-color: #a0a0a0 !important;
+  --el-menu-active-color: #409eff !important;
+  --el-menu-border-color: #333333 !important;
 }

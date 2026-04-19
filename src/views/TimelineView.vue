@@ -167,4 +167,7 @@ function resetFilters(): void {
 .filter-item * {
   margin: 5px 0;
 }
+:deep(.el-timeline-item) {
+  transition: border-color 0.3s ease;
+}
 </style>

@@ -16,7 +16,7 @@
       <el-switch
         v-model="settingsStore.isDark"
         size="large"
-        style="--el-switch-off-color: #aaaaaa; --el-switch-on-color: #444444"
+        style="--el-switch-off-color: #f5f5f5; --el-switch-on-color: #333333"
         :active-text="t('settings.dark')"
         :inactive-text="t('settings.light')"
         inactive-action-icon="Sunny"
@@ -121,6 +121,9 @@
 .danger-section {
   margin-top: 1.5rem;
 }
+:deep(.el-switch__core) {
+  transition: background-color 0.3s ease;
+}
 </style>
 
 <script setup lang="ts">
@@ -199,6 +202,7 @@ const confirmClear = async () => {
     );
 
     timelineStore.clearData();
+    timelineStore.addCurrentMonthIfMissing();
     ElMessage.success(t('settings.clearSuccess'));
   } catch (error) {
     if (error !== 'cancel' && error !== 'close') {

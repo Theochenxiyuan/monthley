@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { useDark, useToggle } from '@vueuse/core';
+import { useDark, useToggle, useMediaQuery } from '@vueuse/core';
 import i18n from '@/i18n';
 
 export const useSettingsStore = defineStore('settings', {
@@ -15,6 +15,7 @@ export const useSettingsStore = defineStore('settings', {
     init() {
       this.$subscribe((_, state) => {
         localStorage.setItem('settings', JSON.stringify(state));
+        document.documentElement.classList.toggle('dark', state.isDark);
       });
       const saved = localStorage.getItem('settings');
       if (saved) {
@@ -31,6 +32,9 @@ export const useSettingsStore = defineStore('settings', {
     setLanguage(lang: string) {
       this.language = lang;
       i18n.global.locale = lang as 'zh-CN' | 'en-US';
+    },
+    toggleDark() {
+      this.isDark = !this.isDark;
     },
   },
 });

@@ -423,7 +423,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
   right: -2px;
   bottom: -2px;
   border: 2px solid var(--el-color-primary);
-  border-radius: 8px; /* 比主元素稍大 */
+  border-radius: 8px;
   pointer-events: none;
 }
 .ghost {

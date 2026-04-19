@@ -130,3 +130,40 @@ function handleSubmit(formData: EntryFormData) {
   dialogStore.close();
 }
 </script>
+
+<style scoped>
+.dialog-content {
+  padding: 20px;
+}
+.form-item {
+  margin-bottom: 20px;
+}
+.form-item label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.form-item input,
+.form-item select,
+.form-item textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 6px;
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+.form-item input:focus,
+.form-item select:focus,
+.form-item textarea:focus {
+  outline: none;
+  border-color: var(--el-color-primary);
+}
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+</style>
