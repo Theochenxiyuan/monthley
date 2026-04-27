@@ -371,7 +371,7 @@ function resetFilters(): void {
     left: 0;
     right: 0;
     margin: 0 auto;
-    max-width: 680px;
+    max-width: 720px;
     background: var(--el-color-primary-light-9);
     border: 1px solid var(--el-color-primary-light-7);
     color: var(--el-color-primary);

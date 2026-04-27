@@ -90,7 +90,7 @@ watch(
 #app {
   height: 100vh;
   height: 100dvh;
-  max-width: 680px;
+  max-width: 720px;
   width: 100%;
   margin: 0 auto;
   position: relative;
