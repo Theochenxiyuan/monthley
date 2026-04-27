@@ -5,7 +5,7 @@ import { useDialogStore } from '@/stores/dialog';
 import { useTimelineStore } from '@/stores/timeline';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { formatYearMonth, isCurrentMonth } from '@/utils/dateFormatter';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useFiltersStore } from '@/stores/filters';
 import Draggable from 'vuedraggable';
@@ -31,6 +31,8 @@ const dialogStore = useDialogStore();
 const filtersStore = useFiltersStore();
 const props = defineProps<{
   month: TimelineMonth;
+  highlightEntryId?: string;
+  forceExpand?: boolean;
 }>();
 // 过去月份是否全部已完成
 function isPastMonthFullyCompleted(month: TimelineMonth): boolean {
@@ -77,7 +79,19 @@ function shouldExpandMonth(month: TimelineMonth): boolean {
 
 const manualExpanded = ref(shouldExpandMonth(props.month)); // For manual toggle state
 
+watch(
+  () => props.forceExpand,
+  (val) => {
+    if (val) {
+      manualExpanded.value = true;
+    }
+  },
+);
+
 const isExpanded = computed(() => {
+  // Force-expanded by search highlight
+  if (props.forceExpand) return true;
+
   // Force-expanded cases
   if (settingsStore.expandAll || filtersStore.isActive) return true;
 
@@ -202,6 +216,7 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
           <div
             style="order: 1"
             v-show="!shouldHideEntry(entry.element.type, entry.element.status)"
+            :class="{ 'entry-highlight': entry.element.id === highlightEntryId }"
           >
             <el-dropdown
               placement="bottom"
@@ -436,5 +451,19 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
   visibility: hidden;
   opacity: 0;
   transition: opacity 0.15s ease-out;
+}
+.entry-highlight :deep(.entry-item) {
+  animation: highlight-pulse 2s ease-out;
+}
+@keyframes highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--el-color-primary);
+  }
+  25% {
+    box-shadow: 0 0 0 6px var(--el-color-primary-light-5);
+  }
+  100% {
+    box-shadow: none;
+  }
 }
 </style>

@@ -8,24 +8,32 @@
               box-shadow 0.3s ease;
 }
 
+html, body {
+  height: 100%;
+  background-color: var(--el-bg-color-page, #f5f7fa);
+}
+
+.dark html, .dark body {
+  background-color: var(--el-bg-color-page, #1a1a1a);
+}
+
 .container {
-  max-width: 1200px;
+  max-width: 640px;
   margin: auto;
   padding: 10px;
 }
 
 .action-bar {
   display: flex;
-  height: 45px;
   align-items: center;
+  justify-content: space-between;
   z-index: 1000;
   position: sticky;
   top: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid var(--el-menu-border-color);
-  justify-content: space-between;
-  padding: 5px;
+  padding: 6px 10px;
   background-color: var(--el-menu-bg-color);
+  transition: none !important;
 }
 
 .dark {

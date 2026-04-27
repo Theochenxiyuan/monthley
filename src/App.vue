@@ -41,23 +41,29 @@ watch(
 <template>
   <el-config-provider :locale="currentElementPlusLocale" :theme="settingsStore.isDark ? 'dark' : 'light'">
     <div id="app">
-      <div v-auto-animate>
-        <router-view></router-view>
+      <div class="main-content" v-auto-animate>
+        <router-view v-slot="{ Component }">
+          <KeepAlive>
+            <component :is="Component" />
+          </KeepAlive>
+        </router-view>
       </div>
 
-      <div class="navbar">
-        <el-menu mode="horizontal" :default-active="activeRoute" router>
-          <el-menu-item index="/timeline">
-            <el-icon size="24"><Calendar /></el-icon>
-            <span>{{ t('navigation.timeline') }}</span>
-          </el-menu-item>
+      <el-menu mode="horizontal" :default-active="activeRoute" router class="navbar">
+        <el-menu-item index="/timeline">
+          <el-icon size="24"><Calendar /></el-icon>
+          <span>{{ t('navigation.timeline') }}</span>
+        </el-menu-item>
 
-          <el-menu-item index="/settings">
-            <el-icon size="24"><Setting /></el-icon>
-            <span>{{ t('navigation.settings') }}</span>
-          </el-menu-item>
-        </el-menu>
-      </div>
+        <el-menu-item index="/stats">
+          <el-icon size="24"><TrendCharts /></el-icon>
+          <span>{{ t('navigation.stats') }}</span>
+        </el-menu-item>
+        <el-menu-item index="/settings">
+          <el-icon size="24"><Setting /></el-icon>
+          <span>{{ t('navigation.settings') }}</span>
+        </el-menu-item>
+      </el-menu>
     </div>
   </el-config-provider>
 </template>
@@ -65,36 +71,28 @@ watch(
 <style scoped>
 #app {
   height: 100vh;
-  max-width: 1200px; /* Increased from 800px */
+  height: 100dvh;
+  max-width: 640px;
   width: 100%;
+  margin: 0 auto;
   position: relative;
-  margin: auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
 }
 
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 60px; /* Space for navbar */
 }
 
 .navbar {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  max-width: 1200px;
-  height: auto;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  border-top: 1px solid var(--el-menu-border-color);
-  background-color: var(--el-menu-bg-color);
-  z-index: 1000;
-}
-
-.navbar .el-menu {
-  width: 100%;
+  flex-shrink: 0;
   display: flex;
   justify-content: space-around;
+  border-top: 1px solid var(--el-menu-border-color);
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.06);
+  transition: none !important;
 }
 </style>

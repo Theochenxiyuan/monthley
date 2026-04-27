@@ -14,10 +14,14 @@ const getNextStatus = (status: EntryStatus): EntryStatus => {
   return 'completed';
 };
 
+export const VISIBLE_WINDOW = 4;
+
 export const useTimelineStore = defineStore('timeline', {
   state: (): TimelineState => ({
     months: [],
     lastUpdated: null,
+    visibleUp: 0,
+    visibleDown: 0,
   }),
   getters: {
     count(): number {
@@ -31,6 +35,51 @@ export const useTimelineStore = defineStore('timeline', {
         return a.month - b.month;
       });
     },
+    currentMonthIndex(): number {
+      const now = new Date();
+      const cy = now.getFullYear();
+      const cm = now.getMonth() + 1;
+      const idx = this.allMonths.findIndex(
+        (m) => m.year === cy && m.month === cm,
+      );
+      return idx >= 0 ? idx : this.allMonths.length;
+    },
+    visibleMonths(): TimelineMonth[] {
+      const all = this.allMonths;
+      if (all.length === 0) return [];
+      const ci = this.currentMonthIndex;
+      const start = Math.max(0, ci - VISIBLE_WINDOW - this.visibleUp);
+      const end = Math.min(all.length, ci + VISIBLE_WINDOW + 1 + this.visibleDown);
+      return all.slice(start, end);
+    },
+    canLoadUp(): boolean {
+      const all = this.allMonths;
+      if (all.length === 0) return false;
+      const ci = this.currentMonthIndex;
+      return ci - VISIBLE_WINDOW - this.visibleUp > 0;
+    },
+    canLoadDown(): boolean {
+      const all = this.allMonths;
+      if (all.length === 0) return false;
+      const ci = this.currentMonthIndex;
+      return ci + VISIBLE_WINDOW + 1 + this.visibleDown < all.length;
+    },
+    nextMonthUp(): { year: number; month: number } | null {
+      const all = this.allMonths;
+      if (all.length === 0) return null;
+      const ci = this.currentMonthIndex;
+      const idx = ci - VISIBLE_WINDOW - this.visibleUp - 1;
+      if (idx < 0) return null;
+      return { year: all[idx].year, month: all[idx].month };
+    },
+    nextMonthDown(): { year: number; month: number } | null {
+      const all = this.allMonths;
+      if (all.length === 0) return null;
+      const ci = this.currentMonthIndex;
+      const idx = ci + VISIBLE_WINDOW + 1 + this.visibleDown;
+      if (idx >= all.length) return null;
+      return { year: all[idx].year, month: all[idx].month };
+    },
   },
   actions: {
     _saveTimer: null as number | null,
@@ -38,6 +87,7 @@ export const useTimelineStore = defineStore('timeline', {
       this.loadLocal();
       this.clearEmptyMonths();
       this.addCurrentMonthIfMissing();
+      this.resetVisible();
     },
     loadLocal() {
       try {
@@ -201,9 +251,28 @@ export const useTimelineStore = defineStore('timeline', {
       });
     },
     clearEmptyMonths() {
-      // 过滤掉没有 entries 的月份
       this.months = this.months.filter((month) => month.entries.length > 0);
       this.saveLocal();
+    },
+    loadMoreUp() {
+      this.visibleUp += VISIBLE_WINDOW;
+    },
+    loadMoreDown() {
+      this.visibleDown += VISIBLE_WINDOW;
+    },
+    loadAllUp() {
+      const all = this.allMonths;
+      const ci = this.currentMonthIndex;
+      this.visibleUp = ci;
+    },
+    loadAllDown() {
+      const all = this.allMonths;
+      const ci = this.currentMonthIndex;
+      this.visibleDown = all.length - ci - 1;
+    },
+    resetVisible() {
+      this.visibleUp = 0;
+      this.visibleDown = 0;
     },
     clearData() {
       this.months = [];

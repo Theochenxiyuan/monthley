@@ -28,6 +28,8 @@ export interface TimelineMonth {
 export interface TimelineState {
   months: TimelineMonth[];
   lastUpdated: Date | null;
+  visibleUp: number;
+  visibleDown: number;
 }
 
 export interface EntryFormData {
