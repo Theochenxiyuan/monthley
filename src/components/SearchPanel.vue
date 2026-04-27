@@ -3,7 +3,7 @@ import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { Icon } from '@iconify/vue';
-import { formatMonth, formatYearMonth } from '@/utils/dateFormatter';
+import { formatMonth } from '@/utils/dateFormatter';
 import type { EntryType } from '@/types/models';
 
 const props = defineProps<{
@@ -56,7 +56,7 @@ const searchResults = computed<SearchResult[]>(() => {
           entryType: entry.type,
           year: m.year,
           month: m.month,
-          monthLabel: formatMonth(formatYearMonth(m)),
+          monthLabel: formatMonth(m),
         });
       }
     }

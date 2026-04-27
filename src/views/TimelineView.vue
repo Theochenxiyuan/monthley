@@ -100,9 +100,9 @@
             <el-timeline-item
                 v-for="timelineMonth in timelineStore.visibleMonths"
                 :key="formatYearMonth(timelineMonth)"
-                :timestamp="
-                    formatMonth(formatYearMonth(timelineMonth)) +
-                    (isCurrentMonth(timelineMonth)
+:timestamp="
+          formatMonth(timelineMonth) +
+          (isCurrentMonth(timelineMonth)
                         ? t('punctuation.space.betweenWords') +
                           t('punctuation.bracket.round[0]') +
                           t('timeline.current') +

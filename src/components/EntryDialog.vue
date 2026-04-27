@@ -7,7 +7,7 @@
       t('common.entry')
     "
     style="width: 600px; max-width: 90vw"
-    :close-on-click-modal="false"
+    :close-on-click-modal="true"
   >
     <el-form
       @submit="handleSubmit"
@@ -16,41 +16,42 @@
       :show-message="false"
       hide-required-asterisk
     >
-      <el-form-item :label="t('entry.category')" required prop="type">
-        <el-select
-          v-model="formData.type"
-          :placeholder="t('entry.categoryPlaceholder')"
-        >
-          <el-option :label="t('entry.types.learn')" value="learn" />
-          <el-option :label="t('entry.types.play')" value="play" />
-          <el-option :label="t('entry.types.watch')" value="watch" />
-          <el-option :label="t('entry.types.read')" value="read" />
-        </el-select>
-      </el-form-item>
-      <el-form-item :label="t('entry.name')" required prop="name">
-        <el-input
-          v-model="formData.name"
-          :placeholder="t('entry.namePlaceholder')"
-          clearable
-        />
-      </el-form-item>
+      <div class="type-name-row">
+        <el-form-item prop="type" class="type-form-item">
+          <el-select
+            v-model="formData.type"
+            :placeholder="t('entry.categoryPlaceholder')"
+          >
+            <el-option :label="t('entry.types.learn')" value="learn" />
+            <el-option :label="t('entry.types.play')" value="play" />
+            <el-option :label="t('entry.types.watch')" value="watch" />
+            <el-option :label="t('entry.types.read')" value="read" />
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="name" class="name-form-item">
+          <el-input
+            v-model="formData.name"
+            :placeholder="t('entry.namePlaceholder')"
+            clearable
+          />
+        </el-form-item>
+      </div>
 
-      <el-form-item :label="t('entry.date')" required prop="month">
+      <el-form-item required prop="month">
         <el-date-picker
           v-model="formData.month"
           type="month"
           :placeholder="t('entry.date')"
           :clearable="false"
           :editable="false"
-        >
-        </el-date-picker>
+        />
       </el-form-item>
 
-      <el-form-item :label="t('entry.status')" required prop="status">
+      <el-form-item required prop="status">
         <el-segmented
           v-model="formData.status"
           :options="statusOptions"
-          style="margin-bottom: 1rem"
+          :class="['status-segmented', `status-${formData.status}`]"
         />
       </el-form-item>
     </el-form>
@@ -132,38 +133,53 @@ function handleSubmit(formData: EntryFormData) {
 </script>
 
 <style scoped>
-.dialog-content {
-  padding: 20px;
+:deep(.el-form-item) {
+  margin-bottom: 22px;
 }
-.form-item {
-  margin-bottom: 20px;
-}
-.form-item label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-.form-item input,
-.form-item select,
-.form-item textarea {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--el-border-color);
-  border-radius: 6px;
-  background: var(--el-bg-color);
-  color: var(--el-text-color-primary);
-  transition: border-color 0.3s ease, background-color 0.3s ease;
-}
-.form-item input:focus,
-.form-item select:focus,
-.form-item textarea:focus {
-  outline: none;
-  border-color: var(--el-color-primary);
-}
-.dialog-footer {
+.type-name-row {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+  gap: 0.5rem;
+}
+.type-form-item {
+  flex: 0 0 auto;
+  width: 120px;
+}
+.name-form-item {
+  flex: 1;
+  min-width: 0;
+}
+.type-name-row :deep(.el-form-item__label) {
+  display: none;
+}
+.type-name-row :deep(.el-select),
+.name-form-item :deep(.el-input) {
+  width: 100%;
+}
+:deep(.el-date-editor) {
+  width: 100%;
+}
+.status-segmented {
+  width: 100%;
+}
+.status-segmented :deep(.el-segmented__item) {
+  padding: 6px 0;
+}
+.status-segmented :deep(.el-segmented__item-selected) {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+.status-not_started :deep(.el-segmented__item-selected) {
+  background-color: var(--el-color-info-light-7) !important;
+  border-color: var(--el-color-info-light-3) !important;
+  color: var(--el-color-info-dark-2) !important;
+}
+.status-in_progress :deep(.el-segmented__item-selected) {
+  background-color: var(--el-color-primary-light-7) !important;
+  border-color: var(--el-color-primary-light-3) !important;
+  color: var(--el-color-primary-dark-2) !important;
+}
+.status-completed :deep(.el-segmented__item-selected) {
+  background-color: var(--el-color-success-light-7) !important;
+  border-color: var(--el-color-success-light-3) !important;
+  color: var(--el-color-success-dark-2) !important;
 }
 </style>
