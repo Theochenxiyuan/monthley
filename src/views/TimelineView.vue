@@ -247,9 +247,9 @@ function handleLoadUp() {
 }
 
 function handleLoadDown() {
-  if (!scrollContainer) return;
-  timelineStore.loadMoreDown();
-  nextTick(onScroll);
+    if (!scrollContainer) return;
+    timelineStore.loadMoreDown();
+    nextTick(onScroll);
 }
 
 function handleSearchSelect(entryId: string, year: number, month: number) {
@@ -340,8 +340,27 @@ function resetFilters(): void {
 .action-bar-actions {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 0;
     flex-shrink: 0;
+}
+.action-bar-actions :deep(.el-button + .el-button) {
+  margin-left: 2px;
+}
+.action-bar-actions :deep(.el-button--text) {
+  padding: 4px;
+}
+.action-bar-actions :deep(.el-button--primary:not(.el-button--text)) {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  margin-left: 6px;
+}
+.action-bar-actions :deep(.el-button--text) {
+    padding: 4px;
+}
+.action-bar-actions :deep(.el-button--primary:not(.el-button--text)) {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  margin-left: 6px;
 }
 </style>
 
@@ -352,7 +371,7 @@ function resetFilters(): void {
     left: 0;
     right: 0;
     margin: 0 auto;
-    max-width: 640px;
+    max-width: 680px;
     background: var(--el-color-primary-light-9);
     border: 1px solid var(--el-color-primary-light-7);
     color: var(--el-color-primary);

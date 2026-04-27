@@ -5,7 +5,6 @@ import StatCard from '@/components/stats/StatCard.vue';
 import TypeDistribution from '@/components/stats/TypeDistribution.vue';
 import StatusRing from '@/components/stats/StatusRing.vue';
 import YearHeatmap from '@/components/stats/YearHeatmap.vue';
-import MonthlyTrend from '@/components/stats/MonthlyTrend.vue';
 import { Icon } from '@iconify/vue';
 
 const { t } = useI18n();
@@ -19,8 +18,6 @@ const {
   statusStats,
   yearHeatmapData,
   years,
-  monthlyTrend,
-  streakMonths,
 } = useStats();
 </script>
 
@@ -87,13 +84,6 @@ const {
         <YearHeatmap
           :heatmap-data="yearHeatmapData"
           :years="years"
-        />
-      </div>
-
-      <div class="stats-section">
-        <MonthlyTrend
-          :trend="monthlyTrend"
-          :streak-months="streakMonths"
         />
       </div>
     </template>

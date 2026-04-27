@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
@@ -11,6 +11,9 @@ const timelineStore = useTimelineStore();
 const settingsStore = useSettingsStore();
 const route = useRoute();
 const activeRoute = computed(() => route.path);
+
+const scrollPositions: Record<string, number> = {};
+const mainContentEl = ref<HTMLElement | null>(null);
 
 const updateTitle = () => {
   document.title = t('app.title');
@@ -36,12 +39,27 @@ watch(
     document.documentElement.classList.toggle('dark', newVal);
   }
 );
+
+watch(
+  () => route.path,
+  (to, from) => {
+    const el = mainContentEl.value;
+    if (!el) return;
+    if (from) {
+      scrollPositions[from] = el.scrollTop;
+    }
+    nextTick(() => {
+      const target = scrollPositions[to] ?? 0;
+      el.scrollTo({ top: target });
+    });
+  },
+);
 </script>
 
 <template>
   <el-config-provider :locale="currentElementPlusLocale" :theme="settingsStore.isDark ? 'dark' : 'light'">
     <div id="app">
-      <div class="main-content" v-auto-animate>
+      <div ref="mainContentEl" class="main-content" v-auto-animate>
         <router-view v-slot="{ Component }">
           <KeepAlive>
             <component :is="Component" />
@@ -72,7 +90,7 @@ watch(
 #app {
   height: 100vh;
   height: 100dvh;
-  max-width: 640px;
+  max-width: 680px;
   width: 100%;
   margin: 0 auto;
   position: relative;
