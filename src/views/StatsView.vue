@@ -1,11 +1,21 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStats } from '@/composables/useStats';
-import StatCard from '@/components/stats/StatCard.vue';
-import TypeDistribution from '@/components/stats/TypeDistribution.vue';
-import StatusRing from '@/components/stats/StatusRing.vue';
-import YearHeatmap from '@/components/stats/YearHeatmap.vue';
 import { Icon } from '@iconify/vue';
+
+const StatCard = defineAsyncComponent(
+  () => import('@/components/stats/StatCard.vue'),
+);
+const TypeDistribution = defineAsyncComponent(
+  () => import('@/components/stats/TypeDistribution.vue'),
+);
+const StatusRing = defineAsyncComponent(
+  () => import('@/components/stats/StatusRing.vue'),
+);
+const YearHeatmap = defineAsyncComponent(
+  () => import('@/components/stats/YearHeatmap.vue'),
+);
 
 const { t } = useI18n();
 const {

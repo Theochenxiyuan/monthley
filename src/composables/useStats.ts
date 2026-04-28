@@ -24,15 +24,6 @@ export interface YearHeatmapCell {
   label: string;
 }
 
-export interface MonthlyTrendItem {
-  year: number;
-  month: number;
-  total: number;
-  completed: number;
-  rate: number | null;
-  label: string;
-}
-
 export function useStats() {
   const timelineStore = useTimelineStore();
 
@@ -125,35 +116,6 @@ export function useStats() {
     return result;
   });
 
-  const monthlyTrend = computed<MonthlyTrendItem[]>(() => {
-    const months = timelineStore.allMonths;
-    if (months.length === 0) return [];
-
-    const now = new Date();
-    const result: MonthlyTrendItem[] = [];
-
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const year = d.getFullYear();
-      const month = d.getMonth() + 1;
-      const monthData = months.find(
-        (m) => m.year === year && m.month === month,
-      );
-      const entries = monthData ? monthData.entries : [];
-      const total = entries.length;
-      const completed = entries.filter((e) => e.status === 'completed').length;
-      result.push({
-        year,
-        month,
-        total,
-        completed,
-        rate: total > 0 ? Math.round((completed / total) * 100) : null,
-        label: `${year}-${String(month).padStart(2, '0')}`,
-      });
-    }
-    return result;
-  });
-
   const streakMonths = computed(() => {
     const months = timelineStore.allMonths;
     if (months.length === 0) return 0;
@@ -207,7 +169,6 @@ export function useStats() {
     statusStats,
     yearHeatmapData,
     years,
-    monthlyTrend,
     streakMonths,
   };
 }

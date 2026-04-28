@@ -216,6 +216,12 @@ function getTooltip(cell: YearHeatmapCell): string {
   position: relative;
 }
 
+.heatmap-legend .heatmap-cell {
+  width: 12px;
+  height: 12px;
+  aspect-ratio: unset;
+}
+
 .heatmap-legend .heatmap-cell:hover {
   transform: none;
 }
