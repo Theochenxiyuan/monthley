@@ -7,8 +7,6 @@ export const useSettingsStore = defineStore('settings', {
     isDark: useDark(),
     language: 'zh-CN',
     expandAll: false,
-    showEntriesCollapsed: false,
-    showNumCollapsed: true,
   }),
 
   actions: {
@@ -23,8 +21,6 @@ export const useSettingsStore = defineStore('settings', {
         this.isDark = settings.isDark;
         this.language = settings.language || 'zh-CN';
         this.expandAll = settings.expandAll;
-        this.showEntriesCollapsed = settings.showEntriesCollapsed;
-        this.showNumCollapsed = settings.showNumCollapsed;
       }
       document.documentElement.classList.toggle('dark', this.isDark);
       i18n.global.locale = this.language as 'zh-CN' | 'en-US';

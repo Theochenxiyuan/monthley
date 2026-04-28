@@ -77,9 +77,9 @@ export default {
     expandAll: '默认展开所有月份',
     showEntriesCollapsed: '月份折叠时显示计划文字',
     showNumCollapsed: '月份折叠时显示计划数量',
-    expandAllTooltip:
-      '如果不选择展开，默认会将"已完成所有计划的过去月份"和"所有计划都未开始的未来月份"折叠起来，并显示精简文字',
-    exportTimeline: '导出时间线',
+expandAllTooltip:
+        '如果不选择展开，默认会将"已完成所有计划的过去月份"和"所有计划都未开始的未来月份"折叠起来，并显示精简文字',
+      exportTimeline: '导出时间线',
     importTimeline: '导入时间线',
     exportSuccess: '导出成功',
     importSuccess: '导入成功',
@@ -149,6 +149,7 @@ export default {
     hiddenEntries: '个已隐藏',
     entries: '个',
     completed: '已完成',
+    inProgress: '进行中',
     planned: '已计划',
     andMore: '等{count}项',
     start: '开始',

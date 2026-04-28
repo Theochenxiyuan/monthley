@@ -77,9 +77,9 @@ export default {
     expandAll: 'Always expand all months',
     showEntriesCollapsed: 'Show plan text when month is collapsed',
     showNumCollapsed: 'Show plan count when month is collapsed',
-    expandAllTooltip:
-      'If not selected, months with all plans completed in the past and all plans not started in the future will be collapsed by default, showing condensed text',
-    exportTimeline: 'Export Timeline',
+expandAllTooltip:
+        'If not selected, months with all plans completed in the past and all plans not started in the future will be collapsed by default, showing condensed text',
+      exportTimeline: 'Export Timeline',
     importTimeline: 'Import Timeline',
     exportSuccess: 'Export successful',
     importSuccess: 'Import successful',
@@ -150,6 +150,7 @@ export default {
     hiddenEntries: 'hidden',
     entries: 'plans',
     completed: 'Completed',
+    inProgress: 'Doing',
     planned: 'Planned',
     andMore: 'and {count} more',
     start: 'Start',

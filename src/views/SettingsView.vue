@@ -41,28 +41,6 @@
       <el-switch v-model="settingsStore.expandAll" size="large" inline-prompt />
     </div>
 
-    <div class="setting-item">
-      <el-text>{{ t('settings.showEntriesCollapsed') }}: </el-text>
-
-      <el-switch
-        v-model="settingsStore.showEntriesCollapsed"
-        size="large"
-        inline-prompt
-        :disabled="settingsStore.expandAll"
-      />
-    </div>
-
-    <div class="setting-item">
-      <el-text>{{ t('settings.showNumCollapsed') }}: </el-text>
-
-      <el-switch
-        v-model="settingsStore.showNumCollapsed"
-        size="large"
-        inline-prompt
-        :disabled="settingsStore.expandAll"
-      />
-    </div>
-
     <el-divider />
 
     <div class="setting-item">

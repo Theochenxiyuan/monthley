@@ -13,11 +13,12 @@
       @submit="handleSubmit"
       ref="formRef"
       :model="formData"
+      :rules="formRules"
       :show-message="false"
       hide-required-asterisk
     >
       <div class="type-name-row">
-        <el-form-item prop="type" class="type-form-item">
+        <el-form-item required prop="type" class="type-form-item">
           <el-select
             v-model="formData.type"
             :placeholder="t('entry.categoryPlaceholder')"
@@ -28,7 +29,7 @@
             <el-option :label="t('entry.types.read')" value="read" />
           </el-select>
         </el-form-item>
-        <el-form-item prop="name" class="name-form-item">
+        <el-form-item required prop="name" class="name-form-item">
           <el-input
             v-model="formData.name"
             :placeholder="t('entry.namePlaceholder')"
@@ -76,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useDialogStore } from '@/stores/dialog';
@@ -91,6 +92,13 @@ const formRef = ref<FormInstance>();
 const dialogStore = useDialogStore();
 const timelineStore = useTimelineStore();
 const { visible, formData } = storeToRefs(dialogStore);
+
+const formRules = reactive({
+  type: [{ required: true, message: '', trigger: 'change' }],
+  name: [{ required: true, message: '', trigger: 'blur' }],
+  month: [{ required: true, message: '', trigger: 'change' }],
+  status: [{ required: true, message: '', trigger: 'change' }],
+});
 
 const statusOptions = computed(() => [
   { label: t('entry.statuses.not_started'), value: 'not_started' },

@@ -11,20 +11,8 @@ import { useFiltersStore } from '@/stores/filters';
 import Draggable from 'vuedraggable';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
-// 类型映射
-const typeMap = computed(() => {
-  const key = isPastMonthFullyCompleted(props.month)
-    ? 'completed'
-    : 'not_started';
-  return {
-    learn: t(`entryItem.statusType.${key}.learn`),
-    play: t(`entryItem.statusType.${key}.play`),
-    watch: t(`entryItem.statusType.${key}.watch`),
-    read: t(`entryItem.statusType.${key}.read`),
-  };
-});
 const settingsStore = useSettingsStore();
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
@@ -154,23 +142,6 @@ const hiddenCount = computed(() => {
     return count + (shouldHide ? 1 : 0);
   }, 0);
 });
-// 新增：按类型分组条目
-const groupedEntries = computed(() => {
-  const groups: Record<string, string[]> = {} as Record<string, string[]>;
-
-  // 初始化所有类型
-  const entryTypes = ['learn', 'play', 'watch', 'read'] as const;
-  entryTypes.forEach((type) => {
-    groups[type as EntryType] = [];
-  });
-
-  // 分组条目名称
-  props.month.entries.forEach((entry) => {
-    groups[entry.type].push(entry.name);
-  });
-
-  return groups;
-});
 
 const getTextType = (): 'success' | 'info' | 'primary' => {
   return isPastMonthFullyCompleted(props.month)
@@ -179,6 +150,53 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
       ? 'info'
       : 'primary';
 };
+
+const typeCounts = computed(() => {
+  const counts: Record<string, number> = {};
+  props.month.entries.forEach((entry) => {
+    counts[entry.type] = (counts[entry.type] || 0) + 1;
+  });
+  return counts;
+});
+
+const collapsedSummary = computed(() => {
+  const total = props.month.entries.length;
+  const completed = props.month.entries.filter((e) => e.status === 'completed').length;
+  const inProgress = props.month.entries.filter((e) => e.status === 'in_progress').length;
+  const isZh = locale.value === 'zh-CN';
+
+  let prefix = '';
+  if (isPastMonthFullyCompleted(props.month)) {
+    prefix = `${t('monthCard.completed')} ${completed}/${total}`;
+  } else if (inProgress > 0) {
+    prefix = `${t('monthCard.inProgress')} ${inProgress}/${total}`;
+  } else if (isFutureMonthAllNotStarted(props.month)) {
+    prefix = `${t('monthCard.planned')} ${total}${t('unit.count')}`;
+  } else {
+    prefix = `${t('monthCard.completed')} ${completed}/${total}`;
+  }
+
+  const typesWithCount = Object.entries(typeCounts.value)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3);
+
+  const remainingCount = Object.keys(typeCounts.value).length - typesWithCount.length;
+
+  const parts = typesWithCount.map(([type, count]) => {
+    const label = t(`entry.shortTypes.${type as EntryType}`);
+    return isZh ? `${label} ${count}` : `${label} (${count})`;
+  });
+
+  let suffix = parts.join(isZh ? ' ' : ', ');
+
+  if (remainingCount > 0) {
+    suffix += isZh
+      ? ` ${t('monthCard.andMore', { count: remainingCount })}`
+      : `, ${t('monthCard.andMore', { count: remainingCount })}`;
+  }
+
+  return suffix ? `${prefix} · ${suffix}` : prefix;
+});
 </script>
 
 <template>
@@ -317,95 +335,8 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
         @click="manualExpanded = !manualExpanded"
         v-else
       >
-        <el-text line-clamp="2" :type="getTextType()" style="line-height: 2">
-          <el-tag
-            :type="getTextType()"
-            v-show="
-              settingsStore.showNumCollapsed ||
-              (!settingsStore.showEntriesCollapsed &&
-                !settingsStore.showNumCollapsed)
-            "
-            effect="plain"
-          >
-            <span v-show="settingsStore.showNumCollapsed">{{
-              String(month.entries.length) +
-              t('punctuation.space.betweenWords') +
-              t('unit.count')
-            }}</span>
-
-            <span>
-              {{
-                isPastMonthFullyCompleted(month)
-                  ? t('monthCard.completed')
-                  : isFutureMonthAllNotStarted(month)
-                    ? t('monthCard.planned')
-                    : ''
-              }}
-            </span>
-          </el-tag>
-          <el-text
-            v-show="
-              settingsStore.showNumCollapsed &&
-              settingsStore.showEntriesCollapsed
-            "
-            style="
-              margin-right: 0.3rem;
-              margin-left: 0.3rem;
-              vertical-align: middle;
-            "
-          >
-            {{ t('punctuation.dash') }}
-          </el-text>
-          <el-text
-            v-show="settingsStore.showEntriesCollapsed"
-            v-for="key in Object.keys(groupedEntries).filter(
-              (k) => groupedEntries[k].length > 0,
-            )"
-            :key="key"
-            :type="getTextType()"
-            size="small"
-            style="
-              margin-right: 5px;
-              display: inline-block;
-              vertical-align: middle;
-            "
-          >
-            <span style="margin-right: 3px; vertical-align: middle">
-              {{
-                typeMap[key as EntryType] +
-                t('punctuation.space.betweenTypeAndName')
-              }}</span
-            >
-
-            <el-tag
-              :type="getTextType()"
-              v-for="item in groupedEntries[key]"
-              :key="item"
-              round
-              style="margin-right: 5px; vertical-align: middle"
-              effect="plain"
-              size="small"
-            >
-              {{ item }}
-            </el-tag>
-            <el-divider
-              direction="vertical"
-              v-show="
-                Object.keys(groupedEntries)
-                  .filter((k) => groupedEntries[k].length > 0)
-                  .indexOf(key) <
-                Object.keys(groupedEntries).filter(
-                  (k) => groupedEntries[k].length > 0,
-                ).length -
-                  1
-              "
-              style="
-                margin-right: 0.25rem;
-                margin-left: 0.25rem;
-                vertical-align: middle;
-              "
-            />
-          </el-text>
+        <el-text line-clamp="1" :type="getTextType()" class="collapsed-summary">
+          {{ collapsedSummary }}
         </el-text>
 
         <el-text type="primary" size="small"
@@ -465,5 +396,9 @@ const getTextType = (): 'success' | 'info' | 'primary' => {
   100% {
     box-shadow: none;
   }
+}
+.collapsed-summary {
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 </style>
