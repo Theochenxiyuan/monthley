@@ -72,6 +72,71 @@
 
     <el-divider />
 
+    <h4 class="sync-title">{{ t('sync.title') }}</h4>
+
+    <div class="setting-item">
+      <template v-if="settingsStore.syncKey && !isEditingKey">
+        <el-input
+          v-model="settingsStore.syncKey"
+          readonly
+          style="max-width: 260px"
+          size="default"
+        >
+          <template #append>
+            <el-button @click="copyKey">
+              <el-icon><DocumentCopy /></el-icon>
+            </el-button>
+          </template>
+        </el-input>
+      </template>
+      <template v-else-if="isEditingKey">
+        <el-input
+          v-model="inputKey"
+          :placeholder="t('sync.enterKeyPlaceholder')"
+          style="max-width: 260px"
+          size="default"
+          clearable
+        >
+          <template #append>
+            <el-button @click="confirmKey" :disabled="!isValidKey">
+              {{ t('common.confirm') }}
+            </el-button>
+          </template>
+        </el-input>
+      </template>
+      <template v-else>
+        <el-button type="primary" @click="generateKey">
+          {{ t('sync.generateKey') }}
+        </el-button>
+        <el-button @click="startEditKey">
+          {{ t('sync.useExistingKey') }}
+        </el-button>
+      </template>
+    </div>
+
+    <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-item sync-actions">
+      <el-button :loading="sync.isSyncing.value" @click="sync.manualSync">
+        {{ t('sync.syncNow') }}
+      </el-button>
+      <el-button type="danger" plain @click="clearKey">
+        {{ t('sync.clearKey') }}
+      </el-button>
+    </div>
+
+    <div v-if="isEditingKey" class="setting-item">
+      <el-button link @click="cancelKeyEdit">
+        {{ t('common.cancel') }}
+      </el-button>
+    </div>
+
+    <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-item">
+      <el-button link type="primary" @click="startEditKey">
+        {{ t('sync.useOtherKey') }}
+      </el-button>
+    </div>
+
+    <el-divider />
+
     <div class="setting-item danger-section">
       <el-button type="danger" @click="confirmClear">
         <el-icon><Delete /></el-icon>
@@ -102,6 +167,17 @@
 :deep(.el-switch__core) {
   transition: background-color 0.3s ease;
 }
+.sync-title {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: var(--el-text-color-regular);
+  font-weight: 600;
+}
+.sync-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
 </style>
 
 <script setup lang="ts">
@@ -109,13 +185,20 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '../stores/settings';
 import { useTimelineStore } from '../stores/timeline';
+import { useSync } from '@/composables/useSync';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { Download, Upload, Delete } from '@element-plus/icons-vue';
+import { Download, Upload, Delete, DocumentCopy } from '@element-plus/icons-vue';
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
 const timelineStore = useTimelineStore();
+const sync = useSync();
 const fileInputRef = ref<HTMLInputElement>();
+
+const isEditingKey = ref(false);
+const inputKey = ref('');
+
+const isValidKey = computed(() => /^[a-zA-Z0-9]{8,32}$/.test(inputKey.value));
 
 const currentLanguage = computed({
   get: () => settingsStore.language,
@@ -187,5 +270,59 @@ const confirmClear = async () => {
       ElMessage.error(t('settings.clearError'));
     }
   }
+};
+
+const generateKey = async () => {
+  settingsStore.syncKey = sync.generateSyncKey();
+  ElMessage.success(t('sync.syncSuccess'));
+};
+
+const copyKey = async () => {
+  if (!settingsStore.syncKey) return;
+  try {
+    await navigator.clipboard.writeText(settingsStore.syncKey);
+    ElMessage.success('Copied');
+  } catch {
+    ElMessage.error('Copy failed');
+  }
+};
+
+const clearKey = async () => {
+  try {
+    await ElMessageBox.confirm(
+      t('sync.clearKey'),
+      t('sync.title'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning',
+      }
+    );
+    settingsStore.syncKey = null;
+  } catch {
+    // cancelled
+  }
+};
+
+const startEditKey = () => {
+  inputKey.value = '';
+  isEditingKey.value = true;
+};
+
+const confirmKey = async () => {
+  if (!isValidKey.value) return;
+  settingsStore.syncKey = inputKey.value;
+  isEditingKey.value = false;
+  try {
+    await sync.pull();
+    ElMessage.success(t('sync.syncSuccess'));
+  } catch {
+    ElMessage.error(t('sync.syncFailed'));
+  }
+};
+
+const cancelKeyEdit = () => {
+  isEditingKey.value = false;
+  inputKey.value = '';
 };
 </script>

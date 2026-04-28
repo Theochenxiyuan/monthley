@@ -207,4 +207,18 @@ expandAllTooltip:
     resultCount: '共 {count} 个结果',
     hint: '输入关键词搜索计划',
   },
+  sync: {
+    title: '云端同步',
+    syncKey: '同步密钥',
+    generateKey: '生成新密钥',
+    syncNow: '立即同步',
+    clearKey: '清除密钥',
+    useExistingKey: '使用已有密钥',
+    useOtherKey: '使用其他密钥',
+    enterKeyPlaceholder: '粘贴同步密钥',
+    noKey: '请先设置同步密钥',
+    syncSuccess: '同步成功',
+    syncFailed: '同步失败',
+    restoredFromCloud: '已从云端恢复数据',
+  },
 };

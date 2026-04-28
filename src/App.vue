@@ -4,11 +4,13 @@ import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
+import { useSync } from '@/composables/useSync';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import enUs from 'element-plus/es/locale/lang/en';
 const { t, locale } = useI18n();
 const timelineStore = useTimelineStore();
 const settingsStore = useSettingsStore();
+const { init: initSync } = useSync();
 const route = useRoute();
 const activeRoute = computed(() => route.path);
 
@@ -23,10 +25,11 @@ const currentElementPlusLocale = computed(() => {
   return settingsStore.language === 'zh-CN' ? zhCn : enUs;
 });
 
-onMounted(() => {
+onMounted(async () => {
   timelineStore.init();
   settingsStore.init();
   updateTitle();
+  await initSync();
 });
 
 watch(locale, () => {

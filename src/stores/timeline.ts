@@ -176,6 +176,7 @@ export const useTimelineStore = defineStore('timeline', {
       );
       if (month) {
         month.entries = month.entries.filter((entry) => entry.id !== entryId);
+        this.lastUpdated = new Date();
         this.saveLocal();
       }
     },

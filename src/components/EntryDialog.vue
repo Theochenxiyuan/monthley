@@ -8,6 +8,7 @@
     "
     style="width: 600px; max-width: 90vw"
     :close-on-click-modal="true"
+    align-center
   >
     <el-form
       @submit="handleSubmit"

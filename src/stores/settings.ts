@@ -7,6 +7,7 @@ export const useSettingsStore = defineStore('settings', {
     isDark: useDark(),
     language: 'zh-CN',
     expandAll: false,
+    syncKey: null as string | null,
   }),
 
   actions: {
@@ -21,6 +22,7 @@ export const useSettingsStore = defineStore('settings', {
         this.isDark = settings.isDark;
         this.language = settings.language || 'zh-CN';
         this.expandAll = settings.expandAll;
+        this.syncKey = settings.syncKey || null;
       }
       document.documentElement.classList.toggle('dark', this.isDark);
       i18n.global.locale = this.language as 'zh-CN' | 'en-US';

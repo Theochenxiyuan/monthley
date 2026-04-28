@@ -208,4 +208,18 @@ expandAllTooltip:
     resultCount: '{count} result(s)',
     hint: 'Type to search plans',
   },
+  sync: {
+    title: 'Cloud Sync',
+    syncKey: 'Sync Key',
+    generateKey: 'Generate New Key',
+    syncNow: 'Sync Now',
+    clearKey: 'Clear Key',
+    useExistingKey: 'Use Existing Key',
+    useOtherKey: 'Use Another Key',
+    enterKeyPlaceholder: 'Paste sync key',
+    noKey: 'Please set a sync key first',
+    syncSuccess: 'Sync successful',
+    syncFailed: 'Sync failed',
+    restoredFromCloud: 'Data restored from cloud',
+  },
 };
