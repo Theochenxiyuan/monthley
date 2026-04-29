@@ -506,6 +506,15 @@ html.pull-refresh-active .load-more-up {
     transform: translateY(0);
 }
 
+@media (min-width: 768px) {
+    .load-more-up {
+        top: 68px;
+    }
+    .load-more-down {
+        bottom: 88px;
+    }
+}
+
 .load-fade-enter-active,
 .load-fade-leave-active {
     transition:
