@@ -496,6 +496,11 @@ async function handleManualSync(): Promise<void> {
     top: 56px;
     transform: translateY(0);
 }
+html.pull-refresh-active .load-more-up {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+}
 .load-more-down {
     bottom: 76px;
     transform: translateY(0);

@@ -24,6 +24,10 @@ const PULL_THRESHOLD = 60;
 let touchStartY = 0;
 let isPulling = false;
 
+function setPullRefreshActive(active: boolean) {
+  document.documentElement.classList.toggle('pull-refresh-active', active);
+}
+
 function onTouchStart(e: TouchEvent) {
   const el = mainContentEl.value;
   if (!el) return;
@@ -46,8 +50,10 @@ function onTouchMove(e: TouchEvent) {
   const diff = e.touches[0].clientY - touchStartY;
   if (diff > 0) {
     pullDistance.value = Math.min(diff * 0.5, PULL_THRESHOLD + 20);
+    setPullRefreshActive(true);
   } else {
     pullDistance.value = 0;
+    setPullRefreshActive(false);
   }
 }
 
@@ -56,12 +62,14 @@ function onTouchEnd() {
   isPulling = false;
   if (pullDistance.value >= PULL_THRESHOLD && !isRefreshing.value) {
     isRefreshing.value = true;
+    setPullRefreshActive(true);
     pullDistance.value = PULL_THRESHOLD;
     setTimeout(() => {
       location.reload();
     }, 400);
   } else {
     pullDistance.value = 0;
+    setPullRefreshActive(false);
   }
 }
 
