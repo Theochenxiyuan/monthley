@@ -33,10 +33,20 @@ function setPullRefreshActive(active: boolean) {
   document.documentElement.classList.toggle('pull-refresh-active', active);
 }
 
+function isVisibleOverlay(el: Element): boolean {
+  if (el.getAttribute('aria-hidden') === 'true') return false;
+  const style = window.getComputedStyle(el);
+  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+    return false;
+  }
+  const rect = el.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
 function hasActiveOverlay(): boolean {
-  return !!document.querySelector(
-    '.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper:not([aria-hidden="true"])',
-  );
+  return Array.from(
+    document.querySelectorAll('.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper'),
+  ).some(isVisibleOverlay);
 }
 
 function resetPullRefresh() {
