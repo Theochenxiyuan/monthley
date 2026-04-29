@@ -23,6 +23,11 @@ const isRefreshing = ref(false);
 const PULL_THRESHOLD = 60;
 let touchStartY = 0;
 let isPulling = false;
+let appHeightFixTimer: number | undefined;
+
+function updateAppHeight() {
+  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+}
 
 function setPullRefreshActive(active: boolean) {
   document.documentElement.classList.toggle('pull-refresh-active', active);
@@ -75,13 +80,21 @@ function onTouchEnd() {
 
 const isDesktop = ref(window.innerWidth >= 768);
 function handleResize() {
+  updateAppHeight();
   isDesktop.value = window.innerWidth >= 768;
 }
 onMounted(() => {
+  updateAppHeight();
+  appHeightFixTimer = window.setTimeout(updateAppHeight, 300);
   window.addEventListener('resize', handleResize);
+  window.addEventListener('orientationchange', handleResize);
+  document.addEventListener('visibilitychange', updateAppHeight);
 });
 onUnmounted(() => {
+  if (appHeightFixTimer) window.clearTimeout(appHeightFixTimer);
   window.removeEventListener('resize', handleResize);
+  window.removeEventListener('orientationchange', handleResize);
+  document.removeEventListener('visibilitychange', updateAppHeight);
 });
 
 const updateTitle = () => {
@@ -177,8 +190,7 @@ watch(
 
 <style scoped>
 #app {
-  height: 100vh;
-  height: 100dvh;
+  height: var(--app-height, 100dvh);
   max-width: 720px;
   width: 100%;
   margin: 0 auto;
@@ -195,12 +207,13 @@ watch(
   #app {
     border-radius: 16px;
     margin: 12px auto;
-    height: calc(100dvh - 24px);
+    height: calc(var(--app-height, 100dvh) - 24px);
   }
 }
 
 .main-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -248,6 +261,7 @@ watch(
   display: flex;
   justify-content: space-around;
   border-top: 1px solid var(--el-border-color-lighter);
+  padding-bottom: env(safe-area-inset-bottom);
   background-color: var(--navbar-bg, rgba(255, 255, 255, 0.78)) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
