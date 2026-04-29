@@ -20,7 +20,7 @@
         <el-switch
           v-model="settingsStore.isDark"
           size="large"
-          style="--el-switch-off-color: #f5f5f5; --el-switch-on-color: #333333"
+          style="--el-switch-off-color: #dcdfe6; --el-switch-on-color: #333333; --el-switch-off-text-color: #606266; --el-switch-on-text-color: #ffffff"
           :active-text="t('settings.dark')"
           :inactive-text="t('settings.light')"
           inactive-action-icon="Sunny"

@@ -9,11 +9,13 @@
 
 html, body {
   height: 100%;
-  background-color: var(--el-bg-color-page, #f5f7fa);
+  overflow: hidden;
+  background-color: #e8eaed;
 }
 
-.dark html, .dark body {
-  background-color: var(--el-bg-color-page, #1a1a1a);
+html.dark body,
+html.dark {
+  background-color: #111111;
 }
 
 .container {

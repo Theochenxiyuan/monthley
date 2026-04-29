@@ -209,6 +209,17 @@ export default {
     resultCount: '共 {count} 个结果',
     hint: '输入关键词搜索计划',
   },
+  yearSummary: {
+    title: '年度回顾',
+    heading: '{year} 年度回顾',
+    noData: '该年份暂无记录',
+    totalPlans: '总计划',
+    completionRate: '完成率',
+    activeMonths: '活跃月份',
+    streakMonths: '连续活跃',
+    topMonth: '最活跃月份：{month}，共 {count} 个计划',
+    share: '分享年度回顾',
+  },
   sync: {
     title: '云端同步',
     syncKey: '同步密钥',

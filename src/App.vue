@@ -100,7 +100,17 @@ watch(
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+  background-color: var(--el-bg-color);
+  box-shadow: 0 0 0 1px var(--el-border-color-lighter),
+              0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+@media (min-width: 768px) {
+  #app {
+    border-radius: 16px;
+    margin: 12px auto;
+    height: calc(100dvh - 24px);
+  }
 }
 
 .main-content {

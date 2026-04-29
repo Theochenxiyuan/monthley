@@ -210,6 +210,17 @@ export default {
     resultCount: '{count} result(s)',
     hint: 'Type to search plans',
   },
+  yearSummary: {
+    title: 'Year in Review',
+    heading: '{year} Year in Review',
+    noData: 'No records for this year',
+    totalPlans: 'Total Plans',
+    completionRate: 'Completion',
+    activeMonths: 'Active Months',
+    streakMonths: 'Streak',
+    topMonth: 'Most active: {month} with {count} plans',
+    share: 'Share Year in Review',
+  },
   sync: {
     title: 'Cloud Sync',
     syncKey: 'Sync Key',

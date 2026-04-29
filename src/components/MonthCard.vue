@@ -429,7 +429,7 @@ const collapsedSummary = computed(() => {
 
 .card-collapse-btn {
   position: absolute;
-  top: -14px;
+  bottom: -14px;
   right: 0;
   z-index: 10;
   display: inline-flex;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue';
+import { defineAsyncComponent, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStats } from '@/composables/useStats';
 import { Icon } from '@iconify/vue';
@@ -16,6 +16,9 @@ const StatusRing = defineAsyncComponent(
 const YearHeatmap = defineAsyncComponent(
   () => import('@/components/stats/YearHeatmap.vue'),
 );
+const YearSummaryDialog = defineAsyncComponent(
+  () => import('@/components/stats/YearSummaryDialog.vue'),
+);
 
 const { t } = useI18n();
 const {
@@ -29,12 +32,33 @@ const {
   yearHeatmapData,
   years,
 } = useStats();
+
+const showSummary = ref(false);
+const summaryYear = ref(new Date().getFullYear());
+
+function openSummary() {
+  summaryYear.value = new Date().getFullYear();
+  showSummary.value = true;
+}
 </script>
 
 <template>
   <header class="action-bar">
     <span class="action-bar-title">{{ t('stats.title') }}</span>
+    <el-button
+      class="summary-btn"
+      type="warning"
+      size="small"
+      plain
+      :disabled="totalCount === 0"
+      @click="openSummary"
+    >
+      <Icon icon="mdi:calendar-star" width="14" />
+      <span>{{ t('yearSummary.title') }}</span>
+    </el-button>
   </header>
+
+  <YearSummaryDialog v-model="showSummary" :initial-year="summaryYear" />
 
   <div class="stats-content">
     <div v-if="totalCount === 0" class="empty-state">
@@ -101,6 +125,14 @@ const {
 </template>
 
 <style scoped>
+.summary-btn {
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  gap: 4px;
+}
+
 .stats-content {
   padding: 1rem;
 }
