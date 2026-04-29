@@ -35,10 +35,10 @@
         <el-drawer
             v-model="drawerVisible"
             show-close
-            size="340px"
+            :size="drawerSize"
             modal
             :title="t('filters.title')"
-            direction="ltr"
+            :direction="drawerDirection"
             @close="
                 typeFilters = filtersStore.activeFilters.type;
                 statusFilters = filtersStore.activeFilters.status;
@@ -48,45 +48,42 @@
                 statusFilters = filtersStore.activeFilters.status;
             "
         >
-            <div class="filter-item">
-                <el-text
-                    >{{ t("filters.categories")
-                    }}{{ t("punctuation.colon") }}</el-text
-                >
-                <el-checkbox-group v-model="typeFilters">
-                    <el-checkbox-button
-                        v-for="option in typeOptions"
-                        :key="option.value"
-                        :value="option.value"
-                    >
-                        {{ option.label }}
-                    </el-checkbox-button>
-                </el-checkbox-group>
+            <div class="filter-panel">
+                <div class="filter-item">
+                    <el-text class="filter-label">{{ t("filters.categories") }}{{ t("punctuation.colon") }}</el-text>
+                    <el-checkbox-group v-model="typeFilters">
+                        <el-checkbox-button
+                            v-for="option in typeOptions"
+                            :key="option.value"
+                            :value="option.value"
+                        >
+                            {{ option.label }}
+                        </el-checkbox-button>
+                    </el-checkbox-group>
+                </div>
+                <div class="filter-item">
+                    <el-text class="filter-label">{{ t("filters.status") }}{{ t("punctuation.colon") }}</el-text>
+                    <el-checkbox-group v-model="statusFilters">
+                        <el-checkbox-button
+                            v-for="option in statusOptions"
+                            :key="option.value"
+                            :value="option.value"
+                        >
+                            {{ option.label }}
+                        </el-checkbox-button>
+                    </el-checkbox-group>
+                </div>
+                <el-text type="info" size="default" class="filter-note">{{ t("filters.notes") }}</el-text>
             </div>
-            <div class="filter-item">
-                <el-text
-                    >{{ t("filters.status")
-                    }}{{ t("punctuation.colon") }}</el-text
-                >
-                <el-checkbox-group v-model="statusFilters">
-                    <el-checkbox-button
-                        v-for="option in statusOptions"
-                        :key="option.value"
-                        :value="option.value"
-                    >
-                        {{ option.label }}
-                    </el-checkbox-button>
-                </el-checkbox-group>
-            </div>
-
-            <el-text>{{ t("filters.notes") }}</el-text>
             <template #footer>
-                <el-button type="primary" text @click="resetFilters()">{{
-                    t("common.reset")
-                }}</el-button>
-                <el-button type="primary" @click="confirmFilters()">{{
-                    t("common.save")
-                }}</el-button>
+                <div class="filter-footer">
+                    <el-button type="primary" text @click="resetFilters()">{{
+                        t("common.reset")
+                    }}</el-button>
+                    <el-button type="primary" @click="confirmFilters()">{{
+                        t("common.save")
+                    }}</el-button>
+                </div>
             </template>
         </el-drawer>
 
@@ -225,7 +222,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onActivated, onDeactivated } from "vue";
+import { ref, computed, nextTick, onActivated, onDeactivated, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import EntryDialog from "@/components/EntryDialog.vue";
 import MonthCard from "@/components/MonthCard.vue";
@@ -244,6 +241,16 @@ import {
 
 const { t, locale } = useI18n();
 const drawerVisible = ref(false);
+
+const isDesktop = ref(window.innerWidth >= 768);
+function handleResize() {
+    isDesktop.value = window.innerWidth >= 768;
+}
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
+
+const drawerDirection = computed(() => isDesktop.value ? 'ltr' : 'ttb');
+const drawerSize = computed(() => isDesktop.value ? '340px' : 'auto');
 const searchVisible = ref(false);
 const syncStatusVisible = ref(false);
 const highlightEntryId = ref<string | undefined>(undefined);
@@ -394,12 +401,35 @@ async function handleManualSync(): Promise<void> {
 .timeline-content {
     padding: 1rem;
 }
-.filter-item {
-    margin: 10px 0;
-    padding: 5px;
+.filter-panel {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
 }
-.filter-item * {
-    margin: 5px 0;
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+.filter-item :deep(.el-checkbox-group) {
+    justify-content: center;
+}
+.filter-label {
+    font-weight: 500;
+}
+.filter-note {
+    display: block;
+    font-size: 0.85rem;
+}
+.filter-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (max-width: 767px) {
 }
 :deep(.el-timeline-item) {
     transition: border-color 0.3s ease;

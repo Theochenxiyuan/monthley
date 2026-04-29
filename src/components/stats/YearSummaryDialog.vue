@@ -284,7 +284,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
   align-items: center;
   background: var(--el-fill-color-light);
   border-radius: 8px;
-  padding: 0.75rem 0.5rem;
+  padding: 0.75rem 0.6rem;
 }
 
 .summary-stat-value {
@@ -307,9 +307,11 @@ function getBarWidth(data: YearData, type: EntryType): string {
 }
 
 .summary-stat-label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--el-text-color-secondary);
   margin-top: 0.25rem;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .summary-types {
@@ -332,7 +334,8 @@ function getBarWidth(data: YearData, type: EntryType): string {
   font-size: 0.8rem;
   color: var(--el-text-color-primary);
   font-weight: 500;
-  width: 1.5rem;
+  white-space: nowrap;
+  min-width: 2rem;
 }
 
 .summary-type-bar-bg {
