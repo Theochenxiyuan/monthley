@@ -4,8 +4,7 @@
   padding: 0;
   transition: background-color 0.3s ease,
               color 0.3s ease,
-              border-color 0.3s ease,
-              box-shadow 0.3s ease;
+              border-color 0.3s ease;
 }
 
 html, body {
@@ -30,13 +29,43 @@ html, body {
   z-index: 1000;
   position: sticky;
   top: 0;
-  border-bottom: 1px solid var(--el-menu-border-color);
-  padding: 6px 10px;
-  background-color: var(--el-menu-bg-color);
+  min-height: 48px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  padding: 8px 16px;
+  background-color: var(--action-bar-bg, rgba(255, 255, 255, 0.78));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: none !important;
 }
 
+.action-bar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-bar-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.action-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+
 .dark {
+  --action-bar-bg: rgba(26, 26, 26, 0.78);
+  --navbar-bg: rgba(26, 26, 26, 0.78);
   --el-menu-bg-color: #1a1a1a !important;
   --el-menu-text-color: #a0a0a0 !important;
   --el-menu-active-color: #409eff !important;

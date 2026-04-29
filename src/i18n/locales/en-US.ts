@@ -68,6 +68,9 @@ export default {
   },
   settings: {
     title: 'Settings',
+    preferences: 'Preferences',
+    backupRestore: 'Backup & Restore',
+    dangerZone: 'Danger Zone',
     language: 'Language',
     appearance: 'Appearance',
     theme: 'Theme',
@@ -75,11 +78,9 @@ export default {
     dark: 'Dark',
     system: 'System',
     expandAll: 'Always expand all months',
-    showEntriesCollapsed: 'Show plan text when month is collapsed',
-    showNumCollapsed: 'Show plan count when month is collapsed',
-expandAllTooltip:
-        'If not selected, months with all plans completed in the past and all plans not started in the future will be collapsed by default, showing condensed text',
-      exportTimeline: 'Export Timeline',
+    expandAllTooltip:
+      'If not selected, months with all plans completed in the past and all plans not started in the future will be collapsed by default, showing condensed text',
+    exportTimeline: 'Export Timeline',
     importTimeline: 'Import Timeline',
     exportSuccess: 'Export successful',
     importSuccess: 'Import successful',
@@ -221,5 +222,13 @@ expandAllTooltip:
     syncSuccess: 'Sync successful',
     syncFailed: 'Sync failed',
     restoredFromCloud: 'Data restored from cloud',
+    statusTitle: 'Sync Status',
+    localUpdated: 'Last Local Update',
+    lastSynced: 'Last Synced',
+    cloudStatus: 'Cloud Status',
+    configured: 'Configured',
+    notConfigured: 'Not Configured',
+    syncNotEnabled: 'Sync not enabled',
+    neverSynced: 'Never synced',
   },
 };

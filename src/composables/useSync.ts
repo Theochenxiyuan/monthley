@@ -6,14 +6,40 @@ import { useTimelineStore } from '@/stores/timeline';
 import { syncService } from '@/services/syncService';
 import type { TimelineState } from '@/types/models';
 
+const SYNC_TIME_KEY = 'lastSyncedAt';
+
+function loadSavedSyncTime(): Date | null {
+  const saved = localStorage.getItem(SYNC_TIME_KEY);
+  if (!saved) return null;
+  try {
+    const d = new Date(saved);
+    return isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
+function saveSyncTime(date: Date | null) {
+  if (date) {
+    localStorage.setItem(SYNC_TIME_KEY, date.toISOString());
+  } else {
+    localStorage.removeItem(SYNC_TIME_KEY);
+  }
+}
+
 export function useSync() {
   const { t } = useI18n();
   const settingsStore = useSettingsStore();
   const timelineStore = useTimelineStore();
 
   const isSyncing = ref(false);
-  const lastSyncedAt = ref<Date | null>(null);
+  const lastSyncedAt = ref<Date | null>(loadSavedSyncTime());
   let uploadTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function recordSyncTime() {
+    lastSyncedAt.value = new Date();
+    saveSyncTime(lastSyncedAt.value);
+  }
 
   async function pull(): Promise<boolean> {
     const syncKey = settingsStore.syncKey;
@@ -38,11 +64,15 @@ export function useSync() {
         timelineStore.clearEmptyMonths();
         timelineStore.addCurrentMonthIfMissing();
         timelineStore.saveLocal();
+        recordSyncTime();
         ElMessage.success(t('sync.restoredFromCloud'));
         return true;
       } else if (localTime > remoteTime) {
         // Local is newer: push to cloud
         await push();
+      } else {
+        // Same time: still count as a sync
+        recordSyncTime();
       }
       return false;
     } finally {
@@ -60,7 +90,7 @@ export function useSync() {
         months: timelineStore.months,
         lastUpdated: timelineStore.lastUpdated?.toISOString() || new Date().toISOString(),
       });
-      lastSyncedAt.value = new Date();
+      recordSyncTime();
     } catch (err) {
       console.error('Sync upload failed:', err);
       throw err;

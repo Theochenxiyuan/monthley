@@ -33,7 +33,7 @@ const {
 
 <template>
   <header class="action-bar">
-    <h3>{{ t('stats.title') }}</h3>
+    <span class="action-bar-title">{{ t('stats.title') }}</span>
   </header>
 
   <div class="stats-content">

@@ -1,182 +1,243 @@
 <template>
   <header class="action-bar">
-    <h3>{{ t('settings.title') }}</h3>
+    <span class="action-bar-title">{{ t('settings.title') }}</span>
   </header>
 
   <div class="setting-content">
-    <div class="setting-item">
-      <el-text>{{ t('settings.language') }}: </el-text>
-      <el-select v-model="currentLanguage" size="default" style="width: 150px">
-        <el-option label="中文" value="zh-CN"></el-option>
-        <el-option label="English" value="en-US"></el-option>
-      </el-select>
-    </div>
-    <div class="setting-item">
-      <el-text>{{ t('settings.appearance') }}: </el-text>
-      <el-switch
-        v-model="settingsStore.isDark"
-        size="large"
-        style="--el-switch-off-color: #f5f5f5; --el-switch-on-color: #333333"
-        :active-text="t('settings.dark')"
-        :inactive-text="t('settings.light')"
-        inactive-action-icon="Sunny"
-        active-action-icon="Moon"
-        inline-prompt
-      />
-    </div>
-    <div class="setting-item">
-      <el-text
-        >{{ t('settings.expandAll') }}
-        <el-tooltip class="box-item" placement="top">
-          <template #content>
-            <div style="max-width: 80vw">
-              {{ t('settings.expandAllTooltip') }}
-            </div>
-          </template>
-          <el-text
-            ><el-icon><QuestionFilled /></el-icon> </el-text></el-tooltip
-        >:
-      </el-text>
+    <section class="setting-section">
+      <h4 class="section-title">{{ t('settings.preferences') }}</h4>
 
-      <el-switch v-model="settingsStore.expandAll" size="large" inline-prompt />
-    </div>
+      <div class="setting-row">
+        <span class="setting-label">{{ t('settings.language') }}</span>
+        <el-select v-model="currentLanguage" size="default" style="width: 150px">
+          <el-option label="中文" value="zh-CN" />
+          <el-option label="English" value="en-US" />
+        </el-select>
+      </div>
 
-    <el-divider />
+      <div class="setting-row">
+        <span class="setting-label">{{ t('settings.appearance') }}</span>
+        <el-switch
+          v-model="settingsStore.isDark"
+          size="large"
+          style="--el-switch-off-color: #f5f5f5; --el-switch-on-color: #333333"
+          :active-text="t('settings.dark')"
+          :inactive-text="t('settings.light')"
+          inactive-action-icon="Sunny"
+          active-action-icon="Moon"
+          inline-prompt
+        />
+      </div>
 
-    <div class="setting-item">
-      <el-button type="primary" @click="exportTimeline">
-        <el-icon><Download /></el-icon>
-        {{ t('settings.exportTimeline') }}
-      </el-button>
-    </div>
+      <div class="setting-row">
+        <span class="setting-label">
+          {{ t('settings.expandAll') }}
+          <el-tooltip placement="top">
+            <template #content>
+              <div style="max-width: 80vw">{{ t('settings.expandAllTooltip') }}</div>
+            </template>
+            <el-icon class="label-hint"><QuestionFilled /></el-icon>
+          </el-tooltip>
+        </span>
+        <el-switch v-model="settingsStore.expandAll" size="large" inline-prompt />
+      </div>
+    </section>
 
-    <div class="setting-item">
-      <el-button @click="triggerImport">
-        <el-icon><Upload /></el-icon>
-        {{ t('settings.importTimeline') }}
-      </el-button>
-      <input
-        ref="fileInputRef"
-        type="file"
-        accept=".json"
-        style="display: none"
-        @change="handleImport"
-      />
-    </div>
+    <section class="setting-section">
+      <h4 class="section-title">{{ t('sync.title') }}</h4>
 
-    <div class="setting-item warning-text">
-      <el-text type="warning" size="small">
-        {{ t('settings.importWarning') }}
-      </el-text>
-    </div>
+      <div class="setting-row-center">
+        <template v-if="settingsStore.syncKey && !isEditingKey">
+          <el-input
+            v-model="settingsStore.syncKey"
+            readonly
+            style="max-width: 280px"
+            size="default"
+          >
+            <template #append>
+              <el-button @click="copyKey">
+                <el-icon><DocumentCopy /></el-icon>
+              </el-button>
+            </template>
+          </el-input>
+        </template>
+        <template v-else-if="isEditingKey">
+          <el-input
+            v-model="inputKey"
+            :placeholder="t('sync.enterKeyPlaceholder')"
+            style="max-width: 280px"
+            size="default"
+            clearable
+          >
+            <template #append>
+              <el-button @click="confirmKey" :disabled="!isValidKey">
+                {{ t('common.confirm') }}
+              </el-button>
+            </template>
+          </el-input>
+        </template>
+        <template v-else>
+          <el-button type="primary" @click="generateKey">
+            {{ t('sync.generateKey') }}
+          </el-button>
+          <el-button @click="startEditKey">
+            {{ t('sync.useExistingKey') }}
+          </el-button>
+        </template>
+      </div>
 
-    <el-divider />
-
-    <h4 class="sync-title">{{ t('sync.title') }}</h4>
-
-    <div class="setting-item">
-      <template v-if="settingsStore.syncKey && !isEditingKey">
-        <el-input
-          v-model="settingsStore.syncKey"
-          readonly
-          style="max-width: 260px"
-          size="default"
-        >
-          <template #append>
-            <el-button @click="copyKey">
-              <el-icon><DocumentCopy /></el-icon>
-            </el-button>
-          </template>
-        </el-input>
-      </template>
-      <template v-else-if="isEditingKey">
-        <el-input
-          v-model="inputKey"
-          :placeholder="t('sync.enterKeyPlaceholder')"
-          style="max-width: 260px"
-          size="default"
-          clearable
-        >
-          <template #append>
-            <el-button @click="confirmKey" :disabled="!isValidKey">
-              {{ t('common.confirm') }}
-            </el-button>
-          </template>
-        </el-input>
-      </template>
-      <template v-else>
-        <el-button type="primary" @click="generateKey">
-          {{ t('sync.generateKey') }}
+      <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-row-center sync-actions">
+        <el-button :loading="sync.isSyncing.value" @click="sync.manualSync">
+          {{ t('sync.syncNow') }}
         </el-button>
-        <el-button @click="startEditKey">
-          {{ t('sync.useExistingKey') }}
+        <el-button type="danger" plain @click="clearKey">
+          {{ t('sync.clearKey') }}
         </el-button>
-      </template>
-    </div>
+      </div>
 
-    <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-item sync-actions">
-      <el-button :loading="sync.isSyncing.value" @click="sync.manualSync">
-        {{ t('sync.syncNow') }}
-      </el-button>
-      <el-button type="danger" plain @click="clearKey">
-        {{ t('sync.clearKey') }}
-      </el-button>
-    </div>
+      <div v-if="isEditingKey" class="setting-row-center">
+        <el-button link @click="cancelKeyEdit">
+          {{ t('common.cancel') }}
+        </el-button>
+      </div>
 
-    <div v-if="isEditingKey" class="setting-item">
-      <el-button link @click="cancelKeyEdit">
-        {{ t('common.cancel') }}
-      </el-button>
-    </div>
+      <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-row-center">
+        <el-button link type="primary" @click="startEditKey">
+          {{ t('sync.useOtherKey') }}
+        </el-button>
+      </div>
+    </section>
 
-    <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-item">
-      <el-button link type="primary" @click="startEditKey">
-        {{ t('sync.useOtherKey') }}
-      </el-button>
-    </div>
+    <section class="setting-section">
+      <h4 class="section-title">{{ t('settings.backupRestore') }}</h4>
 
-    <el-divider />
+      <div class="setting-row-center">
+        <el-button plain type="primary" @click="exportTimeline">
+          <el-icon class="btn-icon"><Download /></el-icon>
+          {{ t('settings.exportTimeline') }}
+        </el-button>
 
-    <div class="setting-item danger-section">
-      <el-button type="danger" @click="confirmClear">
-        <el-icon><Delete /></el-icon>
-        {{ t('settings.clearTimeline') }}
-      </el-button>
-    </div>
+        <el-button plain @click="triggerImport">
+          <el-icon class="btn-icon"><Upload /></el-icon>
+          {{ t('settings.importTimeline') }}
+        </el-button>
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept=".json"
+          style="display: none"
+          @change="handleImport"
+        />
+      </div>
+
+      <div class="setting-row-center warning-text">
+        <el-text type="warning" size="small">
+          {{ t('settings.importWarning') }}
+        </el-text>
+      </div>
+    </section>
+
+    <section class="setting-section danger-zone">
+      <h4 class="section-title danger-title">{{ t('settings.dangerZone') }}</h4>
+
+      <div class="setting-row-center">
+        <el-button type="danger" plain @click="confirmClear">
+          <el-icon class="btn-icon"><Delete /></el-icon>
+          {{ t('settings.clearTimeline') }}
+        </el-button>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.action-bar {
-  justify-content: center;
-}
 .setting-content {
-  text-align: center;
-  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
 }
-.setting-item {
-  vertical-align: middle;
-  margin: 0.5rem 0;
+
+.setting-section {
+  background-color: var(--el-fill-color-light);
+  border-radius: 10px;
+  padding: 1rem;
 }
+
+.section-title {
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--el-text-color-regular);
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  min-height: 40px;
+}
+
+.setting-row:first-child {
+  padding-top: 0;
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--el-text-color-regular);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.label-hint {
+  color: var(--el-text-color-placeholder);
+  font-size: 0.85rem;
+  cursor: help;
+  transition: color 0.2s ease;
+}
+.label-hint:hover {
+  color: var(--el-text-color-secondary);
+}
+
+.setting-row-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.btn-icon {
+  margin-right: 4px;
+}
+
 .warning-text {
-  margin-top: 1rem;
+  padding-top: 0.25rem;
 }
-.danger-section {
-  margin-top: 1.5rem;
+
+.sync-actions {
+  padding-top: 0.25rem;
 }
+
+.danger-zone {
+  border-color: var(--el-color-danger-light-5);
+  background-color: var(--el-color-danger-light-9);
+}
+
+.danger-title {
+  color: var(--el-color-danger);
+  border-bottom-color: var(--el-color-danger-light-5);
+}
+
 :deep(.el-switch__core) {
   transition: background-color 0.3s ease;
-}
-.sync-title {
-  margin: 0.5rem 0;
-  font-size: 0.9rem;
-  color: var(--el-text-color-regular);
-  font-weight: 600;
-}
-.sync-actions {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
 }
 </style>
 
@@ -240,7 +301,7 @@ const handleImport = async (event: Event) => {
 
     await timelineStore.importJSON(file);
     ElMessage.success(t('settings.importSuccess'));
-    
+
     target.value = '';
   } catch (error) {
     if (error !== 'cancel') {

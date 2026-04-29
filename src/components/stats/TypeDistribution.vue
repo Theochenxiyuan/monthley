@@ -122,12 +122,14 @@ onMounted(() => {
 <style scoped>
 .type-ring-section {
   background-color: var(--el-fill-color-light);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1rem;
 }
 
 .section-title {
   margin: 0 0 0.75rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--el-border-color-lighter);
   font-size: 0.9rem;
   color: var(--el-text-color-regular);
   font-weight: 600;

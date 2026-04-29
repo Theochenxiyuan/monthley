@@ -22,13 +22,13 @@ defineProps<{
   min-width: 0;
   text-align: center;
   padding: 1rem 0.5rem;
-  border-radius: 8px;
+  border-radius: 10px;
   background-color: var(--el-fill-color-light);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 

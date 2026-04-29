@@ -68,6 +68,9 @@ export default {
   },
   settings: {
     title: '设置',
+    preferences: '偏好设置',
+    backupRestore: '备份与恢复',
+    dangerZone: '危险操作',
     language: '语言',
     appearance: '外观',
     theme: '主题',
@@ -75,11 +78,9 @@ export default {
     dark: '深色',
     system: '系统',
     expandAll: '默认展开所有月份',
-    showEntriesCollapsed: '月份折叠时显示计划文字',
-    showNumCollapsed: '月份折叠时显示计划数量',
-expandAllTooltip:
-        '如果不选择展开，默认会将"已完成所有计划的过去月份"和"所有计划都未开始的未来月份"折叠起来，并显示精简文字',
-      exportTimeline: '导出时间线',
+    expandAllTooltip:
+      '如果不选择展开，默认会将"已完成所有计划的过去月份"和"所有计划都未开始的未来月份"折叠起来，并显示精简文字',
+    exportTimeline: '导出时间线',
     importTimeline: '导入时间线',
     exportSuccess: '导出成功',
     importSuccess: '导入成功',
@@ -220,5 +221,13 @@ expandAllTooltip:
     syncSuccess: '同步成功',
     syncFailed: '同步失败',
     restoredFromCloud: '已从云端恢复数据',
+    statusTitle: '同步状态',
+    localUpdated: '上次本地更改',
+    lastSynced: '上次同步时间',
+    cloudStatus: '云端状态',
+    configured: '已配置',
+    notConfigured: '未配置',
+    syncNotEnabled: '未启用同步',
+    neverSynced: '从未同步',
   },
 };

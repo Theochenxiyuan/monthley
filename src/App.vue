@@ -112,8 +112,11 @@ watch(
   flex-shrink: 0;
   display: flex;
   justify-content: space-around;
-  border-top: 1px solid var(--el-menu-border-color);
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--el-border-color-lighter);
+  background-color: var(--navbar-bg, rgba(255, 255, 255, 0.78)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
   transition: none !important;
 }
 </style>
