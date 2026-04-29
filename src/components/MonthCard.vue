@@ -247,13 +247,14 @@ const collapsedSummary = computed(() => {
         v-model="month.entries"
         group="timeline"
         item-key="id"
-        :style="{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.5rem',
-          alignItems: 'center',
-          padding: '1rem',
-        }"
+:style="{
+           display: 'flex',
+           flexWrap: 'wrap',
+           gap: '0.5rem',
+           alignItems: 'center',
+           padding: '1rem',
+           userSelect: 'none',
+         }"
         @change="
           manualExpanded = true;
           timelineStore.lastUpdated = new Date();
@@ -396,33 +397,23 @@ const collapsedSummary = computed(() => {
   z-index: 100;
 }
 .chosen > div {
-  transform: scale(1.02);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   background: var(--el-color-primary-light-9);
   border-radius: 6px;
   opacity: 1;
 }
-.chosen > div::after {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border: 2px solid var(--el-color-primary);
-  border-radius: 8px;
+:deep(.sortable-drag) {
+  position: fixed !important;
+  z-index: 9999 !important;
+  opacity: 1 !important;
   pointer-events: none;
+  user-select: none;
 }
 .ghost {
   background: var(--el-color-primary-light-8);
   border-radius: 6px;
   outline: 2px dashed var(--el-color-primary);
   opacity: 0.6;
-}
-.ghost > div {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.15s ease-out;
 }
 .entry-highlight :deep(.entry-item) {
   animation: highlight-pulse 2s ease-out;

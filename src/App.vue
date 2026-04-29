@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
 import { useSync } from '@/composables/useSync';
+import { Icon, loadIcons } from '@iconify/vue';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import enUs from 'element-plus/es/locale/lang/en';
 const { t, locale } = useI18n();
@@ -17,6 +18,64 @@ const activeRoute = computed(() => route.path);
 const scrollPositions: Record<string, number> = {};
 const mainContentEl = ref<HTMLElement | null>(null);
 
+const pullDistance = ref(0);
+const isRefreshing = ref(false);
+const PULL_THRESHOLD = 60;
+let touchStartY = 0;
+let isPulling = false;
+
+function onTouchStart(e: TouchEvent) {
+  const el = mainContentEl.value;
+  if (!el) return;
+  const target = e.target as HTMLElement;
+  if (target.closest('.entry-item') || target.closest('.el-tag')) return;
+  if (el.scrollTop <= 0) {
+    touchStartY = e.touches[0].clientY;
+    isPulling = true;
+  }
+}
+
+function onTouchMove(e: TouchEvent) {
+  if (!isPulling || isRefreshing.value) return;
+  const el = mainContentEl.value;
+  if (!el || el.scrollTop > 0) {
+    isPulling = false;
+    pullDistance.value = 0;
+    return;
+  }
+  const diff = e.touches[0].clientY - touchStartY;
+  if (diff > 0) {
+    pullDistance.value = Math.min(diff * 0.5, PULL_THRESHOLD + 20);
+  } else {
+    pullDistance.value = 0;
+  }
+}
+
+function onTouchEnd() {
+  if (!isPulling) return;
+  isPulling = false;
+  if (pullDistance.value >= PULL_THRESHOLD && !isRefreshing.value) {
+    isRefreshing.value = true;
+    pullDistance.value = PULL_THRESHOLD;
+    setTimeout(() => {
+      location.reload();
+    }, 400);
+  } else {
+    pullDistance.value = 0;
+  }
+}
+
+const isDesktop = ref(window.innerWidth >= 768);
+function handleResize() {
+  isDesktop.value = window.innerWidth >= 768;
+}
+onMounted(() => {
+  window.addEventListener('resize', handleResize);
+});
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
+});
+
 const updateTitle = () => {
   document.title = t('app.title');
 };
@@ -26,6 +85,12 @@ const currentElementPlusLocale = computed(() => {
 });
 
 onMounted(async () => {
+  loadIcons([
+    'mdi:school',
+    'codicon:game',
+    'mdi:filmstrip',
+    'mdi:book-open-page-variant',
+  ]);
   timelineStore.init();
   settingsStore.init();
   updateTitle();
@@ -62,12 +127,25 @@ watch(
 <template>
   <el-config-provider :locale="currentElementPlusLocale">
     <div id="app">
-      <div ref="mainContentEl" class="main-content" v-auto-animate>
-        <router-view v-slot="{ Component }">
-          <KeepAlive>
-            <component :is="Component" />
-          </KeepAlive>
-        </router-view>
+      <div
+        ref="mainContentEl"
+        class="main-content"
+        @touchstart="onTouchStart"
+        @touchmove="onTouchMove"
+        @touchend="onTouchEnd"
+      >
+        <div class="pull-indicator" :style="{ height: pullDistance + 'px', opacity: pullDistance > 0 ? 1 : 0 }">
+          <Icon v-if="isRefreshing" icon="mdi:loading" width="20" class="pull-spin" />
+          <Icon v-else-if="pullDistance >= PULL_THRESHOLD" icon="mdi:refresh" width="20" style="color: var(--el-color-primary)" />
+          <Icon v-else icon="mdi:arrow-down" width="20" style="color: var(--el-text-color-placeholder)" />
+        </div>
+        <div :key="route.path" class="page-content">
+          <router-view v-slot="{ Component }">
+            <KeepAlive>
+              <component :is="Component" />
+            </KeepAlive>
+          </router-view>
+        </div>
       </div>
 
       <el-menu mode="horizontal" :default-active="activeRoute" router class="navbar">
@@ -116,6 +194,45 @@ watch(
 .main-content {
   flex: 1;
   overflow-y: auto;
+}
+
+.pull-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.15s ease;
+}
+
+.pull-spin {
+  animation: spin 0.8s linear infinite;
+  color: var(--el-color-primary);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 768px) {
+  .pull-indicator {
+    display: none;
+  }
+}
+
+.page-content {
+  animation: page-enter 200ms ease-out;
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .navbar {
