@@ -135,23 +135,46 @@ function getBarWidth(data: YearData, type: EntryType): string {
     :close-on-click-modal="true"
     destroy-on-close
   >
+    <div v-if="availableYears.length > 0" class="year-nav">
+      <el-button
+        class="year-nav-btn"
+        :disabled="!canGoBack"
+        text
+        @click="prevYear"
+      >
+        <Icon icon="mdi:chevron-left" width="20" />
+      </el-button>
+
+      <el-select
+        v-model="currentYear"
+        class="year-select"
+        size="small"
+        :teleported="false"
+      >
+        <el-option
+          v-for="year in availableYears"
+          :key="year"
+          :label="String(year)"
+          :value="year"
+        />
+      </el-select>
+
+      <el-button
+        class="year-nav-btn"
+        :disabled="!canGoForward"
+        text
+        @click="nextYear"
+      >
+        <Icon icon="mdi:chevron-right" width="20" />
+      </el-button>
+    </div>
+
     <div v-if="!yearData" class="summary-empty">
       <Icon icon="mdi:calendar-blank" width="48" style="color: var(--el-text-color-placeholder)" />
       <p>{{ t('yearSummary.noData') }}</p>
     </div>
 
     <template v-else>
-      <div class="year-nav">
-        <el-button :icon="canGoBack ? 'ArrowLeft' : ''" :disabled="!canGoBack" text @click="prevYear">
-          <Icon v-if="!canGoBack" icon="" />
-          <Icon v-else icon="mdi:chevron-left" width="20" />
-        </el-button>
-        <span class="year-nav-label">{{ currentYear }}</span>
-        <el-button :disabled="!canGoForward" text @click="nextYear">
-          <Icon icon="mdi:chevron-right" width="20" />
-        </el-button>
-      </div>
-
       <div ref="summaryCard" class="summary-card">
         <div class="summary-header">
           <Icon icon="mdi:star-four-points" width="20" class="summary-header-icon" />
@@ -235,15 +258,43 @@ function getBarWidth(data: YearData, type: EntryType): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 0.25rem;
   margin-bottom: 1rem;
+  padding: 0.25rem;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 999px;
+  background: var(--el-fill-color-light);
 }
 
-.year-nav-label {
-  font-size: 1.25rem;
+.year-nav-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0 !important;
+  border-radius: 999px;
+}
+
+.year-select {
+  width: 104px;
+}
+
+.year-select :deep(.el-select__wrapper) {
+  min-height: 32px;
+  border-radius: 999px;
+  padding-left: 24px;
+  padding-right: 24px;
+  box-shadow: none;
+  background: var(--el-bg-color);
+}
+
+.year-select :deep(.el-select__selection) {
+  justify-content: center;
+}
+
+.year-select :deep(.el-select__selected-item) {
+  font-size: 1rem;
   font-weight: 700;
-  min-width: 4rem;
-  text-align: center;
+  color: var(--el-text-color-primary);
+  justify-content: center;
 }
 
 .summary-card {

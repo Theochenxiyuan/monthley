@@ -33,11 +33,28 @@ function setPullRefreshActive(active: boolean) {
   document.documentElement.classList.toggle('pull-refresh-active', active);
 }
 
+function hasActiveOverlay(): boolean {
+  return !!document.querySelector(
+    '.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper:not([aria-hidden="true"])',
+  );
+}
+
+function resetPullRefresh() {
+  isPulling = false;
+  pullDistance.value = 0;
+  setPullRefreshActive(false);
+}
+
 function onTouchStart(e: TouchEvent) {
   const el = mainContentEl.value;
   if (!el) return;
   const target = e.target as HTMLElement;
-  if (target.closest('.entry-item') || target.closest('.el-tag')) return;
+  if (
+    hasActiveOverlay() ||
+    target.closest('.entry-item') ||
+    target.closest('.el-tag') ||
+    target.closest('.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper')
+  ) return;
   if (el.scrollTop <= 0) {
     touchStartY = e.touches[0].clientY;
     isPulling = true;
@@ -48,8 +65,7 @@ function onTouchMove(e: TouchEvent) {
   if (!isPulling || isRefreshing.value) return;
   const el = mainContentEl.value;
   if (!el || el.scrollTop > 0) {
-    isPulling = false;
-    pullDistance.value = 0;
+    resetPullRefresh();
     return;
   }
   const diff = e.touches[0].clientY - touchStartY;
@@ -73,8 +89,7 @@ function onTouchEnd() {
       location.reload();
     }, 400);
   } else {
-    pullDistance.value = 0;
-    setPullRefreshActive(false);
+    resetPullRefresh();
   }
 }
 
@@ -154,6 +169,7 @@ watch(
         @touchstart="onTouchStart"
         @touchmove="onTouchMove"
         @touchend="onTouchEnd"
+        @touchcancel="resetPullRefresh"
       >
         <div class="pull-indicator" :style="{ height: pullDistance + 'px', opacity: pullDistance > 0 ? 1 : 0 }">
           <Icon v-if="isRefreshing" icon="mdi:loading" width="20" class="pull-spin" />
