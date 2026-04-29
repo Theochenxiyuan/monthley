@@ -6,6 +6,7 @@ import { Icon } from '@iconify/vue';
 const { t } = useI18n();
 const props = defineProps<{
   entry: TimelineEntry;
+  warningHighlight?: boolean;
 }>();
 
 const iconMap: Record<string, string> = {
@@ -36,7 +37,7 @@ const getStatusText = (entry: TimelineEntry): string => {
 </script>
 
 <template>
-  <div :class="['entry-item']">
+  <div :class="['entry-item', { 'entry-item--warning': warningHighlight }]">
     <el-tag
       size="large"
       :type="getEntryColorFromStatus(entry.status)"
@@ -113,5 +114,8 @@ const getStatusText = (entry: TimelineEntry): string => {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+}
+.entry-item--warning .el-tag {
+  border-left: 3px solid var(--el-color-warning) !important;
 }
 </style>

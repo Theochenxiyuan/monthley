@@ -101,6 +101,18 @@ const isExpanded = computed(() => {
   return manualExpanded.value;
 });
 
+const canCollapse = computed(() => {
+  return !isCurrentMonth(props.month) && props.month.entries.length > 0;
+});
+
+const isPastIncomplete = computed(() => {
+  const now = new Date();
+  const isPast =
+    props.month.year < now.getFullYear() ||
+    (props.month.year === now.getFullYear() && props.month.month < now.getMonth() + 1);
+  return isPast && props.month.entries.some((e) => e.status !== 'completed');
+});
+
 const handleDelete = (entryId: string): void => {
   ElMessageBox.confirm(
     t('monthCard.confirmDelete'),
@@ -212,8 +224,12 @@ const collapsedSummary = computed(() => {
 
 <template>
   <div class="month-card-wrapper">
+    <span v-if="isPastIncomplete" class="past-incomplete-badge">
+      <el-icon size="12"><WarningFilled /></el-icon>
+      {{ t('monthCard.incompletePlans') }}
+    </span>
     <button
-      v-if="isExpanded"
+      v-if="isExpanded && canCollapse"
       class="card-collapse-btn"
       @click.stop="manualExpanded = false"
     >
@@ -263,7 +279,7 @@ const collapsedSummary = computed(() => {
               size="large"
               teleported
             >
-              <EntryItem :entry="entry.element" />
+              <EntryItem :entry="entry.element" :warning-highlight="isPastIncomplete && entry.element.status !== 'completed'" />
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item
@@ -353,7 +369,7 @@ const collapsedSummary = computed(() => {
           cursor: 'pointer',
           padding: '0.75rem 1rem',
         }"
-        @click="manualExpanded = !manualExpanded"
+        @click="canCollapse && (manualExpanded = !manualExpanded)"
         v-else
       >
         <el-text line-clamp="1" :type="getTextType()" class="collapsed-summary">
@@ -453,5 +469,22 @@ const collapsedSummary = computed(() => {
   background: var(--el-fill-color);
   color: var(--el-color-primary);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.past-incomplete-badge {
+  position: absolute;
+  top: -14px;
+  right: 0;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--el-color-warning-light-5);
+  border-radius: 4px;
+  background: var(--el-color-warning-light-9);
+  color: var(--el-color-warning-dark-2);
+  font-size: 0.75rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 </style>

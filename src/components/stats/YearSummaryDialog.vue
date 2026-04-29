@@ -160,19 +160,19 @@ function getBarWidth(data: YearData, type: EntryType): string {
 
         <div class="summary-grid">
           <div class="summary-stat">
-            <span class="summary-stat-value">{{ yearData.total }}</span>
+            <span class="summary-stat-value summary-stat-value--primary">{{ yearData.total }}</span>
             <span class="summary-stat-label">{{ t('yearSummary.totalPlans') }}</span>
           </div>
           <div class="summary-stat">
-            <span class="summary-stat-value summary-stat-value--success">{{ yearData.completionRate }}%</span>
+            <span class="summary-stat-value summary-stat-value--warning">{{ yearData.completionRate }}%</span>
             <span class="summary-stat-label">{{ t('yearSummary.completionRate') }}</span>
           </div>
           <div class="summary-stat">
-            <span class="summary-stat-value summary-stat-value--primary">{{ yearData.activeMonths }}</span>
+            <span class="summary-stat-value summary-stat-value--info">{{ yearData.activeMonths }}</span>
             <span class="summary-stat-label">{{ t('yearSummary.activeMonths') }}</span>
           </div>
           <div class="summary-stat">
-            <span class="summary-stat-value summary-stat-value--warning">{{ yearData.streakMonths }}</span>
+            <span class="summary-stat-value summary-stat-value--success">{{ yearData.streakMonths }}</span>
             <span class="summary-stat-label">{{ t('yearSummary.streakMonths') }}</span>
           </div>
         </div>
@@ -304,6 +304,14 @@ function getBarWidth(data: YearData, type: EntryType): string {
 
 .summary-stat-value--warning {
   color: var(--el-color-warning);
+}
+
+.summary-stat-value--info {
+  color: var(--el-color-info);
+}
+
+.summary-stat-value--success {
+  color: var(--el-color-success);
 }
 
 .summary-stat-label {

@@ -159,6 +159,7 @@ export default {
     edit: 'Edit',
     delete: 'Delete',
     collapse: 'Collapse',
+    incompletePlans: 'Unfinished Plans',
   },
   entryItem: {
     statusType: {
@@ -211,8 +212,8 @@ export default {
     hint: 'Type to search plans',
   },
   yearSummary: {
-    title: 'Year in Review',
-    heading: '{year} Year in Review',
+    title: 'Annual Review',
+    heading: '{year} Annual Review',
     noData: 'No records for this year',
     totalPlans: 'Total Plans',
     completionRate: 'Completion',

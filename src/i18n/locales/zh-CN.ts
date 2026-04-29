@@ -158,6 +158,7 @@ export default {
     edit: '编辑',
     delete: '删除',
     collapse: '收起',
+    incompletePlans: '未完成计划',
   },
   entryItem: {
     statusType: {
