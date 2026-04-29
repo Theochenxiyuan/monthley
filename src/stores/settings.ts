@@ -25,11 +25,11 @@ export const useSettingsStore = defineStore('settings', {
         this.syncKey = settings.syncKey || null;
       }
       document.documentElement.classList.toggle('dark', this.isDark);
-      i18n.global.locale = this.language as 'zh-CN' | 'en-US';
+      i18n.global.locale.value = this.language as 'zh-CN' | 'en-US';
     },
     setLanguage(lang: string) {
       this.language = lang;
-      i18n.global.locale = lang as 'zh-CN' | 'en-US';
+      i18n.global.locale.value = lang as 'zh-CN' | 'en-US';
     },
     toggleDark() {
       this.isDark = !this.isDark;

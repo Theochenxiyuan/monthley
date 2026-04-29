@@ -9,7 +9,7 @@ const localeMap = {
 };
 
 const getCurrentLocale = () => {
-  const locale = i18n.global.locale;
+  const locale = i18n.global.locale.value;
   return localeMap[locale as keyof typeof localeMap] || localeMap['en-US'];
 };
 
@@ -26,7 +26,7 @@ export const smartFormatDateTime = (date: Date | string): string => {
   const diffMs = now.getTime() - dateObj.getTime();
   const diffSec = Math.floor(diffMs / 1000);
   const locale = getCurrentLocale();
-  const isZh = i18n.global.locale === 'zh-CN';
+  const isZh = i18n.global.locale.value === 'zh-CN';
   const isThisYear = dateObj.getFullYear() === now.getFullYear();
 
   if (diffSec < 60) {

@@ -31,6 +31,7 @@ const getInitialLocale = (): string => {
 };
 
 const i18n = createI18n({
+  legacy: false,
   locale: getInitialLocale(),
   fallbackLocale: 'en-US',
   messages,

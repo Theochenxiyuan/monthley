@@ -60,7 +60,7 @@ watch(
 </script>
 
 <template>
-  <el-config-provider :locale="currentElementPlusLocale" :theme="settingsStore.isDark ? 'dark' : 'light'">
+  <el-config-provider :locale="currentElementPlusLocale">
     <div id="app">
       <div ref="mainContentEl" class="main-content" v-auto-animate>
         <router-view v-slot="{ Component }">
