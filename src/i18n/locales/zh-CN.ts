@@ -157,6 +157,7 @@ export default {
     complete: '完成',
     edit: '编辑',
     delete: '删除',
+    collapse: '收起',
   },
   entryItem: {
     statusType: {

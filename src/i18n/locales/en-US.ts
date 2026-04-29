@@ -158,6 +158,7 @@ export default {
     complete: 'Complete',
     edit: 'Edit',
     delete: 'Delete',
+    collapse: 'Collapse',
   },
   entryItem: {
     statusType: {

@@ -65,7 +65,16 @@ function shouldExpandMonth(month: TimelineMonth): boolean {
   return true;
 }
 
-const manualExpanded = ref(shouldExpandMonth(props.month)); // For manual toggle state
+const manualExpanded = ref(
+  shouldExpandMonth(props.month) || settingsStore.expandAll,
+);
+
+watch(
+  () => settingsStore.expandAll,
+  (val) => {
+    manualExpanded.value = val || shouldExpandMonth(props.month);
+  },
+);
 
 watch(
   () => props.forceExpand,
@@ -76,17 +85,19 @@ watch(
   },
 );
 
+watch(
+  () => props.month.entries,
+  () => {
+    if (shouldExpandMonth(props.month)) {
+      manualExpanded.value = true;
+    }
+  },
+  { deep: true },
+);
+
 const isExpanded = computed(() => {
-  // Force-expanded by search highlight
   if (props.forceExpand) return true;
-
-  // Force-expanded cases
-  if (settingsStore.expandAll || filtersStore.isActive) return true;
-
-  // Auto-expand cases
-  if (shouldExpandMonth(props.month)) return true;
-
-  // Fallback to manual state
+  if (filtersStore.isActive) return true;
   return manualExpanded.value;
 });
 
@@ -200,13 +211,23 @@ const collapsedSummary = computed(() => {
 </script>
 
 <template>
-  <ElCard
-    :body-style="{
-      padding: '0',
-    }"
-  >
-    <div v-auto-animate>
-      <Draggable
+  <div class="month-card-wrapper">
+    <button
+      v-if="isExpanded"
+      class="card-collapse-btn"
+      @click.stop="manualExpanded = false"
+    >
+      {{ t('monthCard.collapse') }}
+      <el-icon size="12"><ArrowUp /></el-icon>
+    </button>
+
+    <ElCard
+      :body-style="{
+        padding: '0',
+      }"
+    >
+      <div v-auto-animate>
+        <Draggable
         v-model="month.entries"
         group="timeline"
         item-key="id"
@@ -344,10 +365,14 @@ const collapsedSummary = computed(() => {
         ></el-text>
       </div>
     </div>
-  </ElCard>
+    </ElCard>
+  </div>
 </template>
 
 <style scoped>
+.month-card-wrapper {
+  position: relative;
+}
 .drag > div {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
@@ -400,5 +425,33 @@ const collapsedSummary = computed(() => {
 .collapsed-summary {
   font-size: 0.85rem;
   line-height: 1.5;
+}
+
+.card-collapse-btn {
+  position: absolute;
+  top: -14px;
+  right: 0;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 4px;
+  background: var(--el-card-bg-color, var(--el-bg-color));
+  color: var(--el-text-color-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card-collapse-btn:hover {
+  background: var(--el-fill-color);
+  color: var(--el-color-primary);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 </style>
