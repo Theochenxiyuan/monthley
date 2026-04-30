@@ -334,6 +334,20 @@ const confirmClear = async () => {
 };
 
 const generateKey = async () => {
+  try {
+    await ElMessageBox.confirm(
+      t('sync.confirmGenerateKey'),
+      t('sync.generateKey'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning',
+      },
+    );
+  } catch {
+    return;
+  }
+
   settingsStore.syncKey = sync.generateSyncKey();
   ElMessage.success(t('sync.syncSuccess'));
 };

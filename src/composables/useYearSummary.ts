@@ -46,28 +46,14 @@ export function useYearSummary(year: Ref<number>) {
       : null;
 
     let streakMonths = 0;
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    let checkYear = currentYear;
-    let checkMonth = currentMonth;
-
-    if (y < currentYear) {
-      checkYear = y;
-      checkMonth = 12;
-    }
-
-    for (let i = 0; i < 12; i++) {
-      if (months.some((m) => m.month === checkMonth && m.entries.length > 0)) {
-        streakMonths++;
+    let currentStreak = 0;
+    for (let month = 1; month <= 12; month++) {
+      const isActive = months.some((m) => m.month === month && m.entries.length > 0);
+      if (isActive) {
+        currentStreak++;
+        streakMonths = Math.max(streakMonths, currentStreak);
       } else {
-        break;
-      }
-      checkMonth--;
-      if (checkMonth === 0) {
-        checkMonth = 12;
-        checkYear--;
-        if (checkYear !== y) break;
+        currentStreak = 0;
       }
     }
 

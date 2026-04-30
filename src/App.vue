@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
 import { useSync } from '@/composables/useSync';
+import SyncOnboardingDialog from '@/components/SyncOnboardingDialog.vue';
 import { Icon, loadIcons } from '@iconify/vue';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
 import enUs from 'element-plus/es/locale/lang/en';
@@ -17,6 +18,8 @@ const activeRoute = computed(() => route.path);
 
 const scrollPositions: Record<string, number> = {};
 const mainContentEl = ref<HTMLElement | null>(null);
+const showSyncOnboarding = ref(false);
+const SYNC_ONBOARDING_SKIPPED_KEY = 'syncOnboardingSkipped';
 
 const pullDistance = ref(0);
 const isRefreshing = ref(false);
@@ -131,6 +134,7 @@ const currentElementPlusLocale = computed(() => {
 });
 
 onMounted(async () => {
+  const hadLocalTimeline = localStorage.getItem('timeline') !== null;
   loadIcons([
     'mdi:school',
     'codicon:game',
@@ -140,6 +144,10 @@ onMounted(async () => {
   timelineStore.init();
   settingsStore.init();
   updateTitle();
+  showSyncOnboarding.value =
+    !hadLocalTimeline &&
+    !settingsStore.syncKey &&
+    localStorage.getItem(SYNC_ONBOARDING_SKIPPED_KEY) !== 'true';
   await initSync();
 });
 
@@ -210,6 +218,8 @@ watch(
           <span>{{ t('navigation.settings') }}</span>
         </el-menu-item>
       </el-menu>
+
+      <SyncOnboardingDialog v-if="showSyncOnboarding" v-model="showSyncOnboarding" />
     </div>
   </el-config-provider>
 </template>
