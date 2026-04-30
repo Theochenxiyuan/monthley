@@ -203,21 +203,34 @@ watch(
         </div>
       </div>
 
-      <el-menu mode="horizontal" :default-active="activeRoute" router class="navbar">
-        <el-menu-item index="/timeline">
+      <nav class="navbar">
+        <RouterLink
+          to="/timeline"
+          class="nav-item"
+          :class="{ 'nav-item--active': activeRoute === '/timeline' }"
+        >
           <el-icon size="24"><Calendar /></el-icon>
           <span>{{ t('navigation.timeline') }}</span>
-        </el-menu-item>
+        </RouterLink>
 
-        <el-menu-item index="/stats">
+        <RouterLink
+          to="/stats"
+          class="nav-item"
+          :class="{ 'nav-item--active': activeRoute === '/stats' }"
+        >
           <el-icon size="24"><TrendCharts /></el-icon>
           <span>{{ t('navigation.stats') }}</span>
-        </el-menu-item>
-        <el-menu-item index="/settings">
+        </RouterLink>
+
+        <RouterLink
+          to="/settings"
+          class="nav-item"
+          :class="{ 'nav-item--active': activeRoute === '/settings' }"
+        >
           <el-icon size="24"><Setting /></el-icon>
           <span>{{ t('navigation.settings') }}</span>
-        </el-menu-item>
-      </el-menu>
+        </RouterLink>
+      </nav>
 
       <SyncOnboardingDialog v-if="showSyncOnboarding" v-model="showSyncOnboarding" />
     </div>
@@ -295,7 +308,6 @@ watch(
 .navbar {
   flex-shrink: 0;
   display: flex;
-  justify-content: space-around;
   border-top: 1px solid var(--el-border-color-lighter);
   padding-bottom: env(safe-area-inset-bottom);
   background-color: var(--navbar-bg, rgba(255, 255, 255, 0.78)) !important;
@@ -303,5 +315,30 @@ watch(
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
   transition: none !important;
+}
+
+.nav-item {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--el-menu-text-color, var(--el-text-color-secondary));
+  font-size: clamp(0.68rem, 2.8vw, 0.85rem);
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.nav-item--active {
+  color: var(--el-menu-active-color, var(--el-color-primary));
+}
+
+.nav-item:active {
+  background-color: var(--el-fill-color-light);
 }
 </style>

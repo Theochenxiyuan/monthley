@@ -218,7 +218,7 @@ export default {
     totalPlans: 'Total Plans',
     completionRate: 'Completion',
     activeMonths: 'Active Months',
-    streakMonths: 'Streak',
+    streakMonths: 'Longest Streak',
     topMonth: 'Most active: {month} with {count} plans',
     share: 'Share Year in Review',
   },

@@ -217,7 +217,7 @@ export default {
     totalPlans: '总计划',
     completionRate: '完成率',
     activeMonths: '活跃月份',
-    streakMonths: '连续活跃',
+    streakMonths: '最长连续',
     topMonth: '最活跃月份：{month}，共 {count} 个计划',
     share: '分享年度回顾',
   },
