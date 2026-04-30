@@ -13,6 +13,20 @@ html, body {
   background-color: #e8eaed;
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+[role='button'],
+.el-button,
+.el-checkbox-button,
+.el-switch,
+.el-tag {
+  -webkit-tap-highlight-color: transparent;
+}
+
 html.dark body,
 html.dark {
   background-color: #111111;
