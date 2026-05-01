@@ -43,6 +43,8 @@ export default {
     category: 'Category',
     categoryPlaceholder: 'Type',
     namePlaceholder: 'Name',
+    previousMonth: 'Previous month',
+    nextMonth: 'Next month',
     validationError: 'Please fill in all plan information',
     status: 'Status',
     low: 'Low',

@@ -43,6 +43,8 @@ export default {
     category: '类型',
     categoryPlaceholder: '类型',
     namePlaceholder: '名称',
+    previousMonth: '上个月',
+    nextMonth: '下个月',
     validationError: '请填写完整计划信息',
     status: '进度',
     low: '低',

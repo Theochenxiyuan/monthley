@@ -6,7 +6,7 @@
       t('punctuation.space.betweenWords') +
       t('common.entry')
     "
-    style="width: 600px; max-width: 90vw"
+    style="width: 480px; max-width: 92vw"
     :close-on-click-modal="true"
     align-center
   >
@@ -40,13 +40,32 @@
       </div>
 
       <el-form-item required prop="month">
-        <el-date-picker
-          v-model="formData.month"
-          type="month"
-          :placeholder="t('entry.date')"
-          :clearable="false"
-          :editable="false"
-        />
+        <div class="month-picker-row">
+          <el-button
+            class="month-step-button"
+            :aria-label="t('entry.previousMonth')"
+            :title="t('entry.previousMonth')"
+            @click="shiftMonth(-1)"
+          >
+            <el-icon><ArrowLeft /></el-icon>
+          </el-button>
+          <el-date-picker
+            v-model="formData.month"
+            type="month"
+            :format="monthPickerFormat"
+            :placeholder="t('entry.date')"
+            :clearable="false"
+            :editable="false"
+          />
+          <el-button
+            class="month-step-button"
+            :aria-label="t('entry.nextMonth')"
+            :title="t('entry.nextMonth')"
+            @click="shiftMonth(1)"
+          >
+            <el-icon><ArrowRight /></el-icon>
+          </el-button>
+        </div>
       </el-form-item>
 
       <el-form-item required prop="status">
@@ -87,7 +106,7 @@ import type { EntryFormData, EntryType } from '@/types/models';
 import type { FormInstance } from 'element-plus';
 import { ElMessage } from 'element-plus';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const formRef = ref<FormInstance>();
 const dialogStore = useDialogStore();
@@ -106,6 +125,13 @@ const statusOptions = computed(() => [
   { label: t('entry.statuses.in_progress'), value: 'in_progress' },
   { label: t('entry.statuses.completed'), value: 'completed' },
 ]);
+
+const monthPickerFormat = computed(() => locale.value === 'zh-CN' ? 'YYYY年M月' : 'MMMM YYYY');
+
+function shiftMonth(monthOffset: number) {
+  const current = formData.value.month instanceof Date ? formData.value.month : new Date();
+  formData.value.month = new Date(current.getFullYear(), current.getMonth() + monthOffset, 1);
+}
 
 function handleSubmit(formData: EntryFormData) {
   const newMonthYear = {
@@ -164,6 +190,18 @@ function handleSubmit(formData: EntryFormData) {
 .name-form-item :deep(.el-input) {
   width: 100%;
 }
+.month-picker-row {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+  align-items: center;
+}
+.month-picker-row :deep(.el-date-editor) {
+  flex: 1;
+}
+.month-step-button {
+  flex: 0 0 auto;
+}
 :deep(.el-date-editor) {
   width: 100%;
 }
@@ -177,18 +215,18 @@ function handleSubmit(formData: EntryFormData) {
   transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 .status-not_started :deep(.el-segmented__item-selected) {
-  background-color: var(--el-color-info-light-7) !important;
-  border-color: var(--el-color-info-light-3) !important;
-  color: var(--el-color-info-dark-2) !important;
+  background-color: var(--el-color-info) !important;
+  border-color: var(--el-color-info) !important;
+  color: var(--el-color-white) !important;
 }
 .status-in_progress :deep(.el-segmented__item-selected) {
-  background-color: var(--el-color-primary-light-7) !important;
-  border-color: var(--el-color-primary-light-3) !important;
-  color: var(--el-color-primary-dark-2) !important;
+  background-color: var(--el-color-primary) !important;
+  border-color: var(--el-color-primary) !important;
+  color: var(--el-color-white) !important;
 }
 .status-completed :deep(.el-segmented__item-selected) {
-  background-color: var(--el-color-success-light-7) !important;
-  border-color: var(--el-color-success-light-3) !important;
-  color: var(--el-color-success-dark-2) !important;
+  background-color: var(--el-color-success) !important;
+  border-color: var(--el-color-success) !important;
+  color: var(--el-color-white) !important;
 }
 </style>
