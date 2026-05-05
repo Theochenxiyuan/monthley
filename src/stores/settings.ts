@@ -1,6 +1,20 @@
 import { defineStore } from "pinia";
 import { useDark } from "@vueuse/core";
 import i18n from "@/i18n";
+import { isValidSyncKey } from "@/utils/syncKey";
+
+const supportedLanguages = ["zh-CN", "en-US"] as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isSupportedLanguage(value: unknown): value is (typeof supportedLanguages)[number] {
+  return (
+    typeof value === "string" &&
+    supportedLanguages.includes(value as (typeof supportedLanguages)[number])
+  );
+}
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
@@ -18,11 +32,17 @@ export const useSettingsStore = defineStore("settings", {
       });
       const saved = localStorage.getItem("settings");
       if (saved) {
-        const settings = JSON.parse(saved);
-        this.isDark = settings.isDark;
-        this.language = settings.language || "zh-CN";
-        this.expandAll = settings.expandAll;
-        this.syncKey = settings.syncKey || null;
+        try {
+          const settings = JSON.parse(saved);
+          if (!isRecord(settings)) return;
+
+          this.isDark = typeof settings.isDark === "boolean" ? settings.isDark : this.isDark;
+          this.language = isSupportedLanguage(settings.language) ? settings.language : "zh-CN";
+          this.expandAll = typeof settings.expandAll === "boolean" ? settings.expandAll : false;
+          this.syncKey = isValidSyncKey(settings.syncKey) ? settings.syncKey : null;
+        } catch (err) {
+          console.error("Error loading settings:", err);
+        }
       }
       document.documentElement.classList.toggle("dark", this.isDark);
       i18n.global.locale.value = this.language as "zh-CN" | "en-US";

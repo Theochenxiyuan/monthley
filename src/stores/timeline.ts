@@ -94,7 +94,7 @@ export const useTimelineStore = defineStore("timeline", {
       try {
         const saved = localStorage.getItem("timeline");
         if (saved) {
-          const timeline = JSON.parse(saved);
+          const timeline = dataService.validateTimelineData(JSON.parse(saved));
           this.months = timeline.months;
           this.lastUpdated = timeline.lastUpdated
             ? new Date(timeline.lastUpdated)

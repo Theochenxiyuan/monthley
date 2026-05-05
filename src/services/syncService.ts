@@ -70,6 +70,10 @@ async function decrypt(payload: EncryptedPayload, syncKey: string): Promise<unkn
 
 export const syncService = {
   async upload(syncKey: string, data: object): Promise<void> {
+    if (!supabase) {
+      throw new Error('Supabase sync is not configured');
+    }
+
     const payload = await encrypt(data, syncKey);
     const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
     const filename = `${syncKey}.json`;
@@ -82,6 +86,10 @@ export const syncService = {
   },
 
   async download(syncKey: string): Promise<unknown | null> {
+    if (!supabase) {
+      throw new Error('Supabase sync is not configured');
+    }
+
     const filename = `${syncKey}.json`;
     const { data, error } = await supabase.storage.from(BUCKET).download(filename);
 

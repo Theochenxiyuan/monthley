@@ -65,10 +65,29 @@ const searchResults = computed<SearchResult[]>(() => {
   return results.slice(0, 50);
 });
 
+const escapeHtml = (text: string): string => {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 const highlightText = (text: string, query: string): string => {
-  if (!query) return text;
+  if (!query) return escapeHtml(text);
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  return text.replace(regex, '<mark class="search-highlight">$1</mark>');
+  const normalizedQuery = query.toLowerCase();
+
+  return text
+    .split(regex)
+    .map((part) => {
+      const escapedPart = escapeHtml(part);
+      return part.toLowerCase() === normalizedQuery
+        ? `<mark class="search-highlight">${escapedPart}</mark>`
+        : escapedPart;
+    })
+    .join('');
 };
 
 function handleSelect(result: SearchResult) {

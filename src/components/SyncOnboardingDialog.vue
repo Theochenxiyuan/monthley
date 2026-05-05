@@ -3,8 +3,11 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { DocumentCopy } from '@element-plus/icons-vue';
+import QrcodeVue from 'qrcode.vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useSync } from '@/composables/useSync';
+import SyncKeyScannerDialog from '@/components/sync/SyncKeyScannerDialog.vue';
+import { encodeSyncKeyQrValue, isValidSyncKey } from '@/utils/syncKey';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -23,8 +26,12 @@ const SYNC_ONBOARDING_SKIPPED_KEY = 'syncOnboardingSkipped';
 const inputKey = ref('');
 const mode = ref<'choice' | 'existing' | 'created'>('choice');
 const isWorking = ref(false);
+const isScannerVisible = ref(false);
 
-const isValidKey = computed(() => /^[a-zA-Z0-9]{8,32}$/.test(inputKey.value));
+const isValidKey = computed(() => isValidSyncKey(inputKey.value));
+const generatedQrValue = computed(() => (
+  settingsStore.syncKey ? encodeSyncKeyQrValue(settingsStore.syncKey) : ''
+));
 
 function closeDialog() {
   emit('update:modelValue', false);
@@ -84,10 +91,15 @@ async function copyKey() {
   if (!settingsStore.syncKey) return;
   try {
     await navigator.clipboard.writeText(settingsStore.syncKey);
-    ElMessage.success(t('syncOnboarding.copySuccess'));
+    ElMessage.success(t('sync.copySuccess'));
   } catch {
-    ElMessage.error(t('syncOnboarding.copyFailed'));
+    ElMessage.error(t('sync.copyFailed'));
   }
+}
+
+async function useScannedKey(syncKey: string) {
+  inputKey.value = syncKey;
+  await useExistingKey();
 }
 </script>
 
@@ -132,6 +144,9 @@ async function copyKey() {
           <el-button text @click="mode = 'choice'">
             {{ t('common.cancel') }}
           </el-button>
+          <el-button plain @click="isScannerVisible = true">
+            {{ t('sync.scanQrCode') }}
+          </el-button>
           <el-button type="primary" :disabled="!isValidKey" :loading="isWorking" @click="useExistingKey">
             {{ t('common.confirm') }}
           </el-button>
@@ -142,6 +157,15 @@ async function copyKey() {
         <p class="sync-onboarding-hint">
           {{ t('syncOnboarding.generatedDescription') }}
         </p>
+        <div class="qr-card">
+          <QrcodeVue :value="generatedQrValue" :size="200" level="H" render-as="svg" />
+        </div>
+        <el-alert
+          :title="t('sync.qrSecurityWarning')"
+          type="warning"
+          :closable="false"
+          show-icon
+        />
         <el-input :model-value="settingsStore.syncKey" readonly>
           <template #append>
             <el-button @click="copyKey">
@@ -155,6 +179,8 @@ async function copyKey() {
       </template>
     </div>
   </el-dialog>
+
+  <SyncKeyScannerDialog v-model="isScannerVisible" @scanned="useScannedKey" />
 </template>
 
 <style scoped>
@@ -183,7 +209,17 @@ async function copyKey() {
 
 .sync-onboarding-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.qr-card {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 12px;
+  background-color: #ffffff;
 }
 </style>

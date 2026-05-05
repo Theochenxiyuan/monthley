@@ -8,6 +8,11 @@ import type { TimelineState } from '@/types/models';
 
 const SYNC_TIME_KEY = 'lastSyncedAt';
 
+const isSyncing = ref(false);
+const lastSyncedAt = ref<Date | null>(loadSavedSyncTime());
+let uploadTimer: ReturnType<typeof setTimeout> | null = null;
+let autoUploadStarted = false;
+
 function loadSavedSyncTime(): Date | null {
   const saved = localStorage.getItem(SYNC_TIME_KEY);
   if (!saved) return null;
@@ -31,10 +36,6 @@ export function useSync() {
   const { t } = useI18n();
   const settingsStore = useSettingsStore();
   const timelineStore = useTimelineStore();
-
-  const isSyncing = ref(false);
-  const lastSyncedAt = ref<Date | null>(loadSavedSyncTime());
-  let uploadTimer: ReturnType<typeof setTimeout> | null = null;
 
   function recordSyncTime() {
     lastSyncedAt.value = new Date();
@@ -104,19 +105,23 @@ export function useSync() {
     await pull();
   }
 
-  // Auto-upload when local data changes (debounced 3s)
-  watch(
-    () => timelineStore.lastUpdated,
-    () => {
-      if (!settingsStore.syncKey) return;
-      if (uploadTimer) clearTimeout(uploadTimer);
-      uploadTimer = setTimeout(() => {
-        push().catch(() => {
-          // Silent fail on auto-upload
-        });
-      }, 3000);
-    },
-  );
+  if (!autoUploadStarted) {
+    autoUploadStarted = true;
+
+    // Auto-upload when local data changes (debounced 3s)
+    watch(
+      () => timelineStore.lastUpdated,
+      () => {
+        if (!settingsStore.syncKey) return;
+        if (uploadTimer) clearTimeout(uploadTimer);
+        uploadTimer = setTimeout(() => {
+          push().catch(() => {
+            // Silent fail on auto-upload
+          });
+        }, 3000);
+      },
+    );
+  }
 
   async function manualSync(): Promise<void> {
     if (!settingsStore.syncKey) {

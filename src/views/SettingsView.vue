@@ -83,12 +83,21 @@
           <el-button @click="startEditKey">
             {{ t('sync.useExistingKey') }}
           </el-button>
+          <el-button plain @click="isScannerVisible = true">
+            {{ t('sync.scanQrCode') }}
+          </el-button>
         </template>
       </div>
 
       <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-row-center sync-actions">
         <el-button :loading="sync.isSyncing.value" @click="sync.manualSync">
           {{ t('sync.syncNow') }}
+        </el-button>
+        <el-button plain @click="showKeyQr">
+          {{ t('sync.showQrCode') }}
+        </el-button>
+        <el-button plain @click="isScannerVisible = true">
+          {{ t('sync.scanQrCode') }}
         </el-button>
         <el-button type="danger" plain @click="clearKey">
           {{ t('sync.clearKey') }}
@@ -148,6 +157,12 @@
       </div>
     </section>
   </div>
+
+  <SyncKeyQrDialog
+    v-model="isQrDialogVisible"
+    :sync-key="settingsStore.syncKey || ''"
+  />
+  <SyncKeyScannerDialog v-model="isScannerVisible" @scanned="handleScannedKey" />
 </template>
 
 <style scoped>
@@ -247,6 +262,9 @@ import { useI18n } from 'vue-i18n';
 import { useSettingsStore } from '../stores/settings';
 import { useTimelineStore } from '../stores/timeline';
 import { useSync } from '@/composables/useSync';
+import SyncKeyQrDialog from '@/components/sync/SyncKeyQrDialog.vue';
+import SyncKeyScannerDialog from '@/components/sync/SyncKeyScannerDialog.vue';
+import { isValidSyncKey } from '@/utils/syncKey';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { Download, Upload, Delete, DocumentCopy } from '@element-plus/icons-vue';
 
@@ -258,8 +276,10 @@ const fileInputRef = ref<HTMLInputElement>();
 
 const isEditingKey = ref(false);
 const inputKey = ref('');
+const isQrDialogVisible = ref(false);
+const isScannerVisible = ref(false);
 
-const isValidKey = computed(() => /^[a-zA-Z0-9]{8,32}$/.test(inputKey.value));
+const isValidKey = computed(() => isValidSyncKey(inputKey.value));
 
 const currentLanguage = computed({
   get: () => settingsStore.language,
@@ -356,9 +376,28 @@ const copyKey = async () => {
   if (!settingsStore.syncKey) return;
   try {
     await navigator.clipboard.writeText(settingsStore.syncKey);
-    ElMessage.success('Copied');
+    ElMessage.success(t('sync.copySuccess'));
   } catch {
-    ElMessage.error('Copy failed');
+    ElMessage.error(t('sync.copyFailed'));
+  }
+};
+
+const showKeyQr = async () => {
+  if (!settingsStore.syncKey) return;
+
+  try {
+    await ElMessageBox.confirm(
+      t('sync.confirmShowQrCode'),
+      t('sync.qrTitle'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning',
+      },
+    );
+    isQrDialogVisible.value = true;
+  } catch {
+    // cancelled
   }
 };
 
@@ -399,5 +438,33 @@ const confirmKey = async () => {
 const cancelKeyEdit = () => {
   isEditingKey.value = false;
   inputKey.value = '';
+};
+
+const handleScannedKey = async (syncKey: string) => {
+  try {
+    await ElMessageBox.confirm(
+      settingsStore.syncKey
+        ? t('sync.confirmReplaceKey')
+        : t('sync.confirmImportKey'),
+      t('sync.scanQrCode'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning',
+      },
+    );
+  } catch {
+    return;
+  }
+
+  settingsStore.syncKey = syncKey;
+  isEditingKey.value = false;
+  inputKey.value = '';
+  try {
+    await sync.pull();
+    ElMessage.success(t('sync.importKeySuccess'));
+  } catch {
+    ElMessage.error(t('sync.importKeyFailed'));
+  }
 };
 </script>
