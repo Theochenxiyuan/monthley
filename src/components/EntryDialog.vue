@@ -106,7 +106,7 @@ import type { EntryFormData, EntryType } from '@/types/models';
 import type { FormInstance } from 'element-plus';
 import { ElMessage } from 'element-plus';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 const formRef = ref<FormInstance>();
 const dialogStore = useDialogStore();
@@ -126,7 +126,7 @@ const statusOptions = computed(() => [
   { label: t('entry.statuses.completed'), value: 'completed' },
 ]);
 
-const monthPickerFormat = computed(() => locale.value === 'zh-CN' ? 'YYYY年M月' : 'MMMM YYYY');
+const monthPickerFormat = computed(() => t('date.formats.monthPicker'));
 
 function shiftMonth(monthOffset: number) {
   const current = formData.value.month instanceof Date ? formData.value.month : new Date();

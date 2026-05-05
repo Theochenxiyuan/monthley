@@ -1,6 +1,7 @@
 export default {
   app: {
     title: '月理：掌握生活的旋律',
+    brand: '月理',
   },
   common: {
     save: '保存',
@@ -105,6 +106,7 @@ export default {
   date: {
     formats: {
       month: 'yyyy年M月',
+      monthPicker: 'YYYY年M月',
       date: 'yyyy年M月d日',
       time: 'HH:mm:ss',
       dateTime: 'yyyy年M月d日 HH:mm:ss',

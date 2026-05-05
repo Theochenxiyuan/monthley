@@ -1,6 +1,7 @@
 export default {
   app: {
     title: 'Monthley',
+    brand: 'Monthley',
   },
   common: {
     save: 'Save',
@@ -105,6 +106,7 @@ export default {
   date: {
     formats: {
       month: 'MMMM yyyy',
+      monthPicker: 'MMMM YYYY',
       date: 'MMMM d, yyyy',
       time: 'HH:mm:ss',
       dateTime: 'MMMM d, yyyy HH:mm:ss',

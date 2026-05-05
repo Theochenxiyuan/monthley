@@ -222,7 +222,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
         </div>
 
         <div class="summary-footer">
-          <span>Monthley</span>
+          <span>{{ t('app.brand') }}</span>
         </div>
       </div>
 

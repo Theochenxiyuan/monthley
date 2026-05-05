@@ -96,15 +96,15 @@
         <el-button plain @click="showKeyQr">
           {{ t('sync.showQrCode') }}
         </el-button>
-        <el-button plain @click="isScannerVisible = true">
-          {{ t('sync.scanQrCode') }}
-        </el-button>
         <el-button type="danger" plain @click="clearKey">
           {{ t('sync.clearKey') }}
         </el-button>
       </div>
 
       <div v-if="isEditingKey" class="setting-row-center">
+        <el-button plain @click="isScannerVisible = true">
+          {{ t('sync.scanQrCode') }}
+        </el-button>
         <el-button link @click="cancelKeyEdit">
           {{ t('common.cancel') }}
         </el-button>
