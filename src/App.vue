@@ -29,7 +29,10 @@ let isPulling = false;
 let appHeightFixTimer: number | undefined;
 
 function updateAppHeight() {
-  document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+  document.documentElement.style.setProperty(
+    '--app-height',
+    `${window.innerHeight}px`,
+  );
 }
 
 function setPullRefreshActive(active: boolean) {
@@ -39,7 +42,11 @@ function setPullRefreshActive(active: boolean) {
 function isVisibleOverlay(el: Element): boolean {
   if (el.getAttribute('aria-hidden') === 'true') return false;
   const style = window.getComputedStyle(el);
-  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+  if (
+    style.display === 'none' ||
+    style.visibility === 'hidden' ||
+    style.opacity === '0'
+  ) {
     return false;
   }
   const rect = el.getBoundingClientRect();
@@ -48,7 +55,9 @@ function isVisibleOverlay(el: Element): boolean {
 
 function hasActiveOverlay(): boolean {
   return Array.from(
-    document.querySelectorAll('.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper'),
+    document.querySelectorAll(
+      '.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper',
+    ),
   ).some(isVisibleOverlay);
 }
 
@@ -66,8 +75,11 @@ function onTouchStart(e: TouchEvent) {
     hasActiveOverlay() ||
     target.closest('.entry-item') ||
     target.closest('.el-tag') ||
-    target.closest('.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper')
-  ) return;
+    target.closest(
+      '.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper',
+    )
+  )
+    return;
   if (el.scrollTop <= 0) {
     touchStartY = e.touches[0].clientY;
     isPulling = true;
@@ -159,7 +171,7 @@ watch(
   () => settingsStore.isDark,
   (newVal) => {
     document.documentElement.classList.toggle('dark', newVal);
-  }
+  },
 );
 
 watch(
@@ -189,10 +201,31 @@ watch(
         @touchend="onTouchEnd"
         @touchcancel="resetPullRefresh"
       >
-        <div class="pull-indicator" :style="{ height: pullDistance + 'px', opacity: pullDistance > 0 ? 1 : 0 }">
-          <Icon v-if="isRefreshing" icon="mdi:loading" width="20" class="pull-spin" />
-          <Icon v-else-if="pullDistance >= PULL_THRESHOLD" icon="mdi:refresh" width="20" style="color: var(--el-color-primary)" />
-          <Icon v-else icon="mdi:arrow-down" width="20" style="color: var(--el-text-color-placeholder)" />
+        <div
+          class="pull-indicator"
+          :style="{
+            height: pullDistance + 'px',
+            opacity: pullDistance > 0 ? 1 : 0,
+          }"
+        >
+          <Icon
+            v-if="isRefreshing"
+            icon="mdi:loading"
+            width="20"
+            class="pull-spin"
+          />
+          <Icon
+            v-else-if="pullDistance >= PULL_THRESHOLD"
+            icon="mdi:refresh"
+            width="20"
+            style="color: var(--el-color-primary)"
+          />
+          <Icon
+            v-else
+            icon="mdi:arrow-down"
+            width="20"
+            style="color: var(--el-text-color-placeholder)"
+          />
         </div>
         <div :key="route.path" class="page-content">
           <router-view v-slot="{ Component }">
@@ -232,7 +265,10 @@ watch(
         </RouterLink>
       </nav>
 
-      <SyncOnboardingDialog v-if="showSyncOnboarding" v-model="showSyncOnboarding" />
+      <SyncOnboardingDialog
+        v-if="showSyncOnboarding"
+        v-model="showSyncOnboarding"
+      />
     </div>
   </el-config-provider>
 </template>
@@ -248,8 +284,9 @@ watch(
   flex-direction: column;
   overflow: hidden;
   background-color: var(--el-bg-color);
-  box-shadow: 0 0 0 1px var(--el-border-color-lighter),
-              0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 0 0 1px var(--el-border-color-lighter),
+    0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 @media (min-width: 768px) {
@@ -280,8 +317,12 @@ watch(
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (min-width: 768px) {

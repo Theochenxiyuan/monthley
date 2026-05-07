@@ -3,8 +3,8 @@ import { useI18n } from 'vue-i18n';
 import { ElMessage } from 'element-plus';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimelineStore } from '@/stores/timeline';
+import { dataService, type ExportData } from '@/services/dataService';
 import { syncService } from '@/services/syncService';
-import type { TimelineState } from '@/types/models';
 
 const SYNC_TIME_KEY = 'lastSyncedAt';
 
@@ -32,6 +32,10 @@ function saveSyncTime(date: Date | null) {
   }
 }
 
+function isSameTimelineData(a: ExportData, b: ExportData): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 export function useSync() {
   const { t } = useI18n();
   const settingsStore = useSettingsStore();
@@ -42,40 +46,50 @@ export function useSync() {
     saveSyncTime(lastSyncedAt.value);
   }
 
+  function applyTimelineData(data: ExportData) {
+    timelineStore.months = data.months;
+    timelineStore.deletedEntries = data.deletedEntries;
+    timelineStore.lastUpdated = data.lastUpdated ? new Date(data.lastUpdated) : null;
+    timelineStore.clearEmptyMonths();
+    timelineStore.addCurrentMonthIfMissing();
+    timelineStore.saveLocal();
+  }
+
   async function pull(): Promise<boolean> {
     const syncKey = settingsStore.syncKey;
     if (!syncKey) return false;
 
     isSyncing.value = true;
     try {
-      const remote = await syncService.download(syncKey) as { months: TimelineState['months']; lastUpdated: string | null } | null;
-      if (!remote || !remote.lastUpdated) {
+      if (uploadTimer) {
+        clearTimeout(uploadTimer);
+        uploadTimer = null;
+      }
+
+      const remote = await syncService.download(syncKey);
+      if (!remote) {
         // Remote empty: push local data silently
         await push();
         return false;
       }
 
-      const remoteTime = new Date(remote.lastUpdated).getTime();
-      const localTime = timelineStore.lastUpdated?.getTime() || 0;
+      const remoteData = dataService.validateTimelineData(remote);
+      const localData = dataService.exportDataFromState(timelineStore);
+      const merged = dataService.mergeTimelineData(localData, remoteData);
+      const localChanged = !isSameTimelineData(localData, merged);
+      const remoteChanged = !isSameTimelineData(remoteData, merged);
 
-      if (remoteTime > localTime) {
-        // Remote is newer: overwrite local
-        timelineStore.months = remote.months;
-        timelineStore.lastUpdated = new Date(remote.lastUpdated);
-        timelineStore.clearEmptyMonths();
-        timelineStore.addCurrentMonthIfMissing();
-        timelineStore.saveLocal();
-        recordSyncTime();
+      if (localChanged) {
+        applyTimelineData(merged);
         ElMessage.success(t('sync.restoredFromCloud'));
-        return true;
-      } else if (localTime > remoteTime) {
-        // Local is newer: push to cloud
-        await push();
-      } else {
-        // Same time: still count as a sync
-        recordSyncTime();
       }
-      return false;
+
+      if (remoteChanged) {
+        await syncService.upload(syncKey, merged);
+      }
+
+      recordSyncTime();
+      return localChanged;
     } finally {
       isSyncing.value = false;
     }
@@ -87,10 +101,7 @@ export function useSync() {
 
     isSyncing.value = true;
     try {
-      await syncService.upload(syncKey, {
-        months: timelineStore.months,
-        lastUpdated: timelineStore.lastUpdated?.toISOString() || new Date().toISOString(),
-      });
+      await syncService.upload(syncKey, dataService.exportDataFromState(timelineStore));
       recordSyncTime();
     } catch (err) {
       console.error('Sync upload failed:', err);
@@ -113,6 +124,7 @@ export function useSync() {
       () => timelineStore.lastUpdated,
       () => {
         if (!settingsStore.syncKey) return;
+        if (isSyncing.value) return;
         if (uploadTimer) clearTimeout(uploadTimer);
         uploadTimer = setTimeout(() => {
           push().catch(() => {

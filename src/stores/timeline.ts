@@ -19,6 +19,7 @@ export const VISIBLE_WINDOW = 4;
 export const useTimelineStore = defineStore("timeline", {
   state: (): TimelineState => ({
     months: [],
+    deletedEntries: {},
     lastUpdated: null,
     visibleUp: 0,
     visibleDown: 0,
@@ -96,6 +97,7 @@ export const useTimelineStore = defineStore("timeline", {
         if (saved) {
           const timeline = dataService.validateTimelineData(JSON.parse(saved));
           this.months = timeline.months;
+          this.deletedEntries = timeline.deletedEntries;
           this.lastUpdated = timeline.lastUpdated
             ? new Date(timeline.lastUpdated)
             : null;
@@ -110,6 +112,7 @@ export const useTimelineStore = defineStore("timeline", {
           "timeline",
           JSON.stringify({
             months: this.months,
+            deletedEntries: this.deletedEntries,
             lastUpdated: this.lastUpdated?.toISOString(),
           }),
         );
@@ -161,6 +164,7 @@ export const useTimelineStore = defineStore("timeline", {
       const newEntry: TimelineEntry = {
         ...entry,
         id: crypto.randomUUID(),
+        updatedAt: new Date().toISOString(),
       };
       if (targetMonth) {
         targetMonth.entries.push(newEntry);
@@ -176,9 +180,14 @@ export const useTimelineStore = defineStore("timeline", {
         (m) => m.year === monthYear.year && m.month === monthYear.month,
       );
       if (month) {
-        month.entries = month.entries.filter((entry) => entry.id !== entryId);
-        this.lastUpdated = new Date();
-        this.saveLocal();
+        const existingEntry = month.entries.find((entry) => entry.id === entryId);
+        if (existingEntry) {
+          const now = new Date();
+          month.entries = month.entries.filter((entry) => entry.id !== entryId);
+          this.deletedEntries[entryId] = now.toISOString();
+          this.lastUpdated = now;
+          this.saveLocal();
+        }
       }
     },
     updateEntry(
@@ -194,7 +203,9 @@ export const useTimelineStore = defineStore("timeline", {
             entry.name = newEntryData.name;
             entry.status = newEntryData.status;
             entry.type = newEntryData.type;
-            this.lastUpdated = new Date();
+            const now = new Date();
+            entry.updatedAt = now.toISOString();
+            this.lastUpdated = now;
             this.saveLocal();
             return;
           }
@@ -225,8 +236,10 @@ export const useTimelineStore = defineStore("timeline", {
         this.sortMonths();
       }
 
+      const now = new Date();
+      entryToMove.updatedAt = now.toISOString();
       targetMonth.entries.push(entryToMove);
-      this.lastUpdated = new Date();
+      this.lastUpdated = now;
       this.saveLocal();
       return true;
     },
@@ -238,7 +251,9 @@ export const useTimelineStore = defineStore("timeline", {
         month.entries.forEach((entry) => {
           if (entry.id === entryId) {
             entry.status = getNextStatus(entry.status);
-            this.lastUpdated = new Date();
+            const now = new Date();
+            entry.updatedAt = now.toISOString();
+            this.lastUpdated = now;
             this.saveLocal();
             return;
           }
@@ -250,6 +265,22 @@ export const useTimelineStore = defineStore("timeline", {
         if (a.year !== b.year) return a.year - b.year;
         return a.month - b.month;
       });
+    },
+    markEntriesUpdated(entryIds: string[]) {
+      if (entryIds.length === 0) return;
+      const entryIdSet = new Set(entryIds);
+      const now = new Date();
+
+      this.months.forEach((month) => {
+        month.entries.forEach((entry) => {
+          if (entryIdSet.has(entry.id)) {
+            entry.updatedAt = now.toISOString();
+          }
+        });
+      });
+
+      this.lastUpdated = now;
+      this.saveLocal();
     },
     clearEmptyMonths() {
       this.months = this.months.filter((month) => month.entries.length > 0);
@@ -276,9 +307,16 @@ export const useTimelineStore = defineStore("timeline", {
       this.visibleDown = 0;
     },
     clearData() {
+      const now = new Date();
+      const deletedAt = now.toISOString();
+      this.months.forEach((month) => {
+        month.entries.forEach((entry) => {
+          this.deletedEntries[entry.id] = deletedAt;
+        });
+      });
       this.months = [];
-      this.lastUpdated = null;
-      localStorage.removeItem("timeline");
+      this.lastUpdated = now;
+      this.saveLocal();
     },
     exportJSON() {
       dataService.exportJSON(this);

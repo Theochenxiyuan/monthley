@@ -257,8 +257,7 @@ const collapsedSummary = computed(() => {
          }"
         @change="
           manualExpanded = true;
-          timelineStore.lastUpdated = new Date();
-          timelineStore.saveLocal();
+          timelineStore.markEntriesUpdated(month.entries.map((entry) => entry.id));
         "
         :delay="300"
         :delayOnTouchOnly="true"
