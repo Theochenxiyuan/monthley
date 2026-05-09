@@ -4,6 +4,17 @@ const BUCKET = 'monthley-sync';
 const TEXT_ENCODER = new TextEncoder();
 const TEXT_DECODER = new TextDecoder();
 
+function getErrorStatus(error: unknown): number | null {
+  if (!error || typeof error !== 'object') return null;
+  const status = 'status' in error ? error.status : 'statusCode' in error ? error.statusCode : null;
+  if (typeof status === 'number') return status;
+  if (typeof status === 'string') {
+    const parsed = Number(status);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+}
+
 interface EncryptedPayload {
   salt: string; // base64
   iv: string; // base64
@@ -94,7 +105,8 @@ export const syncService = {
     const { data, error } = await supabase.storage.from(BUCKET).download(filename);
 
     if (error) {
-      if (error.message?.includes('Object not found') || error.name === 'StorageApiError') {
+      const status = getErrorStatus(error);
+      if (status === 404 || error.message?.includes('Object not found')) {
         return null;
       }
       throw error;

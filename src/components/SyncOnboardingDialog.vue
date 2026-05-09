@@ -59,8 +59,8 @@ async function createNewKey() {
     await sync.push();
     mode.value = 'created';
     ElMessage.success(t('sync.syncSuccess'));
-  } catch {
-    ElMessage.error(t('sync.syncFailed'));
+  } catch (error) {
+    ElMessage.error(sync.getSyncErrorMessage(error));
   } finally {
     isWorking.value = false;
   }
@@ -74,9 +74,9 @@ async function useExistingKey() {
     await sync.pull();
     ElMessage.success(t('sync.syncSuccess'));
     closeDialog();
-  } catch {
+  } catch (error) {
     settingsStore.syncKey = null;
-    ElMessage.error(t('sync.syncFailed'));
+    ElMessage.error(sync.getSyncErrorMessage(error));
   } finally {
     isWorking.value = false;
   }

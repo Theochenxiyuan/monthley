@@ -6,6 +6,9 @@ import type {
   EntryStatus,
 } from "@/types/models";
 import { dataService } from "@/services/dataService";
+import { ElMessage } from "element-plus";
+
+let saveFailureNotified = false;
 
 const getNextStatus = (status: EntryStatus): EntryStatus => {
   if (status === "not_started") {
@@ -108,16 +111,19 @@ export const useTimelineStore = defineStore("timeline", {
     },
     _saveNow() {
       try {
+        const data = dataService.exportDataFromState(this);
+        this.deletedEntries = data.deletedEntries;
         localStorage.setItem(
           "timeline",
-          JSON.stringify({
-            months: this.months,
-            deletedEntries: this.deletedEntries,
-            lastUpdated: this.lastUpdated?.toISOString(),
-          }),
+          JSON.stringify(data),
         );
+        saveFailureNotified = false;
       } catch (err) {
         console.error("Save failed:", err);
+        if (!saveFailureNotified) {
+          saveFailureNotified = true;
+          ElMessage.error("本地保存失败，请导出备份后清理数据 / Local save failed. Export a backup and free storage.");
+        }
       }
     },
     addCurrentMonthIfMissing() {
@@ -161,9 +167,11 @@ export const useTimelineStore = defineStore("timeline", {
       const targetMonth = this.months.find(
         (m) => m.year === monthYear.year && m.month === monthYear.month,
       );
+      const order = targetMonth ? targetMonth.entries.length : 0;
       const newEntry: TimelineEntry = {
         ...entry,
         id: crypto.randomUUID(),
+        order,
         updatedAt: new Date().toISOString(),
       };
       if (targetMonth) {
@@ -184,6 +192,9 @@ export const useTimelineStore = defineStore("timeline", {
         if (existingEntry) {
           const now = new Date();
           month.entries = month.entries.filter((entry) => entry.id !== entryId);
+          month.entries.forEach((entry, index) => {
+            entry.order = index;
+          });
           this.deletedEntries[entryId] = now.toISOString();
           this.lastUpdated = now;
           this.saveLocal();
@@ -238,7 +249,14 @@ export const useTimelineStore = defineStore("timeline", {
 
       const now = new Date();
       entryToMove.updatedAt = now.toISOString();
+      entryToMove.order = targetMonth.entries.length;
       targetMonth.entries.push(entryToMove);
+      sourceMonth.entries.forEach((entry, index) => {
+        entry.order = index;
+      });
+      targetMonth.entries.forEach((entry, index) => {
+        entry.order = index;
+      });
       this.lastUpdated = now;
       this.saveLocal();
       return true;
@@ -272,7 +290,8 @@ export const useTimelineStore = defineStore("timeline", {
       const now = new Date();
 
       this.months.forEach((month) => {
-        month.entries.forEach((entry) => {
+        month.entries.forEach((entry, index) => {
+          entry.order = index;
           if (entryIdSet.has(entry.id)) {
             entry.updatedAt = now.toISOString();
           }
@@ -318,8 +337,8 @@ export const useTimelineStore = defineStore("timeline", {
       this.lastUpdated = now;
       this.saveLocal();
     },
-    exportJSON() {
-      dataService.exportJSON(this);
+    async exportJSON(): Promise<void> {
+      await dataService.exportJSON(this);
     },
     async importJSON(file: File): Promise<void> {
       try {

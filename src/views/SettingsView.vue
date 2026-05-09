@@ -121,7 +121,7 @@
       <h4 class="section-title">{{ t('settings.backupRestore') }}</h4>
 
       <div class="setting-row-center">
-        <el-button plain type="primary" @click="exportTimeline">
+        <el-button plain type="primary" :loading="isExporting" @click="exportTimeline">
           <el-icon class="btn-icon"><Download /></el-icon>
           {{ t('settings.exportTimeline') }}
         </el-button>
@@ -278,6 +278,7 @@ const isEditingKey = ref(false);
 const inputKey = ref('');
 const isQrDialogVisible = ref(false);
 const isScannerVisible = ref(false);
+const isExporting = ref(false);
 
 const isValidKey = computed(() => isValidSyncKey(inputKey.value));
 
@@ -288,9 +289,18 @@ const currentLanguage = computed({
   },
 });
 
-const exportTimeline = () => {
-  timelineStore.exportJSON();
-  ElMessage.success(t('settings.exportSuccess'));
+const exportTimeline = async () => {
+  if (isExporting.value) return;
+  isExporting.value = true;
+  try {
+    await timelineStore.exportJSON();
+    ElMessage.success(t('settings.exportSuccess'));
+  } catch (error) {
+    console.error('Export failed:', error);
+    ElMessage.error(t('settings.exportError'));
+  } finally {
+    isExporting.value = false;
+  }
 };
 
 const triggerImport = () => {
@@ -430,8 +440,8 @@ const confirmKey = async () => {
   try {
     await sync.pull();
     ElMessage.success(t('sync.syncSuccess'));
-  } catch {
-    ElMessage.error(t('sync.syncFailed'));
+  } catch (error) {
+    ElMessage.error(sync.getSyncErrorMessage(error));
   }
 };
 
@@ -463,8 +473,8 @@ const handleScannedKey = async (syncKey: string) => {
   try {
     await sync.pull();
     ElMessage.success(t('sync.importKeySuccess'));
-  } catch {
-    ElMessage.error(t('sync.importKeyFailed'));
+  } catch (error) {
+    ElMessage.error(sync.getSyncErrorMessage(error));
   }
 };
 </script>
