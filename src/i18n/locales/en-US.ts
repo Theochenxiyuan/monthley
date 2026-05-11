@@ -268,7 +268,6 @@ export default {
     syncSuccess: 'Sync successful',
     syncFailed: 'Sync failed',
     restoredFromCloud: 'Data restored from cloud',
-    conflictsResolved: 'Automatically resolved {count} sync conflicts',
     errorNotConfigured: 'Sync is not configured. Check Supabase environment variables.',
     errorNetwork: 'Network error. Sync failed, please try again later.',
     errorPermission: 'Sync permission denied. Check cloud storage policies or the sync key.',

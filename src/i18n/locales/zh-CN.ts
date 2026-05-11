@@ -267,7 +267,6 @@ export default {
     syncSuccess: '同步成功',
     syncFailed: '同步失败',
     restoredFromCloud: '已从云端恢复数据',
-    conflictsResolved: '已自动处理 {count} 个同步冲突',
     errorNotConfigured: '同步未配置，请检查 Supabase 环境变量',
     errorNetwork: '网络异常，同步失败，请稍后重试',
     errorPermission: '同步权限不足，请检查云端存储策略或同步密钥',

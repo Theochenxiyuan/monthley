@@ -3,15 +3,15 @@ import { useI18n } from 'vue-i18n';
 import { ElMessage } from 'element-plus';
 import { useSettingsStore } from '@/stores/settings';
 import { useTimelineStore } from '@/stores/timeline';
-import { dataService, type ExportData, type MergeConflict } from '@/services/dataService';
+import { dataService, type ExportData } from '@/services/dataService';
 import { syncService } from '@/services/syncService';
 
 const SYNC_TIME_KEY = 'lastSyncedAt';
 const CLOUD_UPDATED_KEY = 'cloudUpdatedAt';
 
 const isSyncing = ref(false);
-const lastSyncedAt = ref<Date | null>(loadSavedSyncTime());
-const cloudUpdatedAt = ref<Date | null>(loadSavedCloudUpdateTime());
+const lastSyncedAt = ref<Date | null>(loadSavedDate(SYNC_TIME_KEY));
+const cloudUpdatedAt = ref<Date | null>(loadSavedDate(CLOUD_UPDATED_KEY));
 let uploadTimer: ReturnType<typeof setTimeout> | null = null;
 let autoUploadStarted = false;
 
@@ -19,8 +19,8 @@ function loadSavedDate(key: string): Date | null {
   const saved = localStorage.getItem(key);
   if (!saved) return null;
   try {
-    const d = new Date(saved);
-    return isNaN(d.getTime()) ? null : d;
+    const date = new Date(saved);
+    return Number.isNaN(date.getTime()) ? null : date;
   } catch {
     return null;
   }
@@ -34,16 +34,9 @@ function saveDate(key: string, date: Date | null) {
   }
 }
 
-function loadSavedSyncTime(): Date | null {
-  return loadSavedDate(SYNC_TIME_KEY);
-}
-
-function loadSavedCloudUpdateTime(): Date | null {
-  return loadSavedDate(CLOUD_UPDATED_KEY);
-}
-
-function saveSyncTime(date: Date | null) {
-  saveDate(SYNC_TIME_KEY, date);
+function recordSyncTime() {
+  lastSyncedAt.value = new Date();
+  saveDate(SYNC_TIME_KEY, lastSyncedAt.value);
 }
 
 function recordCloudUpdateTime(value: string | null) {
@@ -52,63 +45,10 @@ function recordCloudUpdateTime(value: string | null) {
   saveDate(CLOUD_UPDATED_KEY, cloudUpdatedAt.value);
 }
 
-function isSameTimelineData(a: ExportData, b: ExportData): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
-function cloneTimelineData(data: ExportData): ExportData {
-  return dataService.cloneTimelineData(data);
-}
-
-function dedupeConflicts(conflicts: MergeConflict[]): MergeConflict[] {
-  return [...new Map(conflicts.map((conflict) => [`${conflict.type}:${conflict.entryId}`, conflict])).values()];
-}
-
-function countEntries(data: ExportData): number {
-  return data.months.reduce((total, month) => total + month.entries.length, 0);
-}
-
-function summarizeTimelineData(data: ExportData) {
-  return {
-    schemaVersion: data.schemaVersion,
-    months: data.months.length,
-    entries: countEntries(data),
-    deletedEntries: Object.keys(data.deletedEntries).length,
-    lastUpdated: data.lastUpdated,
-  };
-}
-
-function logSyncMergeAudit(details: {
-  initialLocalData: ExportData;
-  currentLocalData: ExportData;
-  remoteData: ExportData;
-  merged: ExportData;
-  conflicts: MergeConflict[];
-  localChanged: boolean;
-  remoteChanged: boolean;
-}) {
-  if (!import.meta.env.DEV) return;
-
-  console.debug('[Monthley sync merge]', {
-    initialLocal: summarizeTimelineData(details.initialLocalData),
-    currentLocal: summarizeTimelineData(details.currentLocalData),
-    remote: summarizeTimelineData(details.remoteData),
-    merged: summarizeTimelineData(details.merged),
-    localChanged: details.localChanged,
-    remoteChanged: details.remoteChanged,
-    conflicts: details.conflicts,
-  });
-}
-
 export function useSync() {
   const { t } = useI18n();
   const settingsStore = useSettingsStore();
   const timelineStore = useTimelineStore();
-
-  function recordSyncTime() {
-    lastSyncedAt.value = new Date();
-    saveSyncTime(lastSyncedAt.value);
-  }
 
   function getSyncErrorMessage(error: unknown): string {
     const errorRecord = error && typeof error === 'object' ? error as Record<string, unknown> : null;
@@ -136,15 +76,14 @@ export function useSync() {
 
   function applyTimelineData(data: ExportData) {
     timelineStore.months = data.months;
-    timelineStore.deletedEntries = data.deletedEntries;
     timelineStore.lastUpdated = data.lastUpdated ? new Date(data.lastUpdated) : null;
-    timelineStore.months = timelineStore.months.filter((month) => month.entries.length > 0);
+    timelineStore.clearEmptyMonths();
     timelineStore.addCurrentMonthIfMissing();
     timelineStore.saveLocal();
   }
 
-  function getLocalSnapshot(): ExportData {
-    return cloneTimelineData(dataService.exportDataFromState(timelineStore));
+  function getLocalData(): ExportData {
+    return dataService.exportDataFromState(timelineStore);
   }
 
   function scheduleUpload() {
@@ -169,12 +108,9 @@ export function useSync() {
         uploadTimer = null;
       }
 
-      const initialLocalData = getLocalSnapshot();
-
       const remote = await syncService.download(syncKey);
       if (!remote) {
-        // Remote empty: push local data silently
-        const localData = getLocalSnapshot();
+        const localData = getLocalData();
         await syncService.upload(syncKey, localData);
         recordCloudUpdateTime(localData.lastUpdated);
         recordSyncTime();
@@ -182,53 +118,28 @@ export function useSync() {
       }
 
       const remoteData = dataService.validateTimelineData(remote);
-      const initialMerge = dataService.mergeTimelineDataDetailed(initialLocalData, remoteData);
-      let merged = initialMerge.data;
-      let conflicts = initialMerge.conflicts;
-      const currentLocalData = getLocalSnapshot();
+      const localTime = timelineStore.lastUpdated?.getTime() || 0;
+      const remoteTime = remoteData.lastUpdated ? new Date(remoteData.lastUpdated).getTime() : 0;
 
-      if (!isSameTimelineData(currentLocalData, initialLocalData)) {
-        const currentMerge = dataService.mergeTimelineDataDetailed(currentLocalData, merged);
-        merged = currentMerge.data;
-        conflicts = dedupeConflicts([...conflicts, ...currentMerge.conflicts]);
+      recordCloudUpdateTime(remoteData.lastUpdated);
+
+      if (!remoteData.lastUpdated || localTime > remoteTime) {
+        const localData = getLocalData();
+        await syncService.upload(syncKey, localData);
+        recordCloudUpdateTime(localData.lastUpdated);
+        recordSyncTime();
+        return false;
       }
 
-      const localChanged = !isSameTimelineData(currentLocalData, merged);
-      const remoteChanged = !isSameTimelineData(remoteData, merged);
-
-      logSyncMergeAudit({
-        initialLocalData,
-        currentLocalData,
-        remoteData,
-        merged,
-        conflicts,
-        localChanged,
-        remoteChanged,
-      });
-
-      try {
-        if (localChanged) {
-          applyTimelineData(merged);
-          ElMessage.success(t('sync.restoredFromCloud'));
-        }
-
-        if (remoteChanged) {
-          await syncService.upload(syncKey, merged);
-        }
-        recordCloudUpdateTime(remoteChanged ? merged.lastUpdated : remoteData.lastUpdated);
-      } catch (err) {
-        if (isSameTimelineData(getLocalSnapshot(), merged)) {
-          applyTimelineData(currentLocalData);
-        }
-        throw err;
-      }
-
-      if (conflicts.length > 0) {
-        ElMessage.warning(t('sync.conflictsResolved', { count: conflicts.length }));
+      if (remoteTime > localTime) {
+        applyTimelineData(remoteData);
+        recordSyncTime();
+        ElMessage.success(t('sync.restoredFromCloud'));
+        return true;
       }
 
       recordSyncTime();
-      return localChanged;
+      return false;
     } finally {
       isSyncing.value = false;
     }
@@ -241,26 +152,10 @@ export function useSync() {
 
     isSyncing.value = true;
     try {
-      const uploadData = getLocalSnapshot();
-      const remote = await syncService.download(syncKey);
-      let dataToUpload = uploadData;
-
-      if (remote) {
-        const remoteData = dataService.validateTimelineData(remote);
-        dataToUpload = dataService.mergeTimelineData(remoteData, uploadData);
-      }
-
-      await syncService.upload(syncKey, dataToUpload);
-      recordCloudUpdateTime(dataToUpload.lastUpdated);
-      const currentLocalData = getLocalSnapshot();
-      const localChangedDuringPush = !isSameTimelineData(currentLocalData, uploadData);
-      if (!localChangedDuringPush && !isSameTimelineData(currentLocalData, dataToUpload)) {
-        applyTimelineData(dataToUpload);
-      }
+      const localData = getLocalData();
+      await syncService.upload(syncKey, localData);
+      recordCloudUpdateTime(localData.lastUpdated);
       recordSyncTime();
-      if (localChangedDuringPush) {
-        scheduleUpload();
-      }
     } catch (err) {
       console.error('Sync upload failed:', err);
       throw err;
@@ -291,7 +186,6 @@ export function useSync() {
   if (!autoUploadStarted) {
     autoUploadStarted = true;
 
-    // Auto-upload when local data changes (debounced 3s)
     watch(
       () => timelineStore.lastUpdated,
       () => {

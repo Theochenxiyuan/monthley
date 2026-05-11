@@ -5,7 +5,7 @@ import { useDialogStore } from '@/stores/dialog';
 import { useTimelineStore } from '@/stores/timeline';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { formatYearMonth, isCurrentMonth } from '@/utils/dateFormatter';
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useFiltersStore } from '@/stores/filters';
 import Draggable from 'vuedraggable';
@@ -113,23 +113,10 @@ const isPastIncomplete = computed(() => {
   return isPast && props.month.entries.some((e) => e.status !== 'completed');
 });
 
-type DraggableChangeEvent = {
-  added?: { element?: { id?: string } };
-  removed?: { element?: { id?: string } };
-  moved?: { element?: { id?: string } };
-};
-
-function handleDragChange(event: DraggableChangeEvent) {
+function handleDragChange() {
   manualExpanded.value = true;
-  const changedEntryId = event.added?.element?.id
-    || event.removed?.element?.id
-    || event.moved?.element?.id;
-  const entryIds = props.month.entries.map((entry) => entry.id);
-  if (changedEntryId) entryIds.push(changedEntryId);
-
-  nextTick(() => {
-    timelineStore.markEntriesUpdated([...new Set(entryIds)]);
-  });
+  timelineStore.lastUpdated = new Date();
+  timelineStore.saveLocal();
 }
 
 const handleDelete = (entryId: string): void => {

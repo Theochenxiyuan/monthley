@@ -357,7 +357,7 @@ const confirmClear = async () => {
       }
     );
 
-    timelineStore.clearData({ preserveDeletedEntries: !!settingsStore.syncKey });
+    timelineStore.clearData();
     timelineStore.addCurrentMonthIfMissing();
     ElMessage.success(t('settings.clearSuccess'));
   } catch (error) {

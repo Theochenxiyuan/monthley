@@ -14,8 +14,6 @@ export interface TimelineEntry {
   name: string;
   type: EntryType;
   status: EntryStatus;
-  order?: number;
-  updatedAt?: string;
   notes?: string; // 可选备注
 }
 
@@ -29,7 +27,6 @@ export interface TimelineMonth {
 // 时间线状态（Pinia Store 类型）
 export interface TimelineState {
   months: TimelineMonth[];
-  deletedEntries: Record<string, string>;
   lastUpdated: Date | null;
   visibleUp: number;
   visibleDown: number;
