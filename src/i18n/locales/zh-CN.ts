@@ -88,6 +88,8 @@ export default {
     exportSuccess: '导出成功',
     exportError: '导出失败',
     importSuccess: '导入成功',
+    importSuccessWithCount: '导入成功，恢复 {count} 个计划',
+    importNoEntriesRestored: '导入完成，但未恢复任何计划（导入文件包含 {count} 个计划）',
     importError: '导入失败',
     confirmImport: '导入将合并现有数据，确定继续？',
     importWarning: '注意：导入会合并现有数据，不会覆盖',

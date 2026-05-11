@@ -5,7 +5,7 @@ import type {
   TimelineEntry,
   EntryStatus,
 } from "@/types/models";
-import { dataService } from "@/services/dataService";
+import { dataService, type ImportResult } from "@/services/dataService";
 import { ElMessage } from "element-plus";
 
 let saveFailureNotified = false;
@@ -325,14 +325,18 @@ export const useTimelineStore = defineStore("timeline", {
       this.visibleUp = 0;
       this.visibleDown = 0;
     },
-    clearData() {
+    clearData(options: { preserveDeletedEntries?: boolean } = {}) {
       const now = new Date();
-      const deletedAt = now.toISOString();
-      this.months.forEach((month) => {
-        month.entries.forEach((entry) => {
-          this.deletedEntries[entry.id] = deletedAt;
+      if (options.preserveDeletedEntries) {
+        const deletedAt = now.toISOString();
+        this.months.forEach((month) => {
+          month.entries.forEach((entry) => {
+            this.deletedEntries[entry.id] = deletedAt;
+          });
         });
-      });
+      } else {
+        this.deletedEntries = {};
+      }
       this.months = [];
       this.lastUpdated = now;
       this.saveLocal();
@@ -340,12 +344,14 @@ export const useTimelineStore = defineStore("timeline", {
     async exportJSON(): Promise<void> {
       await dataService.exportJSON(this);
     },
-    async importJSON(file: File): Promise<void> {
+    async importJSON(file: File): Promise<ImportResult> {
       try {
         const importedData = await dataService.importJSON(file);
-        dataService.mergeImportData(this, importedData);
+        const result = dataService.mergeImportData(this, importedData);
         this.lastUpdated = new Date();
+        this.resetVisible();
         this.saveLocal();
+        return result;
       } catch (error) {
         console.error("Import failed:", error);
         throw error;

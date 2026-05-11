@@ -329,8 +329,12 @@ const handleImport = async (event: Event) => {
       }
     );
 
-    await timelineStore.importJSON(file);
-    ElMessage.success(t('settings.importSuccess'));
+    const result = await timelineStore.importJSON(file);
+    ElMessage.success(
+      result.restoredEntryCount > 0
+        ? t('settings.importSuccessWithCount', { count: result.restoredEntryCount })
+        : t('settings.importNoEntriesRestored', { count: result.importedEntryCount }),
+    );
 
     target.value = '';
   } catch (error) {
@@ -353,7 +357,7 @@ const confirmClear = async () => {
       }
     );
 
-    timelineStore.clearData();
+    timelineStore.clearData({ preserveDeletedEntries: !!settingsStore.syncKey });
     timelineStore.addCurrentMonthIfMissing();
     ElMessage.success(t('settings.clearSuccess'));
   } catch (error) {

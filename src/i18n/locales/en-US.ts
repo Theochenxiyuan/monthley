@@ -88,6 +88,8 @@ export default {
     exportSuccess: 'Export successful',
     exportError: 'Export failed',
     importSuccess: 'Import successful',
+    importSuccessWithCount: 'Import successful, restored {count} plan(s)',
+    importNoEntriesRestored: 'Import completed, but no plans were restored ({count} plan(s) in the file)',
     importError: 'Import failed',
     confirmImport: 'Import will merge with existing data, continue?',
     importWarning: 'Note: Import will merge with existing data, not overwrite',

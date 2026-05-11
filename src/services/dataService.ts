@@ -24,6 +24,12 @@ export interface MergeResult {
   conflicts: MergeConflict[];
 }
 
+export interface ImportResult {
+  importedEntryCount: number;
+  restoredEntryCount: number;
+  totalEntryCount: number;
+}
+
 const entryTypeSet = new Set<string>(entryTypes);
 const entryStatusSet = new Set<string>(entryStatuses);
 
@@ -174,6 +180,14 @@ function flattenEntries(months: TimelineMonth[]) {
       index: normalizeOrder(entry.order, index),
     })),
   );
+}
+
+function countEntries(months: TimelineMonth[]): number {
+  return months.reduce((total, month) => total + month.entries.length, 0);
+}
+
+function collectEntryIds(months: TimelineMonth[]): Set<string> {
+  return new Set(flattenEntries(months).map(({ entry }) => entry.id));
 }
 
 function buildMonths(entries: Array<{ entry: TimelineEntry; year: number; month: number; index: number }>): TimelineMonth[] {
@@ -434,16 +448,28 @@ export const dataService = {
     });
   },
 
-  mergeImportData(existing: TimelineState, imported: ExportData): TimelineState {
+  mergeImportData(existing: TimelineState, imported: ExportData): ImportResult {
+    const importedEntryIds = collectEntryIds(imported.months);
+    const localData = dataService.exportDataFromState(existing);
+
+    importedEntryIds.forEach((entryId) => {
+      delete localData.deletedEntries[entryId];
+    });
+
     const merged = dataService.mergeTimelineData(
-      dataService.exportDataFromState(existing),
+      localData,
       imported,
     );
+    const mergedEntryIds = collectEntryIds(merged.months);
 
     existing.months = merged.months;
     existing.deletedEntries = merged.deletedEntries;
     existing.lastUpdated = merged.lastUpdated ? new Date(merged.lastUpdated) : new Date();
 
-    return existing;
+    return {
+      importedEntryCount: importedEntryIds.size,
+      restoredEntryCount: [...importedEntryIds].filter((entryId) => mergedEntryIds.has(entryId)).length,
+      totalEntryCount: countEntries(merged.months),
+    };
   },
 };
