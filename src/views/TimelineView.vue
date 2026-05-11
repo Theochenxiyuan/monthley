@@ -92,6 +92,7 @@
             :title="t('sync.statusTitle')"
             width="320px"
             align-center
+            @open="refreshCloudUpdatedAt"
         >
             <div class="sync-status-content">
                 <div class="sync-status-row">
@@ -115,6 +116,20 @@
                         </template>
                         <template v-else>
                             {{ formatExactDateTime(sync.lastSyncedAt.value) }}
+                        </template>
+                    </el-text>
+                </div>
+                <div class="sync-status-row">
+                    <el-text type="info">{{ t('sync.cloudUpdated') }}</el-text>
+                    <el-text>
+                        <template v-if="!settingsStore.syncKey">
+                            {{ t('sync.syncNotEnabled') }}
+                        </template>
+                        <template v-else-if="!sync.cloudUpdatedAt.value">
+                            {{ t('sync.notFetched') }}
+                        </template>
+                        <template v-else>
+                            {{ formatExactDateTime(sync.cloudUpdatedAt.value) }}
                         </template>
                     </el-text>
                 </div>
@@ -393,6 +408,14 @@ async function handleManualSync(): Promise<void> {
         syncStatusVisible.value = false;
     } catch {
         // error already handled in manualSync
+    }
+}
+
+async function refreshCloudUpdatedAt(): Promise<void> {
+    try {
+        await sync.refreshCloudUpdatedAt();
+    } catch {
+        // Keep the last known cloud timestamp if the status refresh fails.
     }
 }
 </script>

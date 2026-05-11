@@ -7,14 +7,16 @@ import { dataService, type ExportData, type MergeConflict } from '@/services/dat
 import { syncService } from '@/services/syncService';
 
 const SYNC_TIME_KEY = 'lastSyncedAt';
+const CLOUD_UPDATED_KEY = 'cloudUpdatedAt';
 
 const isSyncing = ref(false);
 const lastSyncedAt = ref<Date | null>(loadSavedSyncTime());
+const cloudUpdatedAt = ref<Date | null>(loadSavedCloudUpdateTime());
 let uploadTimer: ReturnType<typeof setTimeout> | null = null;
 let autoUploadStarted = false;
 
-function loadSavedSyncTime(): Date | null {
-  const saved = localStorage.getItem(SYNC_TIME_KEY);
+function loadSavedDate(key: string): Date | null {
+  const saved = localStorage.getItem(key);
   if (!saved) return null;
   try {
     const d = new Date(saved);
@@ -24,12 +26,30 @@ function loadSavedSyncTime(): Date | null {
   }
 }
 
-function saveSyncTime(date: Date | null) {
+function saveDate(key: string, date: Date | null) {
   if (date) {
-    localStorage.setItem(SYNC_TIME_KEY, date.toISOString());
+    localStorage.setItem(key, date.toISOString());
   } else {
-    localStorage.removeItem(SYNC_TIME_KEY);
+    localStorage.removeItem(key);
   }
+}
+
+function loadSavedSyncTime(): Date | null {
+  return loadSavedDate(SYNC_TIME_KEY);
+}
+
+function loadSavedCloudUpdateTime(): Date | null {
+  return loadSavedDate(CLOUD_UPDATED_KEY);
+}
+
+function saveSyncTime(date: Date | null) {
+  saveDate(SYNC_TIME_KEY, date);
+}
+
+function recordCloudUpdateTime(value: string | null) {
+  const date = value ? new Date(value) : null;
+  cloudUpdatedAt.value = date && !Number.isNaN(date.getTime()) ? date : null;
+  saveDate(CLOUD_UPDATED_KEY, cloudUpdatedAt.value);
 }
 
 function isSameTimelineData(a: ExportData, b: ExportData): boolean {
@@ -154,7 +174,9 @@ export function useSync() {
       const remote = await syncService.download(syncKey);
       if (!remote) {
         // Remote empty: push local data silently
-        await syncService.upload(syncKey, getLocalSnapshot());
+        const localData = getLocalSnapshot();
+        await syncService.upload(syncKey, localData);
+        recordCloudUpdateTime(localData.lastUpdated);
         recordSyncTime();
         return false;
       }
@@ -193,6 +215,7 @@ export function useSync() {
         if (remoteChanged) {
           await syncService.upload(syncKey, merged);
         }
+        recordCloudUpdateTime(remoteChanged ? merged.lastUpdated : remoteData.lastUpdated);
       } catch (err) {
         if (isSameTimelineData(getLocalSnapshot(), merged)) {
           applyTimelineData(currentLocalData);
@@ -219,9 +242,23 @@ export function useSync() {
     isSyncing.value = true;
     try {
       const uploadData = getLocalSnapshot();
-      await syncService.upload(syncKey, uploadData);
+      const remote = await syncService.download(syncKey);
+      let dataToUpload = uploadData;
+
+      if (remote) {
+        const remoteData = dataService.validateTimelineData(remote);
+        dataToUpload = dataService.mergeTimelineData(remoteData, uploadData);
+      }
+
+      await syncService.upload(syncKey, dataToUpload);
+      recordCloudUpdateTime(dataToUpload.lastUpdated);
+      const currentLocalData = getLocalSnapshot();
+      const localChangedDuringPush = !isSameTimelineData(currentLocalData, uploadData);
+      if (!localChangedDuringPush && !isSameTimelineData(currentLocalData, dataToUpload)) {
+        applyTimelineData(dataToUpload);
+      }
       recordSyncTime();
-      if (!isSameTimelineData(getLocalSnapshot(), uploadData)) {
+      if (localChangedDuringPush) {
         scheduleUpload();
       }
     } catch (err) {
@@ -230,6 +267,20 @@ export function useSync() {
     } finally {
       isSyncing.value = false;
     }
+  }
+
+  async function refreshCloudUpdatedAt(): Promise<void> {
+    const syncKey = settingsStore.syncKey;
+    if (!syncKey) return;
+
+    const remote = await syncService.download(syncKey);
+    if (!remote) {
+      recordCloudUpdateTime(null);
+      return;
+    }
+
+    const remoteData = dataService.validateTimelineData(remote);
+    recordCloudUpdateTime(remoteData.lastUpdated);
   }
 
   async function init(): Promise<void> {
@@ -277,9 +328,11 @@ export function useSync() {
   return {
     isSyncing,
     lastSyncedAt,
+    cloudUpdatedAt,
     init,
     pull,
     push,
+    refreshCloudUpdatedAt,
     manualSync,
     getSyncErrorMessage,
     generateSyncKey,

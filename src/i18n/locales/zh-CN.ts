@@ -276,10 +276,12 @@ export default {
     statusTitle: '同步状态',
     localUpdated: '上次本地更改',
     lastSynced: '上次同步时间',
+    cloudUpdated: '云端最新更改',
     cloudStatus: '云端状态',
     configured: '已配置',
     notConfigured: '未配置',
     syncNotEnabled: '未启用同步',
     neverSynced: '从未同步',
+    notFetched: '尚未获取',
   },
 };

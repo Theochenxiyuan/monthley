@@ -277,10 +277,12 @@ export default {
     statusTitle: 'Sync Status',
     localUpdated: 'Last Local Update',
     lastSynced: 'Last Synced',
+    cloudUpdated: 'Latest Cloud Update',
     cloudStatus: 'Cloud Status',
     configured: 'Configured',
     notConfigured: 'Not Configured',
     syncNotEnabled: 'Sync not enabled',
     neverSynced: 'Never synced',
+    notFetched: 'Not fetched yet',
   },
 };
