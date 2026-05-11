@@ -8,6 +8,7 @@ import { syncService } from '@/services/syncService';
 
 const SYNC_TIME_KEY = 'lastSyncedAt';
 const CLOUD_UPDATED_KEY = 'cloudUpdatedAt';
+const CLOUD_FILE_MISSING_ERROR = 'Cloud sync file not found';
 
 const isSyncing = ref(false);
 const lastSyncedAt = ref<Date | null>(loadSavedDate(SYNC_TIME_KEY));
@@ -45,6 +46,10 @@ function recordCloudUpdateTime(value: string | null) {
   saveDate(CLOUD_UPDATED_KEY, cloudUpdatedAt.value);
 }
 
+function createCloudFileMissingError(): Error {
+  return new Error(CLOUD_FILE_MISSING_ERROR);
+}
+
 export function useSync() {
   const { t } = useI18n();
   const settingsStore = useSettingsStore();
@@ -58,6 +63,7 @@ export function useSync() {
     const message = error instanceof Error ? error.message.toLowerCase() : '';
 
     if (message.includes('not configured')) return t('sync.errorNotConfigured');
+    if (message.includes(CLOUD_FILE_MISSING_ERROR.toLowerCase())) return t('sync.errorCloudFileMissing');
     if (statusCode === 401 || statusCode === 403 || message.includes('permission') || message.includes('jwt')) {
       return t('sync.errorPermission');
     }
@@ -110,11 +116,8 @@ export function useSync() {
 
       const remote = await syncService.download(syncKey);
       if (!remote) {
-        const localData = getLocalData();
-        await syncService.upload(syncKey, localData);
-        recordCloudUpdateTime(localData.lastUpdated);
-        recordSyncTime();
-        return false;
+        recordCloudUpdateTime(null);
+        throw createCloudFileMissingError();
       }
 
       const remoteData = dataService.validateTimelineData(remote);
@@ -180,7 +183,11 @@ export function useSync() {
 
   async function init(): Promise<void> {
     if (!settingsStore.syncKey) return;
-    await pull();
+    try {
+      await pull();
+    } catch (error) {
+      ElMessage.warning(getSyncErrorMessage(error));
+    }
   }
 
   if (!autoUploadStarted) {

@@ -439,12 +439,15 @@ const startEditKey = () => {
 
 const confirmKey = async () => {
   if (!isValidKey.value) return;
+  const previousKey = settingsStore.syncKey;
   settingsStore.syncKey = inputKey.value;
   isEditingKey.value = false;
   try {
     await sync.pull();
     ElMessage.success(t('sync.syncSuccess'));
   } catch (error) {
+    settingsStore.syncKey = previousKey;
+    isEditingKey.value = true;
     ElMessage.error(sync.getSyncErrorMessage(error));
   }
 };
@@ -471,6 +474,7 @@ const handleScannedKey = async (syncKey: string) => {
     return;
   }
 
+  const previousKey = settingsStore.syncKey;
   settingsStore.syncKey = syncKey;
   isEditingKey.value = false;
   inputKey.value = '';
@@ -478,6 +482,7 @@ const handleScannedKey = async (syncKey: string) => {
     await sync.pull();
     ElMessage.success(t('sync.importKeySuccess'));
   } catch (error) {
+    settingsStore.syncKey = previousKey;
     ElMessage.error(sync.getSyncErrorMessage(error));
   }
 };
