@@ -247,7 +247,7 @@ function collectMergeConflicts(local: ExportData, remote: ExportData): MergeConf
     if (!remoteItem) return;
     const localTime = new Date(getEntryUpdatedAt(localItem.entry)).getTime();
     const remoteTime = new Date(getEntryUpdatedAt(remoteItem.entry)).getTime();
-    if (localTime !== remoteTime && entrySignature(localItem) !== entrySignature(remoteItem)) {
+    if (entrySignature(localItem) !== entrySignature(remoteItem)) {
       conflicts.set(`edit:${entryId}`, {
         entryId,
         type: 'edit',
@@ -373,7 +373,13 @@ export const dataService = {
 
     [...flattenEntries(local.months), ...flattenEntries(remote.months)].forEach((item) => {
       const current = entriesById.get(item.entry.id);
-      if (!current || new Date(getEntryUpdatedAt(item.entry)).getTime() > new Date(getEntryUpdatedAt(current.entry)).getTime()) {
+      const itemTime = new Date(getEntryUpdatedAt(item.entry)).getTime();
+      const currentTime = current ? new Date(getEntryUpdatedAt(current.entry)).getTime() : Number.NEGATIVE_INFINITY;
+      if (
+        !current ||
+        itemTime > currentTime ||
+        (itemTime === currentTime && entrySignature(item) !== entrySignature(current))
+      ) {
         entriesById.set(item.entry.id, item);
       }
     });
