@@ -9,12 +9,14 @@ import { syncService } from '@/services/syncService';
 const SYNC_TIME_KEY = 'lastSyncedAt';
 const CLOUD_UPDATED_KEY = 'cloudUpdatedAt';
 const CLOUD_FILE_MISSING_ERROR = 'Cloud sync file not found';
+const SYNC_IN_PROGRESS_ERROR = 'Sync already in progress';
 
 const isSyncing = ref(false);
 const lastSyncedAt = ref<Date | null>(loadSavedDate(SYNC_TIME_KEY));
 const cloudUpdatedAt = ref<Date | null>(loadSavedDate(CLOUD_UPDATED_KEY));
 let uploadTimer: ReturnType<typeof setTimeout> | null = null;
 let autoUploadStarted = false;
+let pendingUpload = false;
 
 function loadSavedDate(key: string): Date | null {
   const saved = localStorage.getItem(key);
@@ -50,6 +52,10 @@ function createCloudFileMissingError(): Error {
   return new Error(CLOUD_FILE_MISSING_ERROR);
 }
 
+function createSyncInProgressError(): Error {
+  return new Error(SYNC_IN_PROGRESS_ERROR);
+}
+
 export function useSync() {
   const { t } = useI18n();
   const settingsStore = useSettingsStore();
@@ -64,6 +70,7 @@ export function useSync() {
 
     if (message.includes('not configured')) return t('sync.errorNotConfigured');
     if (message.includes(CLOUD_FILE_MISSING_ERROR.toLowerCase())) return t('sync.errorCloudFileMissing');
+    if (message.includes(SYNC_IN_PROGRESS_ERROR.toLowerCase())) return t('sync.errorInProgress');
     if (statusCode === 401 || statusCode === 403 || message.includes('permission') || message.includes('jwt')) {
       return t('sync.errorPermission');
     }
@@ -105,7 +112,7 @@ export function useSync() {
   async function pull(): Promise<boolean> {
     const syncKey = settingsStore.syncKey;
     if (!syncKey) return false;
-    if (isSyncing.value) return false;
+    if (isSyncing.value) throw createSyncInProgressError();
 
     isSyncing.value = true;
     try {
@@ -145,13 +152,20 @@ export function useSync() {
       return false;
     } finally {
       isSyncing.value = false;
+      if (pendingUpload) {
+        pendingUpload = false;
+        scheduleUpload();
+      }
     }
   }
 
   async function push(): Promise<void> {
     const syncKey = settingsStore.syncKey;
     if (!syncKey) return;
-    if (isSyncing.value) return;
+    if (isSyncing.value) {
+      pendingUpload = true;
+      return;
+    }
 
     isSyncing.value = true;
     try {
@@ -164,6 +178,10 @@ export function useSync() {
       throw err;
     } finally {
       isSyncing.value = false;
+      if (pendingUpload) {
+        pendingUpload = false;
+        scheduleUpload();
+      }
     }
   }
 
@@ -197,7 +215,10 @@ export function useSync() {
       () => timelineStore.lastUpdated,
       () => {
         if (!settingsStore.syncKey) return;
-        if (isSyncing.value) return;
+        if (isSyncing.value) {
+          pendingUpload = true;
+          return;
+        }
         scheduleUpload();
       },
     );

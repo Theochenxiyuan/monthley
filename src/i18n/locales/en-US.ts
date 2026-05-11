@@ -270,6 +270,7 @@ export default {
     restoredFromCloud: 'Data restored from cloud',
     errorNotConfigured: 'Sync is not configured. Check Supabase environment variables.',
     errorCloudFileMissing: 'Cloud sync file was not found. The sync key may be invalid or the cloud data was deleted.',
+    errorInProgress: 'Sync is already in progress. Please try again shortly.',
     errorNetwork: 'Network error. Sync failed, please try again later.',
     errorPermission: 'Sync permission denied. Check cloud storage policies or the sync key.',
     errorInvalidData: 'Cloud data cannot be decrypted or has an invalid format. Check the sync key.',

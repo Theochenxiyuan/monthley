@@ -269,6 +269,7 @@ export default {
     restoredFromCloud: '已从云端恢复数据',
     errorNotConfigured: '同步未配置，请检查 Supabase 环境变量',
     errorCloudFileMissing: '云端同步文件不存在，同步密钥可能已失效或云端数据已被删除',
+    errorInProgress: '同步正在进行中，请稍后再试',
     errorNetwork: '网络异常，同步失败，请稍后重试',
     errorPermission: '同步权限不足，请检查云端存储策略或同步密钥',
     errorInvalidData: '云端数据无法解密或格式异常，请检查同步密钥',

@@ -286,8 +286,8 @@ export const useTimelineStore = defineStore("timeline", {
     },
     clearData() {
       this.months = [];
-      this.lastUpdated = null;
-      localStorage.removeItem("timeline");
+      this.lastUpdated = new Date();
+      this.saveLocal();
     },
     async exportJSON(): Promise<void> {
       await dataService.exportJSON(this);
