@@ -24,7 +24,7 @@
 ## 技术栈
 
 - **框架**: Vue 3.5.17 (Composition API + `<script setup>`)
-- **构建工具**: Vite 7.0.0
+- **构建工具**: Vite 8.0.10
 - **语言**: TypeScript
 - **状态管理**: Pinia 3.0.3
 - **路由**: Vue Router 4.5.1
@@ -35,7 +35,7 @@
 - **拖拽**: vuedraggable 4.1.0
 - **动画**: @formkit/auto-animate 0.8.2
 - **图片生成**: html2canvas 1.4.1
-- **PWA**: vite-plugin-pwa 1.0.1
+- **PWA**: vite-plugin-pwa 1.3.0
 
 ## 快速开始
 
