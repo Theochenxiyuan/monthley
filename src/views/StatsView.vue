@@ -64,7 +64,11 @@ function openSummary() {
     <div v-if="totalCount === 0" class="empty-state">
       <el-empty :description="t('stats.noData')">
         <template #image>
-          <Icon icon="mdi:chart-bar" width="64" style="color: var(--el-text-color-placeholder)" />
+          <Icon
+            icon="mdi:chart-bar"
+            width="64"
+            style="color: var(--el-text-color-placeholder)"
+          />
         </template>
       </el-empty>
     </div>
@@ -107,18 +111,12 @@ function openSummary() {
           <TypeDistribution :type-stats="typeStats" />
         </div>
         <div class="ring-col">
-          <StatusRing
-            :status-stats="statusStats"
-            :total-count="totalCount"
-          />
+          <StatusRing :status-stats="statusStats" :total-count="totalCount" />
         </div>
       </div>
 
       <div class="stats-section">
-        <YearHeatmap
-          :heatmap-data="yearHeatmapData"
-          :years="years"
-        />
+        <YearHeatmap :heatmap-data="yearHeatmapData" :years="years" />
       </div>
     </template>
   </div>

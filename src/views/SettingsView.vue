@@ -9,7 +9,11 @@
 
       <div class="setting-row">
         <span class="setting-label">{{ t('settings.language') }}</span>
-        <el-select v-model="currentLanguage" size="default" style="width: 150px">
+        <el-select
+          v-model="currentLanguage"
+          size="default"
+          style="width: 150px"
+        >
           <el-option label="中文" value="zh-CN" />
           <el-option label="English" value="en-US" />
         </el-select>
@@ -20,7 +24,12 @@
         <el-switch
           v-model="settingsStore.isDark"
           size="large"
-          style="--el-switch-off-color: #dcdfe6; --el-switch-on-color: #333333; --el-switch-off-text-color: #606266; --el-switch-on-text-color: #ffffff"
+          style="
+            --el-switch-off-color: #dcdfe6;
+            --el-switch-on-color: #333333;
+            --el-switch-off-text-color: #606266;
+            --el-switch-on-text-color: #ffffff;
+          "
           :active-text="t('settings.dark')"
           :inactive-text="t('settings.light')"
           inactive-action-icon="Sunny"
@@ -34,12 +43,18 @@
           {{ t('settings.expandAll') }}
           <el-tooltip placement="top">
             <template #content>
-              <div style="max-width: 80vw">{{ t('settings.expandAllTooltip') }}</div>
+              <div style="max-width: 80vw">
+                {{ t('settings.expandAllTooltip') }}
+              </div>
             </template>
             <el-icon class="label-hint"><QuestionFilled /></el-icon>
           </el-tooltip>
         </span>
-        <el-switch v-model="settingsStore.expandAll" size="large" inline-prompt />
+        <el-switch
+          v-model="settingsStore.expandAll"
+          size="large"
+          inline-prompt
+        />
       </div>
     </section>
 
@@ -89,7 +104,10 @@
         </template>
       </div>
 
-      <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-row-center sync-actions">
+      <div
+        v-if="settingsStore.syncKey && !isEditingKey"
+        class="setting-row-center sync-actions"
+      >
         <el-button :loading="sync.isSyncing.value" @click="sync.manualSync">
           {{ t('sync.syncNow') }}
         </el-button>
@@ -110,7 +128,10 @@
         </el-button>
       </div>
 
-      <div v-if="settingsStore.syncKey && !isEditingKey" class="setting-row-center">
+      <div
+        v-if="settingsStore.syncKey && !isEditingKey"
+        class="setting-row-center"
+      >
         <el-button link type="primary" @click="startEditKey">
           {{ t('sync.useOtherKey') }}
         </el-button>
@@ -121,7 +142,12 @@
       <h4 class="section-title">{{ t('settings.backupRestore') }}</h4>
 
       <div class="setting-row-center">
-        <el-button plain type="primary" :loading="isExporting" @click="exportTimeline">
+        <el-button
+          plain
+          type="primary"
+          :loading="isExporting"
+          @click="exportTimeline"
+        >
           <el-icon class="btn-icon"><Download /></el-icon>
           {{ t('settings.exportTimeline') }}
         </el-button>
@@ -162,7 +188,10 @@
     v-model="isQrDialogVisible"
     :sync-key="settingsStore.syncKey || ''"
   />
-  <SyncKeyScannerDialog v-model="isScannerVisible" @scanned="handleScannedKey" />
+  <SyncKeyScannerDialog
+    v-model="isScannerVisible"
+    @scanned="handleScannedKey"
+  />
 </template>
 
 <style scoped>
@@ -266,7 +295,12 @@ import SyncKeyQrDialog from '@/components/sync/SyncKeyQrDialog.vue';
 import SyncKeyScannerDialog from '@/components/sync/SyncKeyScannerDialog.vue';
 import { isValidSyncKey } from '@/utils/syncKey';
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { Download, Upload, Delete, DocumentCopy } from '@element-plus/icons-vue';
+import {
+  Download,
+  Upload,
+  Delete,
+  DocumentCopy,
+} from '@element-plus/icons-vue';
 
 const { t } = useI18n();
 const settingsStore = useSettingsStore();
@@ -326,14 +360,18 @@ const handleImport = async (event: Event) => {
         confirmButtonText: t('common.confirm'),
         cancelButtonText: t('common.cancel'),
         type: 'warning',
-      }
+      },
     );
 
     const result = await timelineStore.importJSON(file);
     ElMessage.success(
       result.restoredEntryCount > 0
-        ? t('settings.importSuccessWithCount', { count: result.restoredEntryCount })
-        : t('settings.importNoEntriesRestored', { count: result.importedEntryCount }),
+        ? t('settings.importSuccessWithCount', {
+            count: result.restoredEntryCount,
+          })
+        : t('settings.importNoEntriesRestored', {
+            count: result.importedEntryCount,
+          }),
     );
 
     target.value = '';
@@ -354,7 +392,7 @@ const confirmClear = async () => {
         cancelButtonText: t('common.cancel'),
         type: 'error',
         distinguishCancelAndClose: true,
-      }
+      },
     );
 
     timelineStore.clearData();
@@ -400,15 +438,11 @@ const showKeyQr = async () => {
   if (!settingsStore.syncKey) return;
 
   try {
-    await ElMessageBox.confirm(
-      t('sync.confirmShowQrCode'),
-      t('sync.qrTitle'),
-      {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning',
-      },
-    );
+    await ElMessageBox.confirm(t('sync.confirmShowQrCode'), t('sync.qrTitle'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning',
+    });
     isQrDialogVisible.value = true;
   } catch {
     // cancelled
@@ -417,15 +451,11 @@ const showKeyQr = async () => {
 
 const clearKey = async () => {
   try {
-    await ElMessageBox.confirm(
-      t('sync.clearKey'),
-      t('sync.title'),
-      {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning',
-      }
-    );
+    await ElMessageBox.confirm(t('sync.clearKey'), t('sync.title'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning',
+    });
     settingsStore.syncKey = null;
   } catch {
     // cancelled
