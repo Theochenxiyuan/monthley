@@ -420,8 +420,15 @@ const generateKey = async () => {
     return;
   }
 
+  const previousKey = settingsStore.syncKey;
   settingsStore.syncKey = sync.generateSyncKey();
-  ElMessage.success(t('sync.syncSuccess'));
+  try {
+    await sync.push();
+    ElMessage.success(t('sync.syncSuccess'));
+  } catch (error) {
+    settingsStore.syncKey = previousKey;
+    ElMessage.error(sync.getSyncErrorMessage(error));
+  }
 };
 
 const copyKey = async () => {

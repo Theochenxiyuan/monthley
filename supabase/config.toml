@@ -1,0 +1,2 @@
+[functions.sync-storage]
+verify_jwt = false

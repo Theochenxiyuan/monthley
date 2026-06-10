@@ -1,24 +1,17 @@
 import { supabase } from '@/lib/supabase';
 
-const BUCKET = 'monthley-sync';
 const TEXT_ENCODER = new TextEncoder();
 const TEXT_DECODER = new TextDecoder();
-
-function getErrorStatus(error: unknown): number | null {
-  if (!error || typeof error !== 'object') return null;
-  const status = 'status' in error ? error.status : 'statusCode' in error ? error.statusCode : null;
-  if (typeof status === 'number') return status;
-  if (typeof status === 'string') {
-    const parsed = Number(status);
-    return Number.isNaN(parsed) ? null : parsed;
-  }
-  return null;
-}
+const SYNC_FUNCTION = 'sync-storage';
 
 interface EncryptedPayload {
   salt: string; // base64
   iv: string; // base64
   ciphertext: string; // base64
+}
+
+interface SyncStorageResponse {
+  data: EncryptedPayload | boolean | null;
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
@@ -86,12 +79,9 @@ export const syncService = {
     }
 
     const payload = await encrypt(data, syncKey);
-    const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-    const filename = `${syncKey}.json`;
-
-    const { error } = await supabase.storage
-      .from(BUCKET)
-      .upload(filename, blob, { upsert: true, contentType: 'application/json' });
+    const { error } = await supabase.functions.invoke<SyncStorageResponse>(SYNC_FUNCTION, {
+      body: { action: 'upload', syncKey, payload },
+    });
 
     if (error) throw error;
   },
@@ -101,21 +91,14 @@ export const syncService = {
       throw new Error('Supabase sync is not configured');
     }
 
-    const filename = `${syncKey}.json`;
-    const { data, error } = await supabase.storage.from(BUCKET).download(filename);
+    const { data, error } = await supabase.functions.invoke<SyncStorageResponse>(SYNC_FUNCTION, {
+      body: { action: 'download', syncKey },
+    });
 
-    if (error) {
-      const status = getErrorStatus(error);
-      if (status === 404 || error.message?.includes('Object not found')) {
-        return null;
-      }
-      throw error;
-    }
+    if (error) throw error;
+    if (!data?.data) return null;
+    if (typeof data.data === 'boolean') throw new Error('Invalid sync response');
 
-    if (!data) return null;
-
-    const text = await data.text();
-    const payload: EncryptedPayload = JSON.parse(text);
-    return decrypt(payload, syncKey);
+    return decrypt(data.data, syncKey);
   },
 };
