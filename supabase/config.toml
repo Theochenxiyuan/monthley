@@ -1,2 +1,5 @@
 [functions.sync-storage]
 verify_jwt = false
+
+[functions.generate-year-summary]
+verify_jwt = false

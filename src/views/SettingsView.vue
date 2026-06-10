@@ -64,13 +64,16 @@
       <div class="setting-row-center">
         <template v-if="settingsStore.syncKey && !isEditingKey">
           <el-input
-            v-model="settingsStore.syncKey"
+            :model-value="displayedSyncKey"
             readonly
             style="max-width: 280px"
             size="default"
           >
             <template #append>
-              <el-button @click="copyKey">
+              <el-button class="sync-key-icon-btn" @click="isSyncKeyVisible = !isSyncKeyVisible">
+                <el-icon><View v-if="!isSyncKeyVisible" /><Hide v-else /></el-icon>
+              </el-button>
+              <el-button class="sync-key-icon-btn" @click="copyKey">
                 <el-icon><DocumentCopy /></el-icon>
               </el-button>
             </template>
@@ -270,6 +273,23 @@
   padding-top: 0.25rem;
 }
 
+:deep(.el-input-group__append) {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+}
+
+.sync-key-icon-btn {
+  width: 36px;
+  min-width: 36px;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.sync-key-icon-btn + .sync-key-icon-btn {
+  border-left: 1px solid var(--el-border-color);
+}
+
 .danger-zone {
   border-color: var(--el-color-danger-light-5);
   background-color: var(--el-color-danger-light-9);
@@ -300,6 +320,8 @@ import {
   Upload,
   Delete,
   DocumentCopy,
+  Hide,
+  View,
 } from '@element-plus/icons-vue';
 
 const { t } = useI18n();
@@ -309,12 +331,20 @@ const sync = useSync();
 const fileInputRef = ref<HTMLInputElement>();
 
 const isEditingKey = ref(false);
+const isSyncKeyVisible = ref(false);
 const inputKey = ref('');
 const isQrDialogVisible = ref(false);
 const isScannerVisible = ref(false);
 const isExporting = ref(false);
 
 const isValidKey = computed(() => isValidSyncKey(inputKey.value));
+const displayedSyncKey = computed(() => maskSyncKey(settingsStore.syncKey));
+
+function maskSyncKey(syncKey: string | null): string {
+  if (!syncKey || isSyncKeyVisible.value) return syncKey || '';
+  if (syncKey.length <= 8) return '*'.repeat(syncKey.length);
+  return `${syncKey.slice(0, 4)}${'*'.repeat(Math.max(syncKey.length - 8, 4))}${syncKey.slice(-4)}`;
+}
 
 const currentLanguage = computed({
   get: () => settingsStore.language,
@@ -422,6 +452,7 @@ const generateKey = async () => {
 
   const previousKey = settingsStore.syncKey;
   settingsStore.syncKey = sync.generateSyncKey();
+  isSyncKeyVisible.value = false;
   try {
     await sync.push();
     ElMessage.success(t('sync.syncSuccess'));
@@ -464,6 +495,7 @@ const clearKey = async () => {
       type: 'warning',
     });
     settingsStore.syncKey = null;
+    isSyncKeyVisible.value = false;
   } catch {
     // cancelled
   }
@@ -471,6 +503,7 @@ const clearKey = async () => {
 
 const startEditKey = () => {
   inputKey.value = '';
+  isSyncKeyVisible.value = false;
   isEditingKey.value = true;
 };
 
@@ -478,6 +511,7 @@ const confirmKey = async () => {
   if (!isValidKey.value) return;
   const previousKey = settingsStore.syncKey;
   settingsStore.syncKey = inputKey.value;
+  isSyncKeyVisible.value = false;
   isEditingKey.value = false;
   try {
     await sync.pull();
@@ -513,6 +547,7 @@ const handleScannedKey = async (syncKey: string) => {
 
   const previousKey = settingsStore.syncKey;
   settingsStore.syncKey = syncKey;
+  isSyncKeyVisible.value = false;
   isEditingKey.value = false;
   inputKey.value = '';
   try {
