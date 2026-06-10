@@ -287,14 +287,34 @@ async function shareAiAsImage() {
   isSharingAi.value = true;
 
   const card = aiCard.value;
-  card.classList.add('ai-summary-card--capture');
+  const clone = card.cloneNode(true) as HTMLElement;
+  const { width } = card.getBoundingClientRect();
+
+  clone.classList.add('ai-summary-card--capture');
+  Object.assign(clone.style, {
+    position: 'fixed',
+    left: '-10000px',
+    top: '0',
+    width: `${width}px`,
+    height: 'auto',
+    maxHeight: 'none',
+    overflow: 'visible',
+    zIndex: '-1',
+  });
+  document.body.appendChild(clone);
 
   try {
-    const canvas = await html2canvas(card, {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    const canvas = await html2canvas(clone, {
       backgroundColor: null,
       scale: 2,
       useCORS: true,
       logging: false,
+      width: clone.scrollWidth,
+      height: clone.scrollHeight,
+      windowWidth: clone.scrollWidth,
+      windowHeight: clone.scrollHeight,
     });
 
     canvas.toBlob(async (blob) => {
@@ -316,7 +336,7 @@ async function shareAiAsImage() {
       }
     }, 'image/png');
   } finally {
-    card.classList.remove('ai-summary-card--capture');
+    clone.remove();
     isSharingAi.value = false;
   }
 }
@@ -568,7 +588,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  padding: 0 16px 16px;
+  padding: 0 10px 12px;
   overflow: hidden;
 }
 
