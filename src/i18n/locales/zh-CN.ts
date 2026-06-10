@@ -227,7 +227,7 @@ export default {
     aiEmptyDescription: '基于该年份的记录、完成情况和月份节奏，生成一份更像年度信件的总结。',
     aiPrivacyNote: '生成时会将该年份的记录摘要发送给 AI 服务。',
     generateAi: '生成 AI 总结',
-    regenerateAi: '重新生成',
+    regenerateAi: '重新生成总结',
     aiGenerated: 'AI 总结已生成',
     aiFailed: 'AI 总结生成失败',
     generatedAt: '生成于 {time}',

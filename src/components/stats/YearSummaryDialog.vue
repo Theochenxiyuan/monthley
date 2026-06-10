@@ -564,15 +564,12 @@ function getBarWidth(data: YearData, type: EntryType): string {
 }
 
 :global(.summary-dialog.el-dialog .el-dialog__body) {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   padding: 0 16px 16px;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-:global(.summary-dialog.el-dialog .el-dialog__body::-webkit-scrollbar) {
-  display: none;
+  overflow: hidden;
 }
 
 :global(.summary-dialog.el-dialog .el-dialog__footer) {
@@ -607,16 +604,16 @@ function getBarWidth(data: YearData, type: EntryType): string {
 .summary-empty {
   display: flex;
   flex-direction: column;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  min-height: 30vh;
+  min-height: 0;
   gap: 0.75rem;
   color: var(--el-text-color-secondary);
 }
 
 .summary-sticky-header {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 5;
   padding: 0 0 0.35rem;
   margin-bottom: 0.45rem;
@@ -672,13 +669,14 @@ function getBarWidth(data: YearData, type: EntryType): string {
 }
 
 .summary-tab-switch {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
 }
 
 .summary-tab-btn {
-  padding: 0.5rem 0.75rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
   border: 0;
   border-bottom: 2px solid transparent;
   border-radius: 0;
@@ -696,19 +694,33 @@ function getBarWidth(data: YearData, type: EntryType): string {
 }
 
 .summary-tab-content {
-  min-height: 320px;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.summary-tab-content > div {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .ai-panel {
-  min-height: 320px;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
 }
 
 .ai-empty-card {
   display: flex;
   flex-direction: column;
+  flex: 1;
   align-items: center;
   justify-content: center;
-  min-height: 320px;
+  min-height: 0;
   padding: 1.25rem;
   text-align: center;
   border: 1px solid color-mix(in srgb, var(--el-color-primary) 18%, transparent);
@@ -743,7 +755,8 @@ function getBarWidth(data: YearData, type: EntryType): string {
 
 .ai-summary-card {
   position: relative;
-  max-height: 430px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   scrollbar-width: none;
   border-radius: 8px;
@@ -819,10 +832,18 @@ function getBarWidth(data: YearData, type: EntryType): string {
 }
 
 .summary-card {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 12px;
   padding: 1.25rem;
+}
+
+.summary-card::-webkit-scrollbar {
+  display: none;
 }
 
 .summary-header {
