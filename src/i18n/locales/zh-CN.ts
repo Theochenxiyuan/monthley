@@ -239,8 +239,6 @@ export default {
     copySuccess: '已复制总结',
     copyFailed: '复制失败',
     shareAiImage: '分享图片',
-    expandAi: '展开全文',
-    collapseAi: '收起',
     totalPlans: '总计划',
     completionRate: '完成率',
     activeMonths: '活跃月份',

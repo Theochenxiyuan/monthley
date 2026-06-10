@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Icon } from '@iconify/vue';
 import { ElMessage } from 'element-plus';
@@ -109,7 +109,6 @@ const cacheKey = computed(() => `aiYearSummary:${locale.value}:${currentYear.val
 const aiSummary = ref<CachedAiYearSummary | null>(null);
 const isGeneratingAi = ref(false);
 const isSharingAi = ref(false);
-const isAiExpanded = ref(false);
 const aiCard = ref<HTMLElement | null>(null);
 
 const topMonthLabel = computed(() => {
@@ -154,17 +153,14 @@ function loadCachedAiSummary() {
   const cached = localStorage.getItem(cacheKey.value);
   if (!cached) {
     aiSummary.value = null;
-    isAiExpanded.value = false;
     return;
   }
 
   try {
     const parsed = JSON.parse(cached) as CachedAiYearSummary;
     aiSummary.value = parsed.year === currentYear.value ? parsed : null;
-    isAiExpanded.value = false;
   } catch {
     aiSummary.value = null;
-    isAiExpanded.value = false;
   }
 }
 
@@ -175,7 +171,6 @@ function saveAiSummary(result: AiYearSummary) {
     inputHash: currentInputHash.value,
     result,
   };
-  isAiExpanded.value = false;
   localStorage.setItem(cacheKey.value, JSON.stringify(aiSummary.value));
 }
 
@@ -290,12 +285,12 @@ async function copyAiSummary() {
 async function shareAiAsImage() {
   if (!aiCard.value || isSharingAi.value) return;
   isSharingAi.value = true;
-  const wasExpanded = isAiExpanded.value;
-  isAiExpanded.value = true;
-  await nextTick();
+
+  const card = aiCard.value;
+  card.classList.add('ai-summary-card--capture');
 
   try {
-    const canvas = await html2canvas(aiCard.value, {
+    const canvas = await html2canvas(card, {
       backgroundColor: null,
       scale: 2,
       useCORS: true,
@@ -321,7 +316,7 @@ async function shareAiAsImage() {
       }
     }, 'image/png');
   } finally {
-    isAiExpanded.value = wasExpanded;
+    card.classList.remove('ai-summary-card--capture');
     isSharingAi.value = false;
   }
 }
@@ -343,38 +338,63 @@ function getBarWidth(data: YearData, type: EntryType): string {
     :close-on-click-modal="true"
     destroy-on-close
   >
-    <div v-if="availableYears.length > 0" class="year-nav">
-      <el-button
-        class="year-nav-btn"
-        :disabled="!canGoBack"
-        text
-        @click="prevYear"
-      >
-        <Icon icon="mdi:chevron-left" width="20" />
-      </el-button>
+    <div v-if="availableYears.length > 0" class="summary-sticky-header">
+      <div class="year-nav">
+        <el-button
+          class="year-nav-btn"
+          :disabled="!canGoBack"
+          text
+          @click="prevYear"
+        >
+          <Icon icon="mdi:chevron-left" width="20" />
+        </el-button>
 
-      <el-select
-        v-model="currentYear"
-        class="year-select"
-        size="small"
-        :teleported="false"
-      >
-        <el-option
-          v-for="year in availableYears"
-          :key="year"
-          :label="String(year)"
-          :value="year"
-        />
-      </el-select>
+        <el-select
+          v-model="currentYear"
+          class="year-select"
+          size="small"
+          :teleported="false"
+        >
+          <el-option
+            v-for="year in availableYears"
+            :key="year"
+            :label="String(year)"
+            :value="year"
+          />
+        </el-select>
 
-      <el-button
-        class="year-nav-btn"
-        :disabled="!canGoForward"
-        text
-        @click="nextYear"
-      >
-        <Icon icon="mdi:chevron-right" width="20" />
-      </el-button>
+        <el-button
+          class="year-nav-btn"
+          :disabled="!canGoForward"
+          text
+          @click="nextYear"
+        >
+          <Icon icon="mdi:chevron-right" width="20" />
+        </el-button>
+      </div>
+
+      <div v-if="yearData" class="summary-tab-switch" role="tablist">
+        <button
+          type="button"
+          class="summary-tab-btn"
+          :class="{ 'summary-tab-btn--active': activeTab === 'ai' }"
+          role="tab"
+          :aria-selected="activeTab === 'ai'"
+          @click="activeTab = 'ai'"
+        >
+          {{ t('yearSummary.aiTab') }}
+        </button>
+        <button
+          type="button"
+          class="summary-tab-btn"
+          :class="{ 'summary-tab-btn--active': activeTab === 'stats' }"
+          role="tab"
+          :aria-selected="activeTab === 'stats'"
+          @click="activeTab = 'stats'"
+        >
+          {{ t('yearSummary.statsTab') }}
+        </button>
+      </div>
     </div>
 
     <div v-if="!yearData" class="summary-empty">
@@ -383,8 +403,8 @@ function getBarWidth(data: YearData, type: EntryType): string {
     </div>
 
     <template v-else>
-      <el-tabs v-model="activeTab" class="summary-tabs" stretch>
-        <el-tab-pane :label="t('yearSummary.aiTab')" name="ai">
+      <div class="summary-tab-content">
+        <div v-if="activeTab === 'ai'">
           <div class="ai-panel">
             <div v-if="!aiSummary" class="ai-empty-card">
               <Icon icon="mdi:sparkles" width="42" class="ai-empty-icon" />
@@ -397,10 +417,6 @@ function getBarWidth(data: YearData, type: EntryType): string {
               <div
                 ref="aiCard"
                 class="ai-summary-card"
-                :class="{
-                  'ai-summary-card--collapsed': !isAiExpanded,
-                  'ai-summary-card--sharing': isSharingAi,
-                }"
               >
                 <div class="ai-card-kicker">Monthley AI</div>
                 <h3>{{ aiSummary.result.title }}</h3>
@@ -434,21 +450,13 @@ function getBarWidth(data: YearData, type: EntryType): string {
                   {{ t('yearSummary.aiStaleNote') }}
                 </p>
 
-                <button
-                  type="button"
-                  class="ai-expand-btn"
-                  @click="isAiExpanded = !isAiExpanded"
-                >
-                  <span>{{ isAiExpanded ? t('yearSummary.collapseAi') : t('yearSummary.expandAi') }}</span>
-                  <Icon :icon="isAiExpanded ? 'mdi:chevron-up' : 'mdi:chevron-down'" width="16" />
-                </button>
               </div>
 
             </template>
           </div>
-        </el-tab-pane>
+        </div>
 
-        <el-tab-pane :label="t('yearSummary.statsTab')" name="stats">
+        <div v-else>
           <div ref="summaryCard" class="summary-card">
             <div class="summary-header">
               <Icon icon="mdi:star-four-points" width="20" class="summary-header-icon" />
@@ -499,8 +507,8 @@ function getBarWidth(data: YearData, type: EntryType): string {
               <span>{{ t('app.brand') }}</span>
             </div>
           </div>
-        </el-tab-pane>
-      </el-tabs>
+        </div>
+      </div>
     </template>
 
     <template v-if="yearData" #footer>
@@ -517,7 +525,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
           </el-button>
 
           <template v-else>
-            <el-button :loading="isGeneratingAi" @click="generateAiSummary">
+            <el-button class="ai-action-primary" :loading="isGeneratingAi" @click="generateAiSummary">
               <Icon icon="mdi:refresh" width="16" />
               <span>{{ t('yearSummary.regenerateAi') }}</span>
             </el-button>
@@ -548,7 +556,8 @@ function getBarWidth(data: YearData, type: EntryType): string {
 
 <style scoped>
 :global(.summary-dialog.el-dialog) {
-  max-height: 92vh;
+  max-height: calc(100vh - 8vh);
+  margin-bottom: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -575,7 +584,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
 
 .summary-footer-actions {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
 }
 
@@ -585,6 +594,14 @@ function getBarWidth(data: YearData, type: EntryType): string {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
+}
+
+.summary-footer-actions .el-button:only-child {
+  grid-column: span 2;
+}
+
+.ai-action-primary {
+  grid-column: span 2;
 }
 
 .summary-empty {
@@ -597,12 +614,26 @@ function getBarWidth(data: YearData, type: EntryType): string {
   color: var(--el-text-color-secondary);
 }
 
+.summary-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 0 0 0.35rem;
+  margin-bottom: 0.45rem;
+  background: linear-gradient(
+    to bottom,
+    var(--el-bg-color) 0%,
+    var(--el-bg-color) 82%,
+    color-mix(in srgb, var(--el-bg-color) 0%, transparent) 100%
+  );
+}
+
 .year-nav {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   padding: 0.25rem;
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 999px;
@@ -640,13 +671,32 @@ function getBarWidth(data: YearData, type: EntryType): string {
   justify-content: center;
 }
 
-.summary-tabs :deep(.el-tabs__header) {
-  margin-bottom: 1rem;
+.summary-tab-switch {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
-.summary-tabs :deep(.el-tabs__nav-wrap::after) {
-  height: 1px;
-  background: var(--el-border-color-lighter);
+.summary-tab-btn {
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--el-text-color-secondary);
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.summary-tab-btn--active {
+  color: var(--el-color-primary);
+  border-bottom-color: var(--el-color-primary);
+}
+
+.summary-tab-content {
+  min-height: 320px;
 }
 
 .ai-panel {
@@ -693,9 +743,10 @@ function getBarWidth(data: YearData, type: EntryType): string {
 
 .ai-summary-card {
   position: relative;
-  overflow: hidden;
-  max-height: none;
-  border-radius: 20px;
+  max-height: 430px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  border-radius: 8px;
   padding: 1.25rem;
   color: #1f2933;
   border: 1px solid rgba(92, 64, 38, 0.14);
@@ -706,49 +757,13 @@ function getBarWidth(data: YearData, type: EntryType): string {
   box-shadow: 0 16px 40px rgba(84, 54, 28, 0.14);
 }
 
-.ai-summary-card--collapsed {
-  max-height: 430px;
-}
-
-.ai-summary-card--collapsed::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 104px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(246, 239, 227, 0), #efe3d1 72%);
-}
-
-.ai-expand-btn {
-  position: sticky;
-  z-index: 1;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
-  width: max-content;
-  min-width: 112px;
-  margin: 0.75rem auto 0;
-  padding: 0.42rem 0.75rem;
-  border: 1px solid rgba(138, 91, 29, 0.18);
-  border-radius: 999px;
-  color: #8a5b1d;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 8px 20px rgba(84, 54, 28, 0.12);
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.ai-expand-btn:hover {
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.ai-summary-card--sharing .ai-expand-btn {
+.ai-summary-card::-webkit-scrollbar {
   display: none;
+}
+
+.ai-summary-card--capture {
+  max-height: none !important;
+  overflow-y: visible !important;
 }
 
 .ai-card-kicker {

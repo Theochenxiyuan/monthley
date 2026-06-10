@@ -240,8 +240,6 @@ export default {
     copySuccess: 'Summary copied',
     copyFailed: 'Copy failed',
     shareAiImage: 'Share Image',
-    expandAi: 'Expand',
-    collapseAi: 'Collapse',
     totalPlans: 'Total Plans',
     completionRate: 'Completion',
     activeMonths: 'Active Months',
