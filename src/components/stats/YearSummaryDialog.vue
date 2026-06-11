@@ -738,7 +738,13 @@ function getBarWidth(data: YearData, type: EntryType): string {
   line-height: 1.6;
 }
 
-.ai-privacy-note,
+.ai-privacy-note {
+  margin-top: 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--el-color-warning-dark-2) !important;
+}
+
 .ai-stale-note {
   display: flex;
   align-items: center;
