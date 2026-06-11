@@ -717,7 +717,12 @@ function getBarWidth(data: YearData, type: EntryType): string {
   display: flex;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.summary-tab-content::-webkit-scrollbar {
+  display: none;
 }
 
 .summary-tab-content > div {
@@ -852,18 +857,10 @@ function getBarWidth(data: YearData, type: EntryType): string {
 }
 
 .summary-card {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: none;
   background: var(--el-bg-color);
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 12px;
   padding: 1.25rem;
-}
-
-.summary-card::-webkit-scrollbar {
-  display: none;
 }
 
 .summary-header {

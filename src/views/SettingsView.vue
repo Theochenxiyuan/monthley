@@ -59,10 +59,23 @@
     </section>
 
     <section class="setting-section">
-      <h4 class="section-title">{{ t('sync.title') }}</h4>
+      <h4 class="section-title sync-section-title">
+        <span>{{ t('sync.title') }}</span>
+        <el-button
+          v-if="settingsStore.syncKey && !isEditingKey"
+          plain
+          type="primary"
+          :loading="sync.isSyncing.value"
+          @click="sync.manualSync"
+        >
+          <el-icon v-if="!sync.isSyncing.value" class="btn-icon"><Refresh /></el-icon>
+          {{ t('sync.syncNow') }}
+        </el-button>
+      </h4>
 
       <div class="setting-row-center">
         <template v-if="settingsStore.syncKey && !isEditingKey">
+          <div class="sync-key-display">
           <el-input
             :model-value="displayedSyncKey"
             readonly
@@ -78,6 +91,7 @@
               </el-button>
             </template>
           </el-input>
+          </div>
         </template>
         <template v-else-if="isEditingKey">
           <el-input
@@ -111,9 +125,6 @@
         v-if="settingsStore.syncKey && !isEditingKey"
         class="setting-row-center sync-actions"
       >
-        <el-button :loading="sync.isSyncing.value" @click="sync.manualSync">
-          {{ t('sync.syncNow') }}
-        </el-button>
         <el-button plain @click="showKeyQr">
           {{ t('sync.showQrCode') }}
         </el-button>
@@ -220,6 +231,12 @@
   color: var(--el-text-color-regular);
 }
 
+.sync-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .setting-row {
   display: flex;
   align-items: center;
@@ -273,7 +290,7 @@
   padding-top: 0.25rem;
 }
 
-:deep(.el-input-group__append) {
+.sync-key-display :deep(.el-input-group__append) {
   display: inline-flex;
   align-items: center;
   padding: 0;
@@ -322,6 +339,7 @@ import {
   DocumentCopy,
   Hide,
   View,
+  Refresh,
 } from '@element-plus/icons-vue';
 
 const { t } = useI18n();
