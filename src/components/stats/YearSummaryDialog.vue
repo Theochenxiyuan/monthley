@@ -348,28 +348,20 @@ function getBarWidth(data: YearData, type: EntryType): string {
 </script>
 
 <template>
-  <el-dialog
+<el-dialog
     :model-value="modelValue"
     @update:model-value="emit('update:modelValue', $event)"
-    :title="t('yearSummary.title')"
     width="min(94%, 420px)"
     class="summary-dialog"
     top="4vh"
     :close-on-click-modal="true"
     destroy-on-close
   >
-    <div v-if="availableYears.length > 0" class="summary-sticky-header">
-      <div class="year-nav">
-        <el-button
-          class="year-nav-btn"
-          :disabled="!canGoBack"
-          text
-          @click="prevYear"
-        >
-          <Icon icon="mdi:chevron-left" width="20" />
-        </el-button>
-
+    <template #header>
+      <div class="summary-dialog-header">
+        <span class="summary-dialog-title">{{ t('yearSummary.title') }}</span>
         <el-select
+          v-if="availableYears.length > 0"
           v-model="currentYear"
           class="year-select"
           size="small"
@@ -382,18 +374,10 @@ function getBarWidth(data: YearData, type: EntryType): string {
             :value="year"
           />
         </el-select>
-
-        <el-button
-          class="year-nav-btn"
-          :disabled="!canGoForward"
-          text
-          @click="nextYear"
-        >
-          <Icon icon="mdi:chevron-right" width="20" />
-        </el-button>
       </div>
+    </template>
 
-      <div v-if="yearData" class="summary-tab-switch" role="tablist">
+        <div v-if="yearData" class="summary-tab-switch" role="tablist">
         <button
           type="button"
           class="summary-tab-btn"
@@ -415,7 +399,6 @@ function getBarWidth(data: YearData, type: EntryType): string {
           {{ t('yearSummary.statsTab') }}
         </button>
       </div>
-    </div>
 
     <div v-if="!yearData" class="summary-empty">
       <Icon icon="mdi:calendar-blank" width="48" style="color: var(--el-text-color-placeholder)" />
@@ -466,10 +449,11 @@ function getBarWidth(data: YearData, type: EntryType): string {
                   </ul>
                 </section>
 
-                <p v-if="aiSummary.inputHash !== currentInputHash" class="ai-stale-note">
-                  {{ t('yearSummary.aiStaleNote') }}
-                </p>
+                </div>
 
+              <div v-if="aiSummary.inputHash !== currentInputHash" class="ai-stale-note">
+                <Icon icon="mdi:alert-circle-outline" width="16" />
+                <span>{{ t('yearSummary.aiStaleNote') }}</span>
               </div>
 
             </template>
@@ -554,7 +538,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
               <span>{{ t('yearSummary.copyAi') }}</span>
             </el-button>
             <el-button type="primary" :loading="isSharingAi" @click="shareAiAsImage">
-              <Icon icon="mdi:image" width="16" />
+              <Icon icon="mdi:share-variant" width="16" />
               <span>{{ t('yearSummary.shareAiImage') }}</span>
             </el-button>
           </template>
@@ -610,7 +594,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
 .summary-footer-actions .el-button:only-child {
@@ -632,49 +616,30 @@ function getBarWidth(data: YearData, type: EntryType): string {
   color: var(--el-text-color-secondary);
 }
 
-.summary-sticky-header {
-  flex: 0 0 auto;
-  z-index: 5;
-  padding: 0 0 0.35rem;
-  margin-bottom: 0.45rem;
-  background: linear-gradient(
-    to bottom,
-    var(--el-bg-color) 0%,
-    var(--el-bg-color) 82%,
-    color-mix(in srgb, var(--el-bg-color) 0%, transparent) 100%
-  );
-}
-
-.year-nav {
+.summary-dialog-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  margin-bottom: 0.75rem;
-  padding: 0.25rem;
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 999px;
-  background: var(--el-fill-color-light);
+  gap: 0.75rem;
 }
 
-.year-nav-btn {
-  width: 32px;
-  height: 32px;
-  padding: 0 !important;
-  border-radius: 999px;
+.summary-dialog-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .year-select {
-  width: 104px;
+  width: auto;
+  min-width: 96px;
 }
 
 .year-select :deep(.el-select__wrapper) {
   min-height: 32px;
   border-radius: 999px;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-left: 16px;
+  padding-right: 16px;
   box-shadow: none;
-  background: var(--el-bg-color);
+  background: var(--el-fill-color-light);
 }
 
 .year-select :deep(.el-select__selection) {
@@ -682,8 +647,8 @@ function getBarWidth(data: YearData, type: EntryType): string {
 }
 
 .year-select :deep(.el-select__selected-item) {
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--el-text-color-primary);
   justify-content: center;
 }
@@ -692,6 +657,7 @@ function getBarWidth(data: YearData, type: EntryType): string {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0;
+  margin-bottom: 0.75rem;
 }
 
 .summary-tab-btn {
@@ -774,8 +740,19 @@ function getBarWidth(data: YearData, type: EntryType): string {
 
 .ai-privacy-note,
 .ai-stale-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.78rem;
-  color: var(--el-text-color-placeholder) !important;
+  line-height: 1;
+  color: var(--el-color-warning-dark-2);
+  background: var(--el-color-warning-light-9);
+  border-radius: 6px;
+
+  .iconify { flex-shrink: 0; }
 }
 
 .ai-summary-card {
