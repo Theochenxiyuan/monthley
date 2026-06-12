@@ -8,21 +8,25 @@ export const useDialogStore = defineStore('dialog', {
     entryToEdit: {
       id: null as string | null,
       monthYear: null as { year: number; month: number } | null,
+      isUnscheduled: false,
     },
   }),
   getters: {
     isEditing(): boolean {
-      return this.entryToEdit.id !== null && this.entryToEdit.monthYear != null;
+      return this.entryToEdit.id !== null;
     },
   },
   actions: {
     open(initialData?: Partial<EntryFormData>, entryId: string | null = null) {
-      if (entryId && initialData?.month) {
+      if (entryId) {
         this.entryToEdit.id = entryId;
-        this.entryToEdit.monthYear = {
-          month: initialData.month.getMonth() + 1,
-          year: initialData.month.getFullYear(),
-        };
+        this.entryToEdit.isUnscheduled = initialData?.isUnscheduled === true;
+        this.entryToEdit.monthYear = initialData?.month
+          ? {
+              month: initialData.month.getMonth() + 1,
+              year: initialData.month.getFullYear(),
+            }
+          : null;
       }
       this.formData = {
         ...initialData,
@@ -30,12 +34,14 @@ export const useDialogStore = defineStore('dialog', {
         type: initialData?.type ? initialData?.type : '',
         status: initialData?.status ? initialData.status : 'not_started',
         month: initialData?.month ? new Date(initialData.month) : new Date(),
+        isUnscheduled: initialData?.isUnscheduled === true,
       };
       this.visible = true;
     },
     close() {
       this.entryToEdit.id = null;
       this.entryToEdit.monthYear = null;
+      this.entryToEdit.isUnscheduled = false;
       this.visible = false;
     },
   },

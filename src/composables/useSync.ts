@@ -89,6 +89,7 @@ export function useSync() {
 
   function applyTimelineData(data: ExportData) {
     timelineStore.months = data.months;
+    timelineStore.unscheduledEntries = data.unscheduledEntries;
     timelineStore.lastUpdated = data.lastUpdated ? new Date(data.lastUpdated) : null;
     timelineStore.clearEmptyMonths();
     timelineStore.addCurrentMonthIfMissing();

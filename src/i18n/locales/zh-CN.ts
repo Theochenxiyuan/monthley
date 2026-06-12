@@ -16,6 +16,7 @@ export default {
     input: '输入',
     entry: '计划',
     confirm: '确认',
+    none: '暂无',
   },
   unit: {
     count: '个',
@@ -46,6 +47,8 @@ export default {
     namePlaceholder: '名称',
     previousMonth: '上个月',
     nextMonth: '下个月',
+    unscheduled: '暂不安排月份',
+    unscheduledHint: '先收进待安排区，之后再拖到月份里',
     validationError: '请填写完整计划信息',
     status: '进度',
     low: '低',
@@ -166,6 +169,11 @@ export default {
     delete: '删除',
     collapse: '收起',
     incompletePlans: '未完成计划',
+  },
+  unscheduled: {
+    title: '待安排',
+    add: '添加待安排计划',
+    count: '{count} 个计划',
   },
   entryItem: {
     statusType: {

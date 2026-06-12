@@ -27,6 +27,7 @@ export interface TimelineMonth {
 // 时间线状态（Pinia Store 类型）
 export interface TimelineState {
   months: TimelineMonth[];
+  unscheduledEntries: TimelineEntry[];
   lastUpdated: Date | null;
   visibleUp: number;
   visibleDown: number;
@@ -36,7 +37,8 @@ export interface EntryFormData {
   name: string;
   type: EntryType | '';
   status: EntryStatus;
-  month: Date;
+  month: Date | null;
+  isUnscheduled: boolean;
   notes?: string;
 }
 

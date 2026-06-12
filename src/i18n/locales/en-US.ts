@@ -16,6 +16,7 @@ export default {
     input: 'Input',
     entry: 'Plan',
     confirm: 'Confirm',
+    none: 'None',
   },
   unit: {
     count: '',
@@ -46,6 +47,8 @@ export default {
     namePlaceholder: 'Name',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
+    unscheduled: 'No month yet',
+    unscheduledHint: 'Keep it in To Schedule and place it later',
     validationError: 'Please fill in all plan information',
     status: 'Status',
     low: 'Low',
@@ -167,6 +170,11 @@ export default {
     delete: 'Delete',
     collapse: 'Collapse',
     incompletePlans: 'Unfinished Plans',
+  },
+  unscheduled: {
+    title: 'To Schedule',
+    add: 'Add unscheduled plan',
+    count: '{count} plan(s)',
   },
   entryItem: {
     statusType: {

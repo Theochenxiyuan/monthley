@@ -417,6 +417,10 @@ const collapsedSummary = computed(() => {
   outline: 2px dashed var(--el-color-primary);
   opacity: 0.6;
 }
+
+:global(.ghost) {
+  order: 1 !important;
+}
 .entry-highlight :deep(.entry-item) {
   animation: highlight-pulse 2s ease-out;
 }

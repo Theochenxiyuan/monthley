@@ -215,6 +215,7 @@
     </div>
 
     <Teleport to="body">
+        <UnscheduledPanel v-if="isDesktop" class="unscheduled-floating" />
         <Transition name="load-fade">
             <button
                 v-if="timelineStore.canLoadUp && showLoadUp"
@@ -242,6 +243,7 @@ import { useI18n } from "vue-i18n";
 import EntryDialog from "@/components/EntryDialog.vue";
 import MonthCard from "@/components/MonthCard.vue";
 import SearchPanel from "@/components/SearchPanel.vue";
+import UnscheduledPanel from "@/components/UnscheduledPanel.vue";
 import { Search, Plus, Cloudy } from "@element-plus/icons-vue";
 import { useTimelineStore, VISIBLE_WINDOW } from "@/stores/timeline";
 import { useDialogStore } from "@/stores/dialog";
@@ -527,6 +529,21 @@ html.pull-refresh-active .load-more-up {
 .load-more-down {
     bottom: 76px;
     transform: translateY(0);
+}
+
+.unscheduled-floating {
+    display: none !important;
+}
+
+@media (min-width: 1100px) {
+    .unscheduled-floating {
+        display: flex !important;
+        position: fixed !important;
+        z-index: 90;
+        top: 84px;
+        left: calc(50% + 372px);
+        max-height: calc(var(--app-height, 100dvh) - 168px);
+    }
 }
 
 @media (min-width: 768px) {

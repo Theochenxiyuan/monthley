@@ -3,6 +3,7 @@ import { entryStatuses, entryTypes } from '@/types/models';
 
 export interface ExportData {
   months: TimelineMonth[];
+  unscheduledEntries: TimelineEntry[];
   lastUpdated: string | null;
 }
 
@@ -84,8 +85,15 @@ function countEntries(months: TimelineMonth[]): number {
   return months.reduce((total, month) => total + month.entries.length, 0);
 }
 
-function collectEntryIds(months: TimelineMonth[]): Set<string> {
-  return new Set(months.flatMap((month) => month.entries.map((entry) => entry.id)));
+function countAllEntries(data: { months: TimelineMonth[]; unscheduledEntries: TimelineEntry[] }): number {
+  return countEntries(data.months) + data.unscheduledEntries.length;
+}
+
+function collectEntryIds(data: { months: TimelineMonth[]; unscheduledEntries: TimelineEntry[] }): Set<string> {
+  return new Set([
+    ...data.months.flatMap((month) => month.entries.map((entry) => entry.id)),
+    ...data.unscheduledEntries.map((entry) => entry.id),
+  ]);
 }
 
 function waitForNextFrame(): Promise<void> {
@@ -116,6 +124,12 @@ export const dataService = {
       }
     });
 
+    const unscheduledEntries = Array.isArray(value.unscheduledEntries)
+      ? value.unscheduledEntries
+          .map((entry) => normalizeEntry(entry, seenEntryIds))
+          .filter((entry): entry is TimelineEntry => entry !== null)
+      : [];
+
     return {
       months: [...monthsByKey.values()]
         .filter((month) => month.entries.length > 0)
@@ -123,6 +137,7 @@ export const dataService = {
           if (a.year !== b.year) return a.year - b.year;
           return a.month - b.month;
         }),
+      unscheduledEntries,
       lastUpdated: normalizeLastUpdated(value.lastUpdated),
     };
   },
@@ -130,6 +145,7 @@ export const dataService = {
   exportDataFromState(state: TimelineState): ExportData {
     return dataService.validateTimelineData({
       months: state.months,
+      unscheduledEntries: state.unscheduledEntries,
       lastUpdated: state.lastUpdated?.toISOString() || null,
     });
   },
@@ -177,8 +193,8 @@ export const dataService = {
   },
 
   mergeImportData(existing: TimelineState, imported: ExportData): ImportResult {
-    const importedEntryIds = collectEntryIds(imported.months);
-    const existingEntryIds = collectEntryIds(existing.months);
+    const importedEntryIds = collectEntryIds(imported);
+    const existingEntryIds = collectEntryIds(existing);
 
     imported.months.forEach((importedMonth) => {
       const targetMonth = existing.months.find(
@@ -199,6 +215,10 @@ export const dataService = {
       }
     });
 
+    const unscheduledEntriesToAdd = imported.unscheduledEntries.filter((entry) => !existingEntryIds.has(entry.id));
+    unscheduledEntriesToAdd.forEach((entry) => existingEntryIds.add(entry.id));
+    existing.unscheduledEntries.push(...unscheduledEntriesToAdd);
+
     existing.months = existing.months
       .filter((month) => month.entries.length > 0)
       .sort((a, b) => {
@@ -208,12 +228,12 @@ export const dataService = {
 
     existing.lastUpdated = imported.lastUpdated ? new Date(imported.lastUpdated) : new Date();
 
-    const mergedEntryIds = collectEntryIds(existing.months);
+    const mergedEntryIds = collectEntryIds(existing);
 
     return {
       importedEntryCount: importedEntryIds.size,
       restoredEntryCount: [...importedEntryIds].filter((entryId) => mergedEntryIds.has(entryId)).length,
-      totalEntryCount: countEntries(existing.months),
+      totalEntryCount: countAllEntries(existing),
     };
   },
 };

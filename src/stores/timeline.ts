@@ -22,6 +22,7 @@ export const VISIBLE_WINDOW = 4;
 export const useTimelineStore = defineStore("timeline", {
   state: (): TimelineState => ({
     months: [],
+    unscheduledEntries: [],
     lastUpdated: null,
     visibleUp: 0,
     visibleDown: 0,
@@ -99,6 +100,7 @@ export const useTimelineStore = defineStore("timeline", {
         if (saved) {
           const timeline = dataService.validateTimelineData(JSON.parse(saved));
           this.months = timeline.months;
+          this.unscheduledEntries = timeline.unscheduledEntries;
           this.lastUpdated = timeline.lastUpdated
             ? new Date(timeline.lastUpdated)
             : null;
@@ -177,6 +179,15 @@ export const useTimelineStore = defineStore("timeline", {
       this.lastUpdated = new Date();
       this.saveLocal();
     },
+    addUnscheduledEntry(entry: Omit<TimelineEntry, "id" | "orderIndex">) {
+      const newEntry: TimelineEntry = {
+        ...entry,
+        id: crypto.randomUUID(),
+      };
+      this.unscheduledEntries.push(newEntry);
+      this.lastUpdated = new Date();
+      this.saveLocal();
+    },
     deleteEntry(monthYear: Omit<TimelineMonth, "entries">, entryId: string) {
       const month = this.months.find(
         (m) => m.year === monthYear.year && m.month === monthYear.month,
@@ -188,6 +199,14 @@ export const useTimelineStore = defineStore("timeline", {
           this.lastUpdated = new Date();
           this.saveLocal();
         }
+      }
+    },
+    deleteUnscheduledEntry(entryId: string) {
+      const existingEntry = this.unscheduledEntries.find((entry) => entry.id === entryId);
+      if (existingEntry) {
+        this.unscheduledEntries = this.unscheduledEntries.filter((entry) => entry.id !== entryId);
+        this.lastUpdated = new Date();
+        this.saveLocal();
       }
     },
     updateEntry(
@@ -209,6 +228,59 @@ export const useTimelineStore = defineStore("timeline", {
           }
         });
       }
+    },
+    updateUnscheduledEntry(newEntryData: Omit<TimelineEntry, "orderIndex">) {
+      this.unscheduledEntries.forEach((entry) => {
+        if (entry.id === newEntryData.id) {
+          entry.name = newEntryData.name;
+          entry.status = newEntryData.status;
+          entry.type = newEntryData.type;
+          this.lastUpdated = new Date();
+          this.saveLocal();
+          return;
+        }
+      });
+    },
+    moveUnscheduledToMonth(
+      entryId: string,
+      newMonth: Omit<TimelineMonth, "entries">,
+    ) {
+      const entryIndex = this.unscheduledEntries.findIndex((e) => e.id === entryId);
+      if (entryIndex === -1) return false;
+
+      const [entryToMove] = this.unscheduledEntries.splice(entryIndex, 1);
+
+      let targetMonth = this.months.find(
+        (m) => m.year === newMonth.year && m.month === newMonth.month,
+      );
+      if (!targetMonth) {
+        targetMonth = { ...newMonth, entries: [] };
+        this.months.push(targetMonth);
+        this.sortMonths();
+      }
+
+      targetMonth.entries.push(entryToMove);
+      this.lastUpdated = new Date();
+      this.saveLocal();
+      return true;
+    },
+    moveMonthEntryToUnscheduled(
+      entryId: string,
+      oldMonth: Omit<TimelineMonth, "entries">,
+    ) {
+      const sourceMonth = this.months.find(
+        (m) => m.year === oldMonth.year && m.month === oldMonth.month,
+      );
+      if (!sourceMonth) return false;
+
+      const entryIndex = sourceMonth.entries.findIndex((e) => e.id === entryId);
+      if (entryIndex === -1) return false;
+
+      const [entryToMove] = sourceMonth.entries.splice(entryIndex, 1);
+      this.unscheduledEntries.push(entryToMove);
+      this.lastUpdated = new Date();
+      this.saveLocal();
+      return true;
     },
     moveBetweenMonth(
       entryId: string,
@@ -254,6 +326,16 @@ export const useTimelineStore = defineStore("timeline", {
         });
       }
     },
+    toNextStatusUnscheduled(entryId: string) {
+      this.unscheduledEntries.forEach((entry) => {
+        if (entry.id === entryId) {
+          entry.status = getNextStatus(entry.status);
+          this.lastUpdated = new Date();
+          this.saveLocal();
+          return;
+        }
+      });
+    },
     sortMonths() {
       this.months.sort((a, b) => {
         if (a.year !== b.year) return a.year - b.year;
@@ -286,6 +368,7 @@ export const useTimelineStore = defineStore("timeline", {
     },
     clearData() {
       this.months = [];
+      this.unscheduledEntries = [];
       this.lastUpdated = new Date();
       this.saveLocal();
     },
