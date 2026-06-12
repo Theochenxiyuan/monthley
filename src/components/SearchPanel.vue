@@ -131,7 +131,6 @@ onUnmounted(() => {
     direction="ttb"
     size="auto"
     :show-close="true"
-    :append-to-body="true"
     class="search-drawer"
   >
     <div class="search-panel">

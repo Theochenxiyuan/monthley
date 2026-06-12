@@ -13,7 +13,7 @@ import enUs from 'element-plus/es/locale/lang/en';
 const { t, locale } = useI18n();
 const timelineStore = useTimelineStore();
 const settingsStore = useSettingsStore();
-const { init: initSync } = useSync();
+const sync = useSync();
 const route = useRoute();
 const router = useRouter();
 const activeRoute = computed(() => route.path);
@@ -21,6 +21,8 @@ const { appOffsetStyle, isDraggingApp, resetAppOffset, startDraggingApp } = useD
 
 const quickSettingsPopover = ref<{ hide: () => void } | null>(null);
 const isQuickSettingsOpen = ref(false);
+const syncStatusPopover = ref<{ hide: () => void } | null>(null);
+const isSyncStatusOpen = ref(false);
 
 const currentLanguage = computed({
   get: () => settingsStore.language,
@@ -29,9 +31,46 @@ const currentLanguage = computed({
   },
 });
 
+const isSyncConfigured = computed(() => !!settingsStore.syncKey);
+
+const syncStatusDot = computed(() => {
+  if (!isSyncConfigured.value) return 'none';
+  if (sync.isSyncing.value) return 'syncing';
+  return 'ok';
+});
+
+function formatSyncTime(date: Date | null): string {
+  if (!date) return t('sync.neverSynced');
+  if (locale.value === 'zh-CN') {
+    return new Intl.DateTimeFormat('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).format(date);
+  }
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
 function goToSettings() {
   quickSettingsPopover.value?.hide();
   router.push('/settings');
+}
+
+function handleManualSync() {
+  if (!isSyncConfigured.value) return;
+  sync.manualSync();
 }
 
 const scrollPositions: Record<string, number> = {};
@@ -187,9 +226,11 @@ function onTouchEnd() {
 }
 
 const isDesktop = ref(window.innerWidth >= 768);
+const isWideDesktop = ref(window.innerWidth >= 880);
 function handleResize() {
   updateAppHeight();
   isDesktop.value = window.innerWidth >= 768;
+  isWideDesktop.value = window.innerWidth >= 880;
 }
 onMounted(() => {
   updateAppHeight();
@@ -229,7 +270,7 @@ onMounted(async () => {
     !hadLocalTimeline &&
     !settingsStore.syncKey &&
     localStorage.getItem(SYNC_ONBOARDING_SKIPPED_KEY) !== 'true';
-  await initSync();
+  await sync.init();
 });
 
 watch(locale, () => {
@@ -356,7 +397,98 @@ watch(
     </div>
     <Teleport to="body">
       <el-popover
-        v-if="isDesktop"
+        v-if="isWideDesktop"
+        ref="syncStatusPopover"
+        trigger="click"
+        placement="bottom-end"
+        :offset="8"
+        popper-class="sync-status-popover"
+        :width="240"
+        @show="isSyncStatusOpen = true"
+        @hide="isSyncStatusOpen = false"
+      >
+        <template #reference>
+          <button
+            type="button"
+            class="sync-status-btn"
+            :title="t('sync.statusTitle')"
+            :aria-label="t('sync.statusTitle')"
+            :class="{ 'is-active': isSyncStatusOpen, 'is-syncing': sync.isSyncing.value }"
+          >
+            <Icon icon="mdi:cloud-outline" width="17" />
+            <span
+              v-if="syncStatusDot !== 'none'"
+              class="sync-status-dot"
+              :class="syncStatusDot"
+            />
+          </button>
+        </template>
+
+        <div class="sync-status-panel">
+          <div class="sync-status-header">
+            <span class="sync-status-title">{{ t('sync.statusTitle') }}</span>
+            <el-tag
+              :type="isSyncConfigured ? 'success' : 'info'"
+              size="small"
+              effect="light"
+            >
+              {{ isSyncConfigured ? t('sync.configured') : t('sync.notConfigured') }}
+            </el-tag>
+          </div>
+
+          <div class="sync-status-row">
+            <span class="sync-status-label">{{ t('sync.localUpdated') }}</span>
+            <span class="sync-status-value">
+              {{ timelineStore.lastUpdated ? formatSyncTime(timelineStore.lastUpdated) : t('timeline.noRecord') }}
+            </span>
+          </div>
+
+          <div class="sync-status-row">
+            <span class="sync-status-label">{{ t('sync.lastSynced') }}</span>
+            <span class="sync-status-value">
+              <template v-if="!isSyncConfigured">
+                {{ t('sync.syncNotEnabled') }}
+              </template>
+              <template v-else-if="!sync.lastSyncedAt.value">
+                {{ t('sync.neverSynced') }}
+              </template>
+              <template v-else>
+                {{ formatSyncTime(sync.lastSyncedAt.value) }}
+              </template>
+            </span>
+          </div>
+
+          <div class="sync-status-row">
+            <span class="sync-status-label">{{ t('sync.cloudUpdated') }}</span>
+            <span class="sync-status-value">
+              <template v-if="!isSyncConfigured">
+                {{ t('sync.syncNotEnabled') }}
+              </template>
+              <template v-else-if="!sync.cloudUpdatedAt.value">
+                {{ t('sync.notFetched') }}
+              </template>
+              <template v-else>
+                {{ formatSyncTime(sync.cloudUpdatedAt.value) }}
+              </template>
+            </span>
+          </div>
+
+          <el-button
+            v-if="isSyncConfigured"
+            type="primary"
+            size="small"
+            :loading="sync.isSyncing.value"
+            style="width: 100%; margin-top: 8px"
+            @click="handleManualSync"
+          >
+            <Icon icon="mdi:refresh" width="14" style="margin-right: 4px" />
+            {{ t('sync.syncNow') }}
+          </el-button>
+        </div>
+      </el-popover>
+
+      <el-popover
+        v-if="isWideDesktop"
         ref="quickSettingsPopover"
         trigger="click"
         placement="bottom-end"
@@ -535,6 +667,10 @@ watch(
   display: none;
 }
 
+.sync-status-btn {
+  display: none;
+}
+
 @media (min-width: 768px) {
   .desktop-layout-reset {
     position: fixed;
@@ -567,7 +703,9 @@ watch(
     color: var(--el-color-primary);
     box-shadow: 0 6px 18px rgba(64, 158, 255, 0.12);
   }
+}
 
+@media (min-width: 880px) {
   .quick-settings-btn {
     position: fixed;
     top: 16px;
@@ -600,10 +738,107 @@ watch(
     color: var(--el-color-primary);
     box-shadow: 0 6px 18px rgba(64, 158, 255, 0.12);
   }
+
+  .sync-status-btn {
+    position: fixed;
+    top: 16px;
+    right: 88px;
+    z-index: 1250;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--el-bg-color) 86%, transparent);
+    color: var(--el-text-color-secondary);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .sync-status-btn.is-active,
+  .sync-status-btn:hover {
+    border-color: var(--el-color-primary-light-5);
+    background: var(--el-color-primary-light-9);
+    color: var(--el-color-primary);
+    box-shadow: 0 6px 18px rgba(64, 158, 255, 0.12);
+  }
 }
 
 :global(.quick-settings-popover) {
   padding: 12px 16px !important;
+}
+
+:global(.sync-status-popover) {
+  padding: 12px 16px !important;
+}
+
+.sync-status-btn .sync-status-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--el-bg-color);
+}
+
+.sync-status-btn .sync-status-dot.ok {
+  background-color: var(--el-color-success);
+}
+
+.sync-status-btn .sync-status-dot.syncing {
+  background-color: var(--el-color-warning);
+  animation: sync-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes sync-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.sync-status-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sync-status-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sync-status-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--el-text-color-primary);
+}
+
+.sync-status-row {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sync-status-label {
+  color: var(--el-text-color-secondary);
+  font-size: 0.78rem;
+}
+
+.sync-status-value {
+  color: var(--el-text-color-regular);
+  font-size: 0.85rem;
 }
 
 .quick-settings-panel {

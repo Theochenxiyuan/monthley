@@ -3,6 +3,7 @@
         <div class="action-bar-info">
             <span class="action-bar-title">{{ t("timeline.title") }}</span>
             <el-button
+                v-if="!isWideDesktop"
                 class="sync-status-btn"
                 type="primary"
                 size="small"
@@ -216,7 +217,7 @@
 
     <Teleport to="body">
         <UnscheduledPanel v-if="isDesktopLayout" class="unscheduled-floating" />
-        <div class="load-more-container" :style="{ transform: `translateX(${offsetX}px)` }">
+        <div class="load-more-container" :class="{ 'load-more-hidden': hasActiveOverlay }" :style="{ transform: `translateX(${offsetX}px)` }">
             <Transition name="load-fade">
                 <button
                     v-if="timelineStore.canLoadUp && showLoadUp"
@@ -264,6 +265,7 @@ const drawerVisible = ref(false);
 
 const viewportWidth = ref(window.innerWidth);
 const isDesktop = computed(() => viewportWidth.value >= 768);
+const isWideDesktop = computed(() => viewportWidth.value >= 880);
 const isDesktopLayout = computed(() => viewportWidth.value >= 984);
 function handleResize() {
     viewportWidth.value = window.innerWidth;
@@ -282,6 +284,9 @@ const showLoadUp = ref(false);
 const showLoadDown = ref(false);
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
+const hasActiveOverlay = computed(() =>
+    dialogStore.visible || drawerVisible.value || searchVisible.value || syncStatusVisible.value,
+);
 const filtersStore = useFiltersStore();
 const settingsStore = useSettingsStore();
 const sync = useSync();
@@ -543,6 +548,10 @@ html.pull-refresh-active .load-more-up {
     inset: 0;
     z-index: 100;
     pointer-events: none;
+}
+
+.load-more-container.load-more-hidden {
+    visibility: hidden;
 }
 
 .load-more-container .load-more-float {
