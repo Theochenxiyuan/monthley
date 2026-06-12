@@ -350,8 +350,8 @@ function handleDelete(entryId: string): void {
 .unscheduled-resize-handle::after {
   content: '';
   position: absolute;
-  right: 4px;
-  bottom: 4px;
+  right: 5px;
+  bottom: 2px;
   height: 1px;
   border-radius: 999px;
   background: var(--el-text-color-placeholder);

@@ -226,24 +226,26 @@
             <el-icon size="17"><RefreshLeft /></el-icon>
         </button>
         <UnscheduledPanel v-if="isDesktopLayout" class="unscheduled-floating" />
-        <Transition name="load-fade">
-            <button
-                v-if="timelineStore.canLoadUp && showLoadUp"
-                class="load-more-float load-more-up"
-                @click="handleLoadUp"
-            >
-                {{ t("timeline.loadEarlier") }}
-            </button>
-        </Transition>
-        <Transition name="load-fade">
-            <button
-                v-if="timelineStore.canLoadDown && showLoadDown"
-                class="load-more-float load-more-down"
-                @click="handleLoadDown"
-            >
-                {{ t("timeline.loadLater") }}
-            </button>
-        </Transition>
+        <div class="load-more-container" :style="{ transform: `translateX(${offsetX}px)` }">
+            <Transition name="load-fade">
+                <button
+                    v-if="timelineStore.canLoadUp && showLoadUp"
+                    class="load-more-float load-more-up"
+                    @click="handleLoadUp"
+                >
+                    {{ t("timeline.loadEarlier") }}
+                </button>
+            </Transition>
+            <Transition name="load-fade">
+                <button
+                    v-if="timelineStore.canLoadDown && showLoadDown"
+                    class="load-more-float load-more-down"
+                    @click="handleLoadDown"
+                >
+                    {{ t("timeline.loadLater") }}
+                </button>
+            </Transition>
+        </div>
     </Teleport>
 </template>
 
@@ -293,7 +295,7 @@ const dialogStore = useDialogStore();
 const filtersStore = useFiltersStore();
 const settingsStore = useSettingsStore();
 const sync = useSync();
-const { resetAppOffset } = useDesktopAppOffset();
+const { resetAppOffset, offsetX } = useDesktopAppOffset();
 const typeOptions = [
     { label: t("entry.shortTypes.learn"), value: "learn" },
     { label: t("entry.shortTypes.play"), value: "play" },
@@ -548,6 +550,17 @@ html.pull-refresh-active .load-more-up {
 .load-more-down {
     bottom: 76px;
     transform: translateY(0);
+}
+
+.load-more-container {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.load-more-container .load-more-float {
+    pointer-events: auto;
 }
 
 .unscheduled-floating {
