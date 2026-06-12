@@ -153,7 +153,9 @@ export function useDraggablePanel(
 
   function setSize(nextSize: PanelSize, shouldPersist = true) {
     size.value = clampSize(nextSize);
-    position.value = clampPosition(position.value);
+    position.value = clampPosition(
+      hasCustomLayout.value ? position.value : options.getDefaultPosition(),
+    );
     if (shouldPersist) persistLayout();
   }
 
@@ -281,6 +283,11 @@ export function useDraggablePanel(
 
   function handleResize() {
     setSize(size.value, false);
+    if (!hasCustomLayout.value) {
+      position.value = clampPosition(options.getDefaultPosition());
+      return;
+    }
+
     if (anchorLayout) {
       anchorLayout = {
         ...anchorLayout,

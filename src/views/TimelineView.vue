@@ -274,7 +274,7 @@ const drawerVisible = ref(false);
 
 const viewportWidth = ref(window.innerWidth);
 const isDesktop = computed(() => viewportWidth.value >= 768);
-const isDesktopLayout = computed(() => viewportWidth.value >= 1184);
+const isDesktopLayout = computed(() => viewportWidth.value >= 984);
 function handleResize() {
     viewportWidth.value = window.innerWidth;
 }
@@ -571,7 +571,7 @@ html.pull-refresh-active .load-more-up {
     display: none;
 }
 
-@media (min-width: 1184px) {
+@media (min-width: 984px) {
     .unscheduled-floating {
         display: flex !important;
         z-index: 1100;

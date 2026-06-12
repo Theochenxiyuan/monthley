@@ -374,6 +374,7 @@ watch(
   #app :deep(.action-bar) {
     cursor: grab;
     user-select: none;
+    touch-action: none;
   }
 
   #app.app--dragging {
