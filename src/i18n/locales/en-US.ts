@@ -174,6 +174,8 @@ export default {
   unscheduled: {
     title: 'To Schedule',
     add: 'Add unscheduled plan',
+    resetLayout: 'Reset layout',
+    resize: 'Resize',
     count: '{count} plan(s)',
   },
   entryItem: {

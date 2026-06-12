@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
 import { useSync } from '@/composables/useSync';
+import { useDesktopAppOffset } from '@/composables/useDesktopAppOffset';
 import SyncOnboardingDialog from '@/components/SyncOnboardingDialog.vue';
 import { Icon, loadIcons } from '@iconify/vue';
 import zhCn from 'element-plus/es/locale/lang/zh-cn';
@@ -15,10 +16,13 @@ const settingsStore = useSettingsStore();
 const { init: initSync } = useSync();
 const route = useRoute();
 const activeRoute = computed(() => route.path);
+const { appOffsetStyle, isDraggingApp, startDraggingApp } = useDesktopAppOffset();
 
 const scrollPositions: Record<string, number> = {};
+const appEl = ref<HTMLElement | null>(null);
 const mainContentEl = ref<HTMLElement | null>(null);
 const showSyncOnboarding = ref(false);
+const appDragHintStyle = ref<Record<string, string>>({});
 const SYNC_ONBOARDING_SKIPPED_KEY = 'syncOnboardingSkipped';
 
 const pullDistance = ref(0);
@@ -27,6 +31,7 @@ const PULL_THRESHOLD = 60;
 let touchStartY = 0;
 let isPulling = false;
 let appHeightFixTimer: number | undefined;
+let dragHintFrame: number | null = null;
 
 function updateAppHeight() {
   document.documentElement.style.setProperty(
@@ -59,6 +64,48 @@ function hasActiveOverlay(): boolean {
       '.el-overlay, .el-dialog, .el-drawer, .el-message-box, .el-popper',
     ),
   ).some(isVisibleOverlay);
+}
+
+function isInteractiveElement(target: HTMLElement): boolean {
+  return Boolean(target.closest(
+    'button, a, input, textarea, select, [role="button"], .el-button, .el-input, .el-select, .el-dropdown',
+  ));
+}
+
+function onMainPointerDown(event: PointerEvent) {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.action-bar') || isInteractiveElement(target)) return;
+  startDraggingApp(event);
+}
+
+function updateAppDragHintPosition() {
+  const rect = appEl.value?.getBoundingClientRect();
+  if (!rect) return;
+
+  appDragHintStyle.value = {
+    left: `${rect.left}px`,
+    top: `${rect.top + 24}px`,
+    width: `${rect.width}px`,
+  };
+}
+
+function startDragHintLoop() {
+  if (dragHintFrame !== null) return;
+  const tick = () => {
+    updateAppDragHintPosition();
+    if (isDraggingApp.value) {
+      dragHintFrame = requestAnimationFrame(tick);
+    } else {
+      dragHintFrame = null;
+    }
+  };
+  dragHintFrame = requestAnimationFrame(tick);
+}
+
+function stopDragHintLoop() {
+  if (dragHintFrame === null) return;
+  cancelAnimationFrame(dragHintFrame);
+  dragHintFrame = null;
 }
 
 function resetPullRefresh() {
@@ -132,6 +179,7 @@ onMounted(() => {
 });
 onUnmounted(() => {
   if (appHeightFixTimer) window.clearTimeout(appHeightFixTimer);
+  stopDragHintLoop();
   window.removeEventListener('resize', handleResize);
   window.removeEventListener('orientationchange', handleResize);
   document.removeEventListener('visibilitychange', updateAppHeight);
@@ -167,6 +215,15 @@ watch(locale, () => {
   updateTitle();
 });
 
+watch(isDraggingApp, (dragging) => {
+  if (dragging) {
+    updateAppDragHintPosition();
+    startDragHintLoop();
+  } else {
+    stopDragHintLoop();
+  }
+});
+
 watch(
   () => settingsStore.isDark,
   (newVal) => {
@@ -192,10 +249,16 @@ watch(
 
 <template>
   <el-config-provider :locale="currentElementPlusLocale">
-    <div id="app">
+    <div
+      ref="appEl"
+      id="app"
+      :class="{ 'app--dragging': isDraggingApp }"
+      :style="appOffsetStyle"
+    >
       <div
         ref="mainContentEl"
         class="main-content"
+        @pointerdown="onMainPointerDown"
         @touchstart="onTouchStart"
         @touchmove="onTouchMove"
         @touchend="onTouchEnd"
@@ -270,6 +333,17 @@ watch(
         v-model="showSyncOnboarding"
       />
     </div>
+    <Teleport to="body">
+      <div
+        v-if="isDraggingApp"
+        class="app-drag-hints"
+        :style="appDragHintStyle"
+        aria-hidden="true"
+      >
+        <span class="app-drag-hint app-drag-hint--left">‹</span>
+        <span class="app-drag-hint app-drag-hint--right">›</span>
+      </div>
+    </Teleport>
   </el-config-provider>
 </template>
 
@@ -287,6 +361,7 @@ watch(
   box-shadow:
     0 0 0 1px var(--el-border-color-lighter),
     0 8px 32px rgba(0, 0, 0, 0.12);
+  transition: transform 0.12s ease-out;
 }
 
 @media (min-width: 768px) {
@@ -295,6 +370,57 @@ watch(
     margin: 12px auto;
     height: calc(var(--app-height, 100dvh) - 24px);
   }
+
+  #app :deep(.action-bar) {
+    cursor: grab;
+    user-select: none;
+  }
+
+  #app.app--dragging {
+    transition: none;
+  }
+
+  #app.app--dragging :deep(.action-bar) {
+    cursor: grabbing;
+  }
+
+  #app :deep(.action-bar button),
+  #app :deep(.action-bar a),
+  #app :deep(.action-bar .el-button),
+  #app :deep(.action-bar .el-input),
+  #app :deep(.action-bar .el-select),
+  #app :deep(.action-bar .el-dropdown) {
+    cursor: auto;
+  }
+}
+
+.app-drag-hints {
+  position: fixed;
+  z-index: 1300;
+  height: 0;
+  pointer-events: none;
+}
+
+.app-drag-hint {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-secondary);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.app-drag-hint--left {
+  left: -30px;
+}
+
+.app-drag-hint--right {
+  right: -30px;
 }
 
 .main-content {

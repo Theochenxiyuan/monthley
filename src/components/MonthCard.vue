@@ -252,6 +252,7 @@ const collapsedSummary = computed(() => {
         <Draggable
         v-model="month.entries"
         group="timeline"
+        draggable=".timeline-entry-draggable"
         item-key="id"
 :style="{
            display: 'flex',
@@ -272,7 +273,7 @@ const collapsedSummary = computed(() => {
       >
         <template #item="entry">
           <div
-            style="order: 1"
+            class="timeline-entry-draggable"
             v-show="!shouldHideEntry(entry.element.type, entry.element.status)"
             :class="{ 'entry-highlight': entry.element.id === highlightEntryId }"
           >
@@ -335,7 +336,7 @@ const collapsedSummary = computed(() => {
         <template #footer>
           <div
             v-show="month.entries.length === 0 && !isCurrentMonth(month)"
-            style="order: 2"
+            class="month-card-footer-row"
           >
             <el-text type="warning"
               ><el-icon><InfoFilled /></el-icon>
@@ -343,23 +344,24 @@ const collapsedSummary = computed(() => {
             >
           </div>
 
-          <div v-show="hiddenCount > 0" style="order: 2">
+          <div v-show="hiddenCount > 0" class="month-card-footer-row">
             <el-text type="warning" size="small"
               >({{ hiddenCount }} {{ t('monthCard.hiddenEntries') }})</el-text
             >
           </div>
 
-          <ElButton
-            type="primary"
-            text
-            size="small"
-            @click="
-              dialogStore.open({ month: new Date(formatYearMonth(month)) })
-            "
-            style="order: 2"
-          >
-            <el-icon size="18"><Plus /></el-icon>
-          </ElButton>
+          <div class="month-card-footer-row month-card-add-row">
+            <ElButton
+              type="primary"
+              text
+              size="small"
+              @click="
+                dialogStore.open({ month: new Date(formatYearMonth(month)) })
+              "
+            >
+              <el-icon size="18"><Plus /></el-icon>
+            </ElButton>
+          </div>
         </template>
       </Draggable>
 
@@ -391,6 +393,9 @@ const collapsedSummary = computed(() => {
 <style scoped>
 .month-card-wrapper {
   position: relative;
+}
+.timeline-entry-draggable {
+  order: 1;
 }
 .drag > div {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -438,6 +443,16 @@ const collapsedSummary = computed(() => {
 .collapsed-summary {
   font-size: 0.85rem;
   line-height: 1.5;
+}
+
+.month-card-footer-row {
+  order: 2;
+  flex: 0 0 auto;
+}
+
+.month-card-add-row {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .card-collapse-btn {

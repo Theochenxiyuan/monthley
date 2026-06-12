@@ -215,7 +215,17 @@
     </div>
 
     <Teleport to="body">
-        <UnscheduledPanel v-if="isDesktop" class="unscheduled-floating" />
+        <button
+            v-if="isDesktopLayout"
+            type="button"
+            class="desktop-layout-reset"
+            :title="t('unscheduled.resetLayout')"
+            :aria-label="t('unscheduled.resetLayout')"
+            @click="resetDesktopLayout"
+        >
+            <el-icon size="17"><RefreshLeft /></el-icon>
+        </button>
+        <UnscheduledPanel v-if="isDesktopLayout" class="unscheduled-floating" />
         <Transition name="load-fade">
             <button
                 v-if="timelineStore.canLoadUp && showLoadUp"
@@ -244,7 +254,8 @@ import EntryDialog from "@/components/EntryDialog.vue";
 import MonthCard from "@/components/MonthCard.vue";
 import SearchPanel from "@/components/SearchPanel.vue";
 import UnscheduledPanel from "@/components/UnscheduledPanel.vue";
-import { Search, Plus, Cloudy } from "@element-plus/icons-vue";
+import { Search, Plus, Cloudy, RefreshLeft } from "@element-plus/icons-vue";
+import { useDesktopAppOffset } from "@/composables/useDesktopAppOffset";
 import { useTimelineStore, VISIBLE_WINDOW } from "@/stores/timeline";
 import { useDialogStore } from "@/stores/dialog";
 import { useFiltersStore } from "@/stores/filters";
@@ -259,9 +270,11 @@ import {
 const { t, locale } = useI18n();
 const drawerVisible = ref(false);
 
-const isDesktop = ref(window.innerWidth >= 768);
+const viewportWidth = ref(window.innerWidth);
+const isDesktop = computed(() => viewportWidth.value >= 768);
+const isDesktopLayout = computed(() => viewportWidth.value >= 1184);
 function handleResize() {
-    isDesktop.value = window.innerWidth >= 768;
+    viewportWidth.value = window.innerWidth;
 }
 onMounted(() => window.addEventListener('resize', handleResize));
 onUnmounted(() => window.removeEventListener('resize', handleResize));
@@ -280,6 +293,7 @@ const dialogStore = useDialogStore();
 const filtersStore = useFiltersStore();
 const settingsStore = useSettingsStore();
 const sync = useSync();
+const { resetAppOffset } = useDesktopAppOffset();
 const typeOptions = [
     { label: t("entry.shortTypes.learn"), value: "learn" },
     { label: t("entry.shortTypes.play"), value: "play" },
@@ -420,6 +434,11 @@ async function refreshCloudUpdatedAt(): Promise<void> {
         // Keep the last known cloud timestamp if the status refresh fails.
     }
 }
+
+function resetDesktopLayout(): void {
+    resetAppOffset();
+    window.dispatchEvent(new Event('monthley:reset-desktop-layout'));
+}
 </script>
 
 <style scoped>
@@ -535,14 +554,47 @@ html.pull-refresh-active .load-more-up {
     display: none !important;
 }
 
-@media (min-width: 1100px) {
+.desktop-layout-reset {
+    display: none;
+}
+
+@media (min-width: 1184px) {
     .unscheduled-floating {
         display: flex !important;
-        position: fixed !important;
-        z-index: 90;
-        top: 84px;
-        left: calc(50% + 372px);
+        z-index: 1100;
         max-height: calc(var(--app-height, 100dvh) - 168px);
+    }
+
+    .desktop-layout-reset {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        z-index: 1250;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid var(--el-border-color-lighter);
+        border-radius: 9px;
+        background: color-mix(in srgb, var(--el-bg-color) 86%, transparent);
+        color: var(--el-text-color-secondary);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        backdrop-filter: blur(10px);
+        cursor: pointer;
+        transition:
+            background-color 0.2s ease,
+            border-color 0.2s ease,
+            color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .desktop-layout-reset:hover {
+        border-color: var(--el-color-primary-light-5);
+        background: var(--el-color-primary-light-9);
+        color: var(--el-color-primary);
+        box-shadow: 0 6px 18px rgba(64, 158, 255, 0.12);
     }
 }
 

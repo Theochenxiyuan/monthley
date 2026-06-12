@@ -173,6 +173,8 @@ export default {
   unscheduled: {
     title: '待安排',
     add: '添加待安排计划',
+    resetLayout: '恢复默认布局',
+    resize: '调整大小',
     count: '{count} 个计划',
   },
   entryItem: {
