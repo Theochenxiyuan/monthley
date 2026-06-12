@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { defineAsyncComponent, ref } from 'vue';
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  onUnmounted,
+  ref,
+} from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useStats } from '@/composables/useStats';
+import { useDesktopAppOffset } from '@/composables/useDesktopAppOffset';
 import { Icon } from '@iconify/vue';
 
 const StatCard = defineAsyncComponent(
@@ -19,6 +26,9 @@ const YearHeatmap = defineAsyncComponent(
 const YearSummaryDialog = defineAsyncComponent(
   () => import('@/components/stats/YearSummaryDialog.vue'),
 );
+const YearSummaryPanel = defineAsyncComponent(
+  () => import('@/components/stats/YearSummaryPanel.vue'),
+);
 
 const { t } = useI18n();
 const {
@@ -35,6 +45,41 @@ const {
 
 const showSummary = ref(false);
 const summaryYear = ref(new Date().getFullYear());
+const viewportWidth = ref(window.innerWidth);
+const isDesktopReview = computed(
+  () => viewportWidth.value >= 1032 && totalCount.value > 0,
+);
+const { offsetX } = useDesktopAppOffset();
+const STATS_SIDE_PANEL_MIN_WIDTH = 280;
+const STATS_SIDE_PANEL_MAX_WIDTH = 420;
+const APP_RIGHT_SIDE_LEFT_OFFSET = 372;
+const DESKTOP_SAFE_PADDING = 8;
+const sidePanelStyle = computed(() => {
+  const preferredLeft =
+    viewportWidth.value / 2 + offsetX.value + APP_RIGHT_SIDE_LEFT_OFFSET;
+  const availableWidth =
+    viewportWidth.value - preferredLeft - DESKTOP_SAFE_PADDING;
+  const panelWidth = Math.min(
+    STATS_SIDE_PANEL_MAX_WIDTH,
+    Math.max(STATS_SIDE_PANEL_MIN_WIDTH, availableWidth),
+  );
+  const left = Math.min(
+    preferredLeft,
+    viewportWidth.value - panelWidth - DESKTOP_SAFE_PADDING,
+  );
+  return {
+    left: `${Math.max(DESKTOP_SAFE_PADDING, left)}px`,
+    top: '60px',
+    width: `${panelWidth}px`,
+  };
+});
+
+function handleResize() {
+  viewportWidth.value = window.innerWidth;
+}
+
+onMounted(() => window.addEventListener('resize', handleResize));
+onUnmounted(() => window.removeEventListener('resize', handleResize));
 
 function openSummary() {
   summaryYear.value = new Date().getFullYear();
@@ -46,6 +91,7 @@ function openSummary() {
   <header class="action-bar">
     <span class="action-bar-title">{{ t('stats.title') }}</span>
     <el-button
+      v-if="!isDesktopReview"
       class="summary-btn"
       type="warning"
       size="small"
@@ -120,6 +166,15 @@ function openSummary() {
       </div>
     </template>
   </div>
+
+  <Teleport to="body">
+    <YearSummaryPanel
+      v-if="isDesktopReview"
+      class="year-summary-side-floating"
+      :style="sidePanelStyle"
+      :initial-year="summaryYear"
+    />
+  </Teleport>
 </template>
 
 <style scoped>
@@ -174,5 +229,17 @@ function openSummary() {
     flex: 1;
     min-width: 0;
   }
+}
+
+.year-summary-side-floating {
+  position: fixed;
+  z-index: 1100;
+  height: auto;
+  max-height: calc(var(--app-height, 100dvh) - 128px);
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--el-bg-color) 92%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
 }
 </style>

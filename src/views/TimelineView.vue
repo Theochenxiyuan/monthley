@@ -215,16 +215,6 @@
     </div>
 
     <Teleport to="body">
-        <button
-            v-if="isDesktopLayout"
-            type="button"
-            class="desktop-layout-reset"
-            :title="t('unscheduled.resetLayout')"
-            :aria-label="t('unscheduled.resetLayout')"
-            @click="resetDesktopLayout"
-        >
-            <el-icon size="17"><RefreshLeft /></el-icon>
-        </button>
         <UnscheduledPanel v-if="isDesktopLayout" class="unscheduled-floating" />
         <div class="load-more-container" :style="{ transform: `translateX(${offsetX}px)` }">
             <Transition name="load-fade">
@@ -256,7 +246,7 @@ import EntryDialog from "@/components/EntryDialog.vue";
 import MonthCard from "@/components/MonthCard.vue";
 import SearchPanel from "@/components/SearchPanel.vue";
 import UnscheduledPanel from "@/components/UnscheduledPanel.vue";
-import { Search, Plus, Cloudy, RefreshLeft } from "@element-plus/icons-vue";
+import { Search, Plus, Cloudy } from "@element-plus/icons-vue";
 import { useDesktopAppOffset } from "@/composables/useDesktopAppOffset";
 import { useTimelineStore, VISIBLE_WINDOW } from "@/stores/timeline";
 import { useDialogStore } from "@/stores/dialog";
@@ -295,7 +285,7 @@ const dialogStore = useDialogStore();
 const filtersStore = useFiltersStore();
 const settingsStore = useSettingsStore();
 const sync = useSync();
-const { resetAppOffset, offsetX } = useDesktopAppOffset();
+const { offsetX } = useDesktopAppOffset();
 const typeOptions = [
     { label: t("entry.shortTypes.learn"), value: "learn" },
     { label: t("entry.shortTypes.play"), value: "play" },
@@ -437,10 +427,6 @@ async function refreshCloudUpdatedAt(): Promise<void> {
     }
 }
 
-function resetDesktopLayout(): void {
-    resetAppOffset();
-    window.dispatchEvent(new Event('monthley:reset-desktop-layout'));
-}
 </script>
 
 <style scoped>
@@ -567,47 +553,11 @@ html.pull-refresh-active .load-more-up {
     display: none !important;
 }
 
-.desktop-layout-reset {
-    display: none;
-}
-
 @media (min-width: 984px) {
     .unscheduled-floating {
         display: flex !important;
         z-index: 1100;
         max-height: calc(var(--app-height, 100dvh) - 168px);
-    }
-
-    .desktop-layout-reset {
-        position: fixed;
-        top: 16px;
-        right: 16px;
-        z-index: 1250;
-        width: 32px;
-        height: 32px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 1px solid var(--el-border-color-lighter);
-        border-radius: 9px;
-        background: color-mix(in srgb, var(--el-bg-color) 86%, transparent);
-        color: var(--el-text-color-secondary);
-        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-        backdrop-filter: blur(10px);
-        cursor: pointer;
-        transition:
-            background-color 0.2s ease,
-            border-color 0.2s ease,
-            color 0.2s ease,
-            box-shadow 0.2s ease;
-    }
-
-    .desktop-layout-reset:hover {
-        border-color: var(--el-color-primary-light-5);
-        background: var(--el-color-primary-light-9);
-        color: var(--el-color-primary);
-        box-shadow: 0 6px 18px rgba(64, 158, 255, 0.12);
     }
 }
 

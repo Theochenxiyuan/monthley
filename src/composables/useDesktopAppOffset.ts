@@ -2,10 +2,11 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 const STORAGE_KEY = 'main-app-horizontal-offset';
 const APP_WIDTH = 720;
-const SIDE_PANEL_WIDTH = 220;
+const SIDE_PANEL_WIDTH = 280;
 const SIDE_PANEL_GAP = 12;
 const SAFE_PADDING = 8;
 const DESKTOP_MIN_WIDTH = 768;
+const DEFAULT_LEFT_BIAS = 96;
 
 const offsetX = ref(0);
 const isDraggingApp = ref(false);
@@ -20,7 +21,10 @@ let hasCustomOffset = false;
 function getDefaultOffset(): number {
   if (window.innerWidth < DESKTOP_MIN_WIDTH) return 0;
   const rightEdgeFromCenter = APP_WIDTH / 2 + SIDE_PANEL_GAP + SIDE_PANEL_WIDTH;
-  return Math.min(0, window.innerWidth / 2 - rightEdgeFromCenter - SAFE_PADDING);
+  return Math.min(
+    -DEFAULT_LEFT_BIAS,
+    window.innerWidth / 2 - rightEdgeFromCenter - SAFE_PADDING,
+  );
 }
 
 function clampOffset(nextOffset: number): number {

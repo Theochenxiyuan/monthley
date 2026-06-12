@@ -86,6 +86,8 @@ export default {
     expandAll: 'Always expand all months',
     expandAllTooltip:
       'If not selected, months with all plans completed in the past and all plans not started in the future will be collapsed by default, showing condensed text',
+    quickSettings: 'Quick Settings',
+    fullSettings: 'Open Full Settings',
     exportTimeline: 'Export Timeline',
     importTimeline: 'Import Timeline',
     exportSuccess: 'Export successful',

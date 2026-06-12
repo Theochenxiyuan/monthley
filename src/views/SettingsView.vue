@@ -43,7 +43,7 @@
           {{ t('settings.expandAll') }}
           <el-tooltip placement="top">
             <template #content>
-              <div style="max-width: 80vw">
+              <div style="max-width: 240px">
                 {{ t('settings.expandAllTooltip') }}
               </div>
             </template>

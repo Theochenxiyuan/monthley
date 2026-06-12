@@ -86,13 +86,16 @@ export default {
     expandAll: '默认展开所有月份',
     expandAllTooltip:
       '如果不选择展开，默认会将"已完成所有计划的过去月份"和"所有计划都未开始的未来月份"折叠起来，并显示精简文字',
+    quickSettings: '快捷设置',
+    fullSettings: '打开完整设置',
     exportTimeline: '导出时间线',
     importTimeline: '导入时间线',
     exportSuccess: '导出成功',
     exportError: '导出失败',
     importSuccess: '导入成功',
     importSuccessWithCount: '导入成功，恢复 {count} 个计划',
-    importNoEntriesRestored: '导入完成，但未恢复任何计划（导入文件包含 {count} 个计划）',
+    importNoEntriesRestored:
+      '导入完成，但未恢复任何计划（导入文件包含 {count} 个计划）',
     importError: '导入失败',
     confirmImport: '导入将合并现有数据，确定继续？',
     importWarning: '注意：导入会合并现有数据，不会覆盖',
@@ -200,7 +203,7 @@ export default {
     },
   },
   stats: {
-    title: '统计回顾',
+    title: '统计',
     noData: '暂无数据，开始添加计划吧',
     moreComing: '更多统计图表即将推出…',
     totalEntries: '总计划',
@@ -234,7 +237,8 @@ export default {
     aiTab: 'AI 总结',
     statsTab: '数据统计',
     aiEmptyTitle: '让 AI 写下这一年的回声',
-    aiEmptyDescription: '基于该年份的记录、完成情况和月份节奏，生成一份更像年度信件的总结。',
+    aiEmptyDescription:
+      '基于该年份的记录、完成情况和月份节奏，生成一份更像年度信件的总结。',
     aiPrivacyNote: '生成时会将该年份的记录摘要发送给 AI 服务。',
     generateAi: '生成 AI 总结',
     regenerateAi: '重新生成总结',
@@ -258,12 +262,14 @@ export default {
   },
   syncOnboarding: {
     title: '启用云端同步？',
-    description: '同步密钥可以帮助你在不同设备之间恢复和同步时间线。不使用同步也可以，数据会仅保存在本机。',
+    description:
+      '同步密钥可以帮助你在不同设备之间恢复和同步时间线。不使用同步也可以，数据会仅保存在本机。',
     createNewKey: '创建新密钥',
     useExistingKey: '输入已有密钥',
     skip: '暂时跳过（仅本地存储）',
     existingDescription: '输入已有同步密钥后，会从云端恢复该密钥对应的时间线。',
-    generatedDescription: '新密钥已创建。请妥善保存它，之后可以在其他设备上使用。',
+    generatedDescription:
+      '新密钥已创建。请妥善保存它，之后可以在其他设备上使用。',
     copySuccess: '已复制密钥',
     copyFailed: '复制失败',
   },
@@ -271,7 +277,8 @@ export default {
     title: '云端同步',
     syncKey: '同步密钥',
     generateKey: '生成新密钥',
-    confirmGenerateKey: '生成新密钥后，请妥善保存。若当前已有密钥，新密钥会替换现有密钥，之后需要使用新密钥同步。确定继续？',
+    confirmGenerateKey:
+      '生成新密钥后，请妥善保存。若当前已有密钥，新密钥会替换现有密钥，之后需要使用新密钥同步。确定继续？',
     syncNow: '立即同步',
     clearKey: '清除密钥',
     useExistingKey: '使用已有密钥',
@@ -280,7 +287,8 @@ export default {
     showQrCode: '显示二维码',
     scanQrCode: '扫描二维码导入',
     qrTitle: '同步密钥二维码',
-    qrSecurityWarning: '任何看到此二维码的人都可以使用你的同步密钥。请只在可信设备之间展示或扫码。',
+    qrSecurityWarning:
+      '任何看到此二维码的人都可以使用你的同步密钥。请只在可信设备之间展示或扫码。',
     confirmShowQrCode: '二维码会暴露你的同步密钥。请确认周围环境安全后再显示。',
     confirmImportKey: '导入后会使用此同步密钥，并尝试从云端同步。确定继续？',
     confirmReplaceKey: '导入后会替换当前同步密钥，并尝试从云端同步。确定继续？',
@@ -296,7 +304,8 @@ export default {
     syncFailed: '同步失败',
     restoredFromCloud: '已从云端恢复数据',
     errorNotConfigured: '同步未配置，请检查 Supabase 环境变量',
-    errorCloudFileMissing: '云端同步文件不存在，同步密钥可能已失效或云端数据已被删除',
+    errorCloudFileMissing:
+      '云端同步文件不存在，同步密钥可能已失效或云端数据已被删除',
     errorInProgress: '同步正在进行中，请稍后再试',
     errorNetwork: '网络异常，同步失败，请稍后重试',
     errorPermission: '同步权限不足，请检查云端存储策略或同步密钥',

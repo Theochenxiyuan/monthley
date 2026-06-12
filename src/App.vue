@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from './stores/settings';
@@ -15,8 +15,24 @@ const timelineStore = useTimelineStore();
 const settingsStore = useSettingsStore();
 const { init: initSync } = useSync();
 const route = useRoute();
+const router = useRouter();
 const activeRoute = computed(() => route.path);
-const { appOffsetStyle, isDraggingApp, startDraggingApp } = useDesktopAppOffset();
+const { appOffsetStyle, isDraggingApp, resetAppOffset, startDraggingApp } = useDesktopAppOffset();
+
+const quickSettingsPopover = ref<{ hide: () => void } | null>(null);
+const isQuickSettingsOpen = ref(false);
+
+const currentLanguage = computed({
+  get: () => settingsStore.language,
+  set: (value) => {
+    settingsStore.setLanguage(value);
+  },
+});
+
+function goToSettings() {
+  quickSettingsPopover.value?.hide();
+  router.push('/settings');
+}
 
 const scrollPositions: Record<string, number> = {};
 const appEl = ref<HTMLElement | null>(null);
@@ -106,6 +122,11 @@ function stopDragHintLoop() {
   if (dragHintFrame === null) return;
   cancelAnimationFrame(dragHintFrame);
   dragHintFrame = null;
+}
+
+function resetDesktopLayout() {
+  resetAppOffset();
+  window.dispatchEvent(new Event('monthley:reset-desktop-layout'));
 }
 
 function resetPullRefresh() {
@@ -334,6 +355,92 @@ watch(
       />
     </div>
     <Teleport to="body">
+      <el-popover
+        v-if="isDesktop"
+        ref="quickSettingsPopover"
+        trigger="click"
+        placement="bottom-end"
+        :offset="8"
+        popper-class="quick-settings-popover"
+        :width="280"
+        @show="isQuickSettingsOpen = true"
+        @hide="isQuickSettingsOpen = false"
+      >
+        <template #reference>
+          <button
+            type="button"
+            class="quick-settings-btn"
+            :title="t('settings.quickSettings')"
+            :aria-label="t('settings.quickSettings')"
+            :class="{ 'is-active': isQuickSettingsOpen }"
+          >
+            <el-icon size="17"><Setting /></el-icon>
+          </button>
+        </template>
+
+        <div class="quick-settings-panel">
+          <div class="quick-settings-row">
+            <span class="quick-settings-label">{{ t('settings.language') }}</span>
+            <el-select v-model="currentLanguage" size="default" style="width: 150px">
+              <el-option label="中文" value="zh-CN" />
+              <el-option label="English" value="en-US" />
+            </el-select>
+          </div>
+
+          <div class="quick-settings-row">
+            <span class="quick-settings-label">{{ t('settings.appearance') }}</span>
+            <el-switch
+              v-model="settingsStore.isDark"
+              size="large"
+              style="
+                --el-switch-off-color: #dcdfe6;
+                --el-switch-on-color: #333333;
+                --el-switch-off-text-color: #606266;
+                --el-switch-on-text-color: #ffffff;
+              "
+              :active-text="t('settings.dark')"
+              :inactive-text="t('settings.light')"
+              inactive-action-icon="Sunny"
+              active-action-icon="Moon"
+              inline-prompt
+            />
+          </div>
+
+          <div class="quick-settings-row">
+            <span class="quick-settings-label">
+              {{ t('settings.expandAll') }}
+              <el-tooltip placement="top">
+                <template #content>
+                  <div style="max-width: 240px">{{ t('settings.expandAllTooltip') }}</div>
+                </template>
+                <el-icon class="quick-settings-hint"><QuestionFilled /></el-icon>
+              </el-tooltip>
+            </span>
+            <el-switch
+              v-model="settingsStore.expandAll"
+              size="large"
+              inline-prompt
+            />
+          </div>
+
+          <el-divider style="margin: 10px 0" />
+
+          <el-button link type="primary" @click="goToSettings">
+            {{ t('settings.fullSettings') }}
+          </el-button>
+        </div>
+      </el-popover>
+
+      <button
+        v-if="isDesktop"
+        type="button"
+        class="desktop-layout-reset"
+        :title="t('unscheduled.resetLayout')"
+        :aria-label="t('unscheduled.resetLayout')"
+        @click="resetDesktopLayout"
+      >
+        <el-icon size="17"><RefreshLeft /></el-icon>
+      </button>
       <div
         v-if="isDraggingApp"
         class="app-drag-hints"
@@ -422,6 +529,116 @@ watch(
 
 .app-drag-hint--right {
   right: -30px;
+}
+
+.desktop-layout-reset {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktop-layout-reset {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 1250;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--el-bg-color) 86%, transparent);
+    color: var(--el-text-color-secondary);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .desktop-layout-reset:hover {
+    border-color: var(--el-color-primary-light-5);
+    background: var(--el-color-primary-light-9);
+    color: var(--el-color-primary);
+    box-shadow: 0 6px 18px rgba(64, 158, 255, 0.12);
+  }
+
+  .quick-settings-btn {
+    position: fixed;
+    top: 16px;
+    right: 52px;
+    z-index: 1250;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--el-border-color-lighter);
+    border-radius: 9px;
+    background: color-mix(in srgb, var(--el-bg-color) 86%, transparent);
+    color: var(--el-text-color-secondary);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .quick-settings-btn.is-active,
+  .quick-settings-btn:hover {
+    border-color: var(--el-color-primary-light-5);
+    background: var(--el-color-primary-light-9);
+    color: var(--el-color-primary);
+    box-shadow: 0 6px 18px rgba(64, 158, 255, 0.12);
+  }
+}
+
+:global(.quick-settings-popover) {
+  padding: 12px 16px !important;
+}
+
+.quick-settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+}
+
+.quick-settings-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--el-text-color-regular);
+  font-size: 0.85rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.quick-settings-hint {
+  color: var(--el-text-color-placeholder);
+  font-size: 0.85rem;
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.quick-settings-hint:hover {
+  color: var(--el-text-color-secondary);
 }
 
 .main-content {
