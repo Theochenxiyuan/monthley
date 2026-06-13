@@ -189,6 +189,7 @@ export default {
     loading: 'AI is analyzing...',
     empty: 'No unscheduled plans',
     error: 'AI scheduling failed, please try again later',
+    success: 'Scheduled {count} plan(s)',
     preConfirmTitle: 'AI Auto Schedule',
     preConfirmMessage: 'Your unscheduled plan names and notes will be sent to AI for analysis. AI will suggest target months based on content semantics and current timeline workload. This may take a few seconds.',
   },

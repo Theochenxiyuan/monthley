@@ -2,12 +2,16 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { formatMonth } from '@/utils/dateFormatter';
-import type { AutoSchedulePlanItem } from '@/types/models';
-import type { TimelineEntry } from '@/types/models';
+import type { AutoSchedulePlanItem, EntryType } from '@/types/models';
+
+type DisplayPlanItem = AutoSchedulePlanItem & {
+  entryName: string;
+  entryType: EntryType;
+};
 
 const props = defineProps<{
   modelValue: boolean;
-  plan: (AutoSchedulePlanItem & { entryName: string })[];
+  plan: DisplayPlanItem[];
 }>();
 
 const emit = defineEmits<{
@@ -22,7 +26,7 @@ const visible = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
-function formatTargetMonth(item: AutoSchedulePlanItem & { entryName: string }) {
+function formatTargetMonth(item: DisplayPlanItem) {
   return formatMonth({ year: item.targetYear, month: item.targetMonth });
 }
 
@@ -41,7 +45,10 @@ function onConfirm() {
   >
     <div class="schedule-plan">
       <div v-for="item in plan" :key="item.entryId" class="plan-item">
-        <span class="plan-entry-name">{{ item.entryName }}</span>
+        <span class="plan-entry">
+          <span class="plan-entry-type">{{ t(`entry.shortTypes.${item.entryType}`) }}</span>
+          <span class="plan-entry-name">{{ item.entryName }}</span>
+        </span>
         <span class="plan-arrow">→</span>
         <span class="plan-target-month">{{ formatTargetMonth(item) }}</span>
       </div>
@@ -69,8 +76,25 @@ function onConfirm() {
   padding: 8px 0;
 }
 
-.plan-entry-name {
+.plan-entry {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-entry-type {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 6px;
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.plan-entry-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

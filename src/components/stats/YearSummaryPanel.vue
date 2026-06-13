@@ -9,6 +9,7 @@ import type { YearData } from '@/composables/useYearSummary';
 import type { EntryType } from '@/types/models';
 import { entryTypes } from '@/types/models';
 import { useTimelineStore } from '@/stores/timeline';
+import { useStatsStore } from '@/stores/stats';
 import { supabase } from '@/lib/supabase';
 
 const props = defineProps<{
@@ -17,8 +18,13 @@ const props = defineProps<{
 
 const { t, locale } = useI18n();
 const timelineStore = useTimelineStore();
+const statsStore = useStatsStore();
+statsStore.init(props.initialYear);
 
-const currentYear = ref(props.initialYear);
+const currentYear = computed({
+  get: () => statsStore.selectedYear ?? props.initialYear,
+  set: (val) => { statsStore.selectedYear = val; },
+});
 const { yearData, availableYears } = useYearSummary(currentYear);
 const activeTab = ref<'ai' | 'stats'>('ai');
 

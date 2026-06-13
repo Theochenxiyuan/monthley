@@ -4,7 +4,12 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { supabase } from '@/lib/supabase';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from '@/stores/settings';
-import type { AutoSchedulePlanItem } from '@/types/models';
+import type { AutoSchedulePlanItem, EntryType } from '@/types/models';
+
+type DisplayPlanItem = AutoSchedulePlanItem & {
+  entryName: string;
+  entryType: EntryType;
+};
 
 interface AutoScheduleResponse {
   data: {
@@ -17,7 +22,7 @@ export function useAutoSchedule() {
   const timelineStore = useTimelineStore();
   const settingsStore = useSettingsStore();
   const isScheduling = ref(false);
-  const schedulePlan = ref<(AutoSchedulePlanItem & { entryName: string })[]>([]);
+  const schedulePlan = ref<DisplayPlanItem[]>([]);
   const confirmVisible = ref(false);
 
   async function requestAutoSchedule() {
@@ -90,6 +95,7 @@ export function useAutoSchedule() {
         return {
           ...item,
           entryName: entry?.name ?? item.entryId,
+          entryType: entry?.type ?? 'learn',
         };
       });
 
@@ -104,8 +110,10 @@ export function useAutoSchedule() {
   }
 
   function confirmSchedule() {
+    const count = schedulePlan.value.length;
     timelineStore.batchMoveUnscheduled(schedulePlan.value);
     schedulePlan.value = [];
+    ElMessage.success(t('autoSchedule.success', { count }));
   }
 
   return {
