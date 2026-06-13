@@ -396,12 +396,6 @@ const collapsedSummary = computed(() => {
 }
 .timeline-entry-draggable {
   order: 1;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  -webkit-user-drag: none;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
 }
 .drag > div {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
