@@ -50,3 +50,10 @@ export interface SettingsState {
   syncKey: string | null;
   settings: {};
 }
+
+export interface AutoSchedulePlanItem {
+  entryId: string;
+  targetYear: number;
+  targetMonth: number;
+  reason: string;
+}

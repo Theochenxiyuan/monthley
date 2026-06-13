@@ -264,6 +264,21 @@ export const useTimelineStore = defineStore("timeline", {
       this.saveLocal();
       return true;
     },
+    moveUnscheduledToCurrentMonth(entryId: string) {
+      const now = new Date();
+      return this.moveUnscheduledToMonth(entryId, {
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+      });
+    },
+    batchMoveUnscheduled(plan: { entryId: string; targetYear: number; targetMonth: number }[]) {
+      for (const item of plan) {
+        this.moveUnscheduledToMonth(item.entryId, {
+          year: item.targetYear,
+          month: item.targetMonth,
+        });
+      }
+    },
     moveMonthEntryToUnscheduled(
       entryId: string,
       oldMonth: Omit<TimelineMonth, "entries">,

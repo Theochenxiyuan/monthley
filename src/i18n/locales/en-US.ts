@@ -168,6 +168,7 @@ export default {
     andMore: 'and {count} more',
     start: 'Start',
     complete: 'Complete',
+    moveToCurrentMonth: 'Move to current month',
     edit: 'Edit',
     delete: 'Delete',
     collapse: 'Collapse',
@@ -179,6 +180,17 @@ export default {
     resetLayout: 'Reset layout',
     resize: 'Resize',
     count: '{count} plan(s)',
+    aiSchedule: 'AI Auto Schedule',
+  },
+  autoSchedule: {
+    title: 'AI Schedule Plan',
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+    loading: 'AI is analyzing...',
+    empty: 'No unscheduled plans',
+    error: 'AI scheduling failed, please try again later',
+    preConfirmTitle: 'AI Auto Schedule',
+    preConfirmMessage: 'Your unscheduled plan names and notes will be sent to AI for analysis. AI will suggest target months based on content semantics and current timeline workload. This may take a few seconds.',
   },
   entryItem: {
     statusType: {

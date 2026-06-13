@@ -4,17 +4,25 @@
             <span class="action-bar-title">{{ t("timeline.title") }}</span>
             <el-button
                 v-if="!isWideDesktop"
-                class="sync-status-btn"
                 type="primary"
                 size="small"
                 plain
+                class="sync-status-mobile-btn"
                 @click="syncStatusVisible = true"
             >
-                <el-icon><Cloudy /></el-icon>
-                <span>{{ t("sync.statusTitle") }}</span>
+                <el-icon size="18"><Cloudy /></el-icon>
             </el-button>
         </div>
         <div class="action-bar-actions">
+            <el-button
+                v-if="!isDesktopLayout"
+                type="primary"
+                size="small"
+                plain
+                @click.stop="unscheduledVisible = true"
+            >
+                {{ t('unscheduled.title') }} ({{ timelineStore.unscheduledEntries.length }})
+            </el-button>
             <el-button type="primary" text @click="drawerVisible = true"
                 ><el-icon size="20"><Operation /></el-icon
             ></el-button>
@@ -163,6 +171,68 @@
             </template>
         </el-dialog>
 
+        <el-dialog
+            v-model="unscheduledVisible"
+            :title="t('unscheduled.title')"
+            width="360px"
+            class="unscheduled-dialog"
+            align-center
+        >
+            <div v-if="timelineStore.unscheduledEntries.length === 0" class="unscheduled-empty">
+                <el-text type="info">{{ t('common.none') }}</el-text>
+            </div>
+            <div v-else class="unscheduled-list">
+                <el-dropdown
+                    v-for="entry in timelineStore.unscheduledEntries"
+                    :key="entry.id"
+                    placement="bottom"
+                    trigger="click"
+                    size="large"
+                    teleported
+                    class="unscheduled-entry-item"
+                >
+                    <EntryItem :entry="entry" />
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item
+                                @click="timelineStore.moveUnscheduledToCurrentMonth(entry.id)"
+                            >
+                                <el-text size="large" type="primary">{{ t('monthCard.moveToCurrentMonth') }}</el-text>
+                            </el-dropdown-item>
+                            <el-dropdown-item
+                                @click="dialogStore.open({ isUnscheduled: true, month: null, ...entry }, entry.id)"
+                            >
+                                <el-text size="large" type="warning">{{ t('monthCard.edit') }}</el-text>
+                            </el-dropdown-item>
+                            <el-dropdown-item @click="handleDeleteUnscheduled(entry.id)">
+                                <el-text size="large" type="danger">{{ t('monthCard.delete') }}</el-text>
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </div>
+            <template #footer>
+                <div class="unscheduled-footer">
+                    <el-button plain @click="dialogStore.open({ isUnscheduled: true })">
+                        <el-icon><Plus /></el-icon>{{ t('common.add') }}
+                    </el-button>
+                    <el-button
+                        type="primary"
+                        :loading="isScheduling"
+                        @click="requestAutoSchedule"
+                    >
+                        <template #icon><MagicStick /></template>{{ t('unscheduled.aiSchedule') }}
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+        <AIScheduleConfirmDialog
+            v-model="autoScheduleConfirmVisible"
+            :plan="autoSchedulePlan"
+            @confirm="confirmSchedule"
+        />
+
         <el-timeline>
             <el-timeline-item
                 :timestamp="
@@ -247,13 +317,17 @@ import EntryDialog from "@/components/EntryDialog.vue";
 import MonthCard from "@/components/MonthCard.vue";
 import SearchPanel from "@/components/SearchPanel.vue";
 import UnscheduledPanel from "@/components/UnscheduledPanel.vue";
-import { Search, Plus, Cloudy } from "@element-plus/icons-vue";
+import { Search, Plus, Cloudy, MagicStick } from "@element-plus/icons-vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { useDesktopAppOffset } from "@/composables/useDesktopAppOffset";
+import EntryItem from "@/components/EntryItem.vue";
 import { useTimelineStore, VISIBLE_WINDOW } from "@/stores/timeline";
 import { useDialogStore } from "@/stores/dialog";
 import { useFiltersStore } from "@/stores/filters";
 import { useSettingsStore } from "@/stores/settings";
 import { useSync } from "@/composables/useSync";
+import { useAutoSchedule } from "@/composables/useAutoSchedule";
+import AIScheduleConfirmDialog from "@/components/AIScheduleConfirmDialog.vue";
 import {
     formatMonth,
     isCurrentMonth,
@@ -277,6 +351,7 @@ const drawerDirection = computed(() => isDesktop.value ? 'ltr' : 'ttb');
 const drawerSize = computed(() => isDesktop.value ? '340px' : 'auto');
 const searchVisible = ref(false);
 const syncStatusVisible = ref(false);
+const unscheduledVisible = ref(false);
 const highlightEntryId = ref<string | undefined>(undefined);
 const highlightYear = ref<number>(0);
 const highlightMonth = ref<number>(0);
@@ -285,11 +360,12 @@ const showLoadDown = ref(false);
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
 const hasActiveOverlay = computed(() =>
-    dialogStore.visible || drawerVisible.value || searchVisible.value || syncStatusVisible.value,
+    dialogStore.visible || drawerVisible.value || searchVisible.value || syncStatusVisible.value || unscheduledVisible.value,
 );
 const filtersStore = useFiltersStore();
 const settingsStore = useSettingsStore();
 const sync = useSync();
+const { isScheduling, schedulePlan: autoSchedulePlan, confirmVisible: autoScheduleConfirmVisible, requestAutoSchedule, confirmSchedule } = useAutoSchedule();
 const { offsetX } = useDesktopAppOffset();
 const typeOptions = [
     { label: t("entry.shortTypes.learn"), value: "learn" },
@@ -432,6 +508,26 @@ async function refreshCloudUpdatedAt(): Promise<void> {
     }
 }
 
+function handleDeleteUnscheduled(entryId: string): void {
+    ElMessageBox.confirm(
+        t('monthCard.confirmDelete'),
+        t('monthCard.deleteEntry'),
+        {
+            confirmButtonText: t('monthCard.confirm'),
+            cancelButtonText: t('monthCard.cancel'),
+            type: 'info',
+        },
+    )
+        .then(() => {
+            timelineStore.deleteUnscheduledEntry(entryId);
+            ElMessage({
+                type: 'success',
+                message: t('monthCard.deleteSuccess'),
+            });
+        })
+        .catch(() => {});
+}
+
 </script>
 
 <style scoped>
@@ -471,6 +567,10 @@ async function refreshCloudUpdatedAt(): Promise<void> {
 :deep(.el-timeline-item) {
     transition: border-color 0.3s ease;
 }
+.sync-status-mobile-btn {
+    border-radius: 16px;
+    padding: 4px;
+}
 .sync-status-btn {
     border-radius: 999px;
     padding: 2px 10px;
@@ -487,6 +587,7 @@ async function refreshCloudUpdatedAt(): Promise<void> {
     padding: 4px 8px;
     font-size: 0.8rem;
     margin-left: 6px;
+    border-radius: 16px;
 }
 .sync-status-content {
     display: flex;
@@ -497,6 +598,43 @@ async function refreshCloudUpdatedAt(): Promise<void> {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.unscheduled-dialog :deep(.el-dialog) {
+    margin: 0 auto;
+}
+
+.unscheduled-dialog :deep(.el-dialog__body) {
+    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.unscheduled-footer {
+    display: flex;
+    gap: 8px;
+}
+
+.unscheduled-footer .el-button {
+    flex: 1;
+}
+
+.unscheduled-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.unscheduled-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 0;
+    color: var(--el-text-color-secondary);
+}
+
+.unscheduled-entry-item {
+    display: inline-block;
 }
 </style>
 

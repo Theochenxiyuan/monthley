@@ -168,6 +168,7 @@ export default {
     andMore: '等{count}项',
     start: '开始',
     complete: '完成',
+    moveToCurrentMonth: '移到当前月',
     edit: '编辑',
     delete: '删除',
     collapse: '收起',
@@ -179,6 +180,17 @@ export default {
     resetLayout: '恢复默认布局',
     resize: '调整大小',
     count: '{count} 个计划',
+    aiSchedule: 'AI 一键安排',
+  },
+  autoSchedule: {
+    title: 'AI 安排方案',
+    confirm: '确认安排',
+    cancel: '取消',
+    loading: 'AI 正在分析...',
+    empty: '暂无待安排计划',
+    error: 'AI 安排失败，请稍后重试',
+    preConfirmTitle: 'AI 一键安排',
+    preConfirmMessage: '将把待安排计划的名称和备注信息发送给 AI 进行分析，AI 会根据内容语义和当前时间线负载来建议安排月份。整个过程可能需要几秒钟，请耐心等待。',
   },
   entryItem: {
     statusType: {

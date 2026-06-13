@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import EntryItem from './EntryItem.vue';
+import AIScheduleConfirmDialog from './AIScheduleConfirmDialog.vue';
 import Draggable from 'vuedraggable';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { MagicStick } from '@element-plus/icons-vue';
 import { useDialogStore } from '@/stores/dialog';
 import { useTimelineStore } from '@/stores/timeline';
 import { useDraggablePanel } from '@/composables/useDraggablePanel';
 import { useDesktopAppOffset } from '@/composables/useDesktopAppOffset';
+import { useAutoSchedule } from '@/composables/useAutoSchedule';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 const { t } = useI18n();
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
+const { isScheduling, schedulePlan: autoSchedulePlan, confirmVisible: autoScheduleConfirmVisible, requestAutoSchedule, confirmSchedule } = useAutoSchedule();
 const panelRef = ref<HTMLElement | null>(null);
 const { offsetX: appOffsetX, resetAppOffset } = useDesktopAppOffset();
 
@@ -107,6 +111,16 @@ function handleDelete(entryId: string): void {
           type="primary"
           text
           size="small"
+          :title="t('unscheduled.aiSchedule')"
+          :loading="isScheduling"
+          @click="requestAutoSchedule"
+        >
+          <template #icon><MagicStick /></template>
+        </ElButton>
+        <ElButton
+          type="primary"
+          text
+          size="small"
           :title="t('unscheduled.add')"
           @click="dialogStore.open({ isUnscheduled: true })"
         >
@@ -142,15 +156,9 @@ function handleDelete(entryId: string): void {
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item
-                    v-if="entry.element.status !== 'completed'"
-                    @click="timelineStore.toNextStatusUnscheduled(entry.element.id)"
+                    @click="timelineStore.moveUnscheduledToCurrentMonth(entry.element.id)"
                   >
-                    <el-text
-                      size="large"
-                      :type="entry.element.status === 'in_progress' ? 'success' : 'primary'"
-                    >
-                      {{ entry.element.status === 'in_progress' ? t('monthCard.complete') : t('monthCard.start') }}
-                    </el-text>
+                    <el-text size="large" type="primary">{{ t('monthCard.moveToCurrentMonth') }}</el-text>
                   </el-dropdown-item>
                   <el-dropdown-item
                     @click="
@@ -186,6 +194,12 @@ function handleDelete(entryId: string): void {
       @dblclick="resetDesktopLayout"
     ></button>
   </aside>
+
+  <AIScheduleConfirmDialog
+    v-model="autoScheduleConfirmVisible"
+    :plan="autoSchedulePlan"
+    @confirm="confirmSchedule"
+  />
 </template>
 
 <style scoped>
