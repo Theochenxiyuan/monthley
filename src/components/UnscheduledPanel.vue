@@ -301,6 +301,12 @@ function handleDelete(entryId: string): void {
   order: 1;
   width: max-content;
   max-width: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .unscheduled-empty {

@@ -37,7 +37,10 @@ const getStatusText = (entry: TimelineEntry): string => {
 </script>
 
 <template>
-  <div :class="['entry-item', { 'entry-item--warning': warningHighlight }]">
+  <div
+    :class="['entry-item', { 'entry-item--warning': warningHighlight }]"
+    @contextmenu.prevent
+  >
     <el-tag
       size="large"
       :type="getEntryColorFromStatus(entry.status)"
@@ -84,7 +87,18 @@ const getStatusText = (entry: TimelineEntry): string => {
   position: relative;
   display: inline-block;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.entry-item * {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
 }
 .entry-item:hover {
   transform: translateY(-1px);
