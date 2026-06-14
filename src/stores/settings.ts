@@ -21,6 +21,7 @@ export const useSettingsStore = defineStore("settings", {
     isDark: useDark(),
     language: "zh-CN",
     expandAll: false,
+    autoSchedulePrompt: "",
     syncKey: null as string | null,
   }),
 
@@ -39,6 +40,7 @@ export const useSettingsStore = defineStore("settings", {
           this.isDark = typeof settings.isDark === "boolean" ? settings.isDark : this.isDark;
           this.language = isSupportedLanguage(settings.language) ? settings.language : "zh-CN";
           this.expandAll = typeof settings.expandAll === "boolean" ? settings.expandAll : false;
+          this.autoSchedulePrompt = typeof settings.autoSchedulePrompt === "string" ? settings.autoSchedulePrompt : "";
           this.syncKey = isValidSyncKey(settings.syncKey) ? settings.syncKey : null;
         } catch (err) {
           console.error("Error loading settings:", err);

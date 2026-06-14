@@ -234,6 +234,12 @@
             @confirm="handleConfirmAutoSchedule"
         />
 
+        <AutoSchedulePromptDialog
+            v-model="autoSchedulePromptVisible"
+            :loading="isScheduling"
+            @confirm="performAutoSchedule"
+        />
+
         <el-timeline>
             <el-timeline-item
                 :timestamp="
@@ -331,6 +337,7 @@ import { useSettingsStore } from "@/stores/settings";
 import { useSync } from "@/composables/useSync";
 import { useAutoSchedule } from "@/composables/useAutoSchedule";
 import AIScheduleConfirmDialog from "@/components/AIScheduleConfirmDialog.vue";
+import AutoSchedulePromptDialog from "@/components/AutoSchedulePromptDialog.vue";
 import {
     formatMonth,
     isCurrentMonth,
@@ -374,7 +381,15 @@ const hasActiveOverlay = computed(() =>
 const filtersStore = useFiltersStore();
 const settingsStore = useSettingsStore();
 const sync = useSync();
-const { isScheduling, schedulePlan: autoSchedulePlan, confirmVisible: autoScheduleConfirmVisible, requestAutoSchedule, confirmSchedule } = useAutoSchedule();
+const {
+    isScheduling,
+    schedulePlan: autoSchedulePlan,
+    confirmVisible: autoScheduleConfirmVisible,
+    promptVisible: autoSchedulePromptVisible,
+    requestAutoSchedule,
+    performAutoSchedule,
+    confirmSchedule,
+} = useAutoSchedule();
 const { offsetX } = useDesktopAppOffset();
 const typeOptions = [
     { label: t("entry.shortTypes.learn"), value: "learn" },

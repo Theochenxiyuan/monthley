@@ -22,6 +22,7 @@ interface AutoScheduleRequest {
   months: MonthData[];
   currentDate: string;
   locale?: 'zh-CN' | 'en-US';
+  userInstruction?: string;
 }
 
 interface SchedulePlan {
@@ -77,6 +78,9 @@ function buildPrompt(body: AutoScheduleRequest) {
   const unscheduledList = body.unscheduled
     .map((e) => `- [${e.id}] [${e.type}/${e.status}] ${e.name}${e.notes ? ` (${e.notes})` : ''}`)
     .join('\n');
+  const userInstruction = typeof body.userInstruction === 'string' && body.userInstruction.trim()
+    ? body.userInstruction.trim()
+    : '(none)';
 
   return `You are a scheduling assistant for Monthley, a private timeline app. Your task is to assign each unscheduled plan to the most appropriate future month.
 
@@ -91,6 +95,11 @@ Rules:
 5. Use semantic clues from the plan's name and notes (e.g., "summer vacation" → July/August, "year-end review" → December).
 6. Entry types: learn=learning, play=leisure/games, watch=watching, read=reading. Statuses: not_started, in_progress, completed.
 7. A completed entry in a month still counts as workload for that month.
+8. Treat the user's scheduling preference as a soft constraint: follow it when possible, but never violate the hard constraints above.
+9. The "reason" field must be written in ${language}.
+
+User scheduling preference:
+${userInstruction}
 
 Current timeline (current month and future):
 ${monthSummary}

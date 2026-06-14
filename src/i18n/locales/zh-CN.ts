@@ -192,7 +192,14 @@ export default {
     partial: 'AI 只返回了部分有效安排，已过滤无效项目',
     success: '已安排 {count} 个计划',
     preConfirmTitle: 'AI 一键安排',
-    preConfirmMessage: '将把待安排计划的名称和备注信息发送给 AI 进行分析，AI 会根据内容语义和当前时间线负载来建议安排月份。整个过程可能需要几秒钟，请耐心等待。',
+    preConfirmMessage: 'AI 会根据内容语义、当前与未来月份负载，以及你的额外偏好来建议安排月份。整个过程可能需要几秒钟。',
+    sendTitle: '会发送给 AI',
+    sendDescription: '待安排计划的名称、备注、类型、状态，以及当前和未来月份的条目信息。',
+    notSendTitle: '不会发送',
+    notSendDescription: '同步密钥、主题设置、语言设置和其他本机偏好。',
+    userInstructionLabel: '额外安排偏好',
+    userInstructionPlaceholder: '例如：每个月只玩一款游戏；学习类尽量排在前几个月；年底留给总结类计划。',
+    start: '开始 AI 安排',
   },
   entryItem: {
     statusType: {

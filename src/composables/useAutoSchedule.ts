@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { supabase } from '@/lib/supabase';
 import { useTimelineStore } from '@/stores/timeline';
 import { useSettingsStore } from '@/stores/settings';
@@ -28,8 +28,9 @@ export function useAutoSchedule() {
   const isScheduling = ref(false);
   const schedulePlan = ref<DisplayPlanItem[]>([]);
   const confirmVisible = ref(false);
+  const promptVisible = ref(false);
 
-  async function requestAutoSchedule() {
+  function requestAutoSchedule() {
     if (isScheduling.value) return;
     if (timelineStore.unscheduledEntries.length === 0) {
       ElMessage.info(t('autoSchedule.empty'));
@@ -41,20 +42,17 @@ export function useAutoSchedule() {
       return;
     }
 
-    try {
-      await ElMessageBox.confirm(
-        t('autoSchedule.preConfirmMessage'),
-        t('autoSchedule.preConfirmTitle'),
-        {
-          confirmButtonText: t('autoSchedule.confirm'),
-          cancelButtonText: t('autoSchedule.cancel'),
-          type: 'info',
-        },
-      );
-    } catch {
+    promptVisible.value = true;
+  }
+
+  async function performAutoSchedule() {
+    if (isScheduling.value) return;
+    if (!supabase) {
+      ElMessage.error(t('sync.errorNotConfigured'));
       return;
     }
 
+    promptVisible.value = false;
     isScheduling.value = true;
     try {
       const now = new Date();
@@ -88,6 +86,7 @@ export function useAutoSchedule() {
           })),
           currentDate,
           locale,
+          userInstruction: settingsStore.autoSchedulePrompt.trim(),
         },
       });
 
@@ -151,7 +150,9 @@ export function useAutoSchedule() {
     isScheduling,
     schedulePlan,
     confirmVisible,
+    promptVisible,
     requestAutoSchedule,
+    performAutoSchedule,
     confirmSchedule,
   };
 }

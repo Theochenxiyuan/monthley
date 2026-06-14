@@ -192,7 +192,14 @@ export default {
     partial: 'AI only returned some valid schedule items. Invalid items were ignored.',
     success: 'Scheduled {count} plan(s)',
     preConfirmTitle: 'AI Auto Schedule',
-    preConfirmMessage: 'Your unscheduled plan names and notes will be sent to AI for analysis. AI will suggest target months based on content semantics and current timeline workload. This may take a few seconds.',
+    preConfirmMessage: 'AI will suggest target months based on content semantics, current and future timeline workload, and your extra preferences. This may take a few seconds.',
+    sendTitle: 'Sent to AI',
+    sendDescription: 'Unscheduled plan names, notes, types, statuses, and current/future timeline entries.',
+    notSendTitle: 'Not sent',
+    notSendDescription: 'Sync key, theme, language, and other local preferences.',
+    userInstructionLabel: 'Extra scheduling preferences',
+    userInstructionPlaceholder: 'For example: only one game per month; schedule learning plans earlier; leave year-end for review plans.',
+    start: 'Start AI Scheduling',
   },
   entryItem: {
     statusType: {

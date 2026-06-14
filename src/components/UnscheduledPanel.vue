@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import EntryItem from './EntryItem.vue';
 import AIScheduleConfirmDialog from './AIScheduleConfirmDialog.vue';
+import AutoSchedulePromptDialog from './AutoSchedulePromptDialog.vue';
 import Draggable from 'vuedraggable';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -15,7 +16,15 @@ import { onMounted, onUnmounted, ref, watch } from 'vue';
 const { t } = useI18n();
 const timelineStore = useTimelineStore();
 const dialogStore = useDialogStore();
-const { isScheduling, schedulePlan: autoSchedulePlan, confirmVisible: autoScheduleConfirmVisible, requestAutoSchedule, confirmSchedule } = useAutoSchedule();
+const {
+  isScheduling,
+  schedulePlan: autoSchedulePlan,
+  confirmVisible: autoScheduleConfirmVisible,
+  promptVisible: autoSchedulePromptVisible,
+  requestAutoSchedule,
+  performAutoSchedule,
+  confirmSchedule,
+} = useAutoSchedule();
 const panelRef = ref<HTMLElement | null>(null);
 const { offsetX: appOffsetX, resetAppOffset } = useDesktopAppOffset();
 
@@ -200,6 +209,12 @@ function handleDelete(entryId: string): void {
     v-model="autoScheduleConfirmVisible"
     :plan="autoSchedulePlan"
     @confirm="confirmSchedule"
+  />
+
+  <AutoSchedulePromptDialog
+    v-model="autoSchedulePromptVisible"
+    :loading="isScheduling"
+    @confirm="performAutoSchedule"
   />
 </template>
 
