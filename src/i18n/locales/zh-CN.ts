@@ -189,6 +189,7 @@ export default {
     loading: 'AI 正在分析...',
     empty: '暂无待安排计划',
     error: 'AI 安排失败，请稍后重试',
+    partial: 'AI 只返回了部分有效安排，已过滤无效项目',
     success: '已安排 {count} 个计划',
     preConfirmTitle: 'AI 一键安排',
     preConfirmMessage: '将把待安排计划的名称和备注信息发送给 AI 进行分析，AI 会根据内容语义和当前时间线负载来建议安排月份。整个过程可能需要几秒钟，请耐心等待。',

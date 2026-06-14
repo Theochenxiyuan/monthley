@@ -113,6 +113,7 @@ function handleDelete(entryId: string): void {
           size="small"
           :title="t('unscheduled.aiSchedule')"
           :loading="isScheduling"
+          :disabled="timelineStore.unscheduledEntries.length === 0"
           @click="requestAutoSchedule"
         >
           <template #icon><MagicStick /></template>

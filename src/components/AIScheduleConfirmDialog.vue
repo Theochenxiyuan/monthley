@@ -45,12 +45,14 @@ function onConfirm() {
   >
     <div class="schedule-plan">
       <div v-for="item in plan" :key="item.entryId" class="plan-item">
-        <span class="plan-entry">
-          <span class="plan-entry-type">{{ t(`entry.shortTypes.${item.entryType}`) }}</span>
-          <span class="plan-entry-name">{{ item.entryName }}</span>
-        </span>
-        <span class="plan-arrow">→</span>
-        <span class="plan-target-month">{{ formatTargetMonth(item) }}</span>
+        <div class="plan-main-row">
+          <span class="plan-entry">
+            <span class="plan-entry-type">{{ t(`entry.shortTypes.${item.entryType}`) }}</span>
+            <span class="plan-entry-name">{{ item.entryName }}</span>
+          </span>
+          <span class="plan-arrow">→</span>
+          <span class="plan-target-month">{{ formatTargetMonth(item) }}</span>
+        </div>
       </div>
     </div>
     <template #footer>
@@ -71,9 +73,15 @@ function onConfirm() {
 
 .plan-item {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.plan-main-row {
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
 }
 
 .plan-entry {
@@ -115,4 +123,5 @@ function onConfirm() {
   white-space: nowrap;
   flex-shrink: 0;
 }
+
 </style>

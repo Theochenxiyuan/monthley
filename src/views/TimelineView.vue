@@ -213,12 +213,13 @@
             </div>
             <template #footer>
                 <div class="unscheduled-footer">
-                    <el-button plain @click="dialogStore.open({ isUnscheduled: true })">
+                    <el-button plain @click="handleAddUnscheduled">
                         <el-icon><Plus /></el-icon>{{ t('common.add') }}
                     </el-button>
                     <el-button
                         type="primary"
                         :loading="isScheduling"
+                        :disabled="timelineStore.unscheduledEntries.length === 0"
                         @click="requestAutoSchedule"
                     >
                         <template #icon><MagicStick /></template>{{ t('unscheduled.aiSchedule') }}
@@ -230,7 +231,7 @@
         <AIScheduleConfirmDialog
             v-model="autoScheduleConfirmVisible"
             :plan="autoSchedulePlan"
-            @confirm="confirmSchedule"
+            @confirm="handleConfirmAutoSchedule"
         />
 
         <el-timeline>
@@ -268,9 +269,11 @@
                     "
                     :force-expand="
                         !!(
-                            highlightEntryId &&
-                            highlightYear === timelineMonth.year &&
-                            highlightMonth === timelineMonth.month
+                            (highlightEntryId &&
+                                highlightYear === timelineMonth.year &&
+                                highlightMonth === timelineMonth.month) ||
+                            (temporaryExpandedYear === timelineMonth.year &&
+                                temporaryExpandedMonth === timelineMonth.month)
                         )
                     "
                 ></MonthCard>
@@ -345,7 +348,10 @@ function handleResize() {
     viewportWidth.value = window.innerWidth;
 }
 onMounted(() => window.addEventListener('resize', handleResize));
-onUnmounted(() => window.removeEventListener('resize', handleResize));
+onUnmounted(() => {
+    window.removeEventListener('resize', handleResize);
+    if (temporaryExpandTimer) clearTimeout(temporaryExpandTimer);
+});
 
 const drawerDirection = computed(() => isDesktop.value ? 'ltr' : 'ttb');
 const drawerSize = computed(() => isDesktop.value ? '340px' : 'auto');
@@ -355,6 +361,9 @@ const unscheduledVisible = ref(false);
 const highlightEntryId = ref<string | undefined>(undefined);
 const highlightYear = ref<number>(0);
 const highlightMonth = ref<number>(0);
+const temporaryExpandedYear = ref<number>(0);
+const temporaryExpandedMonth = ref<number>(0);
+let temporaryExpandTimer: ReturnType<typeof setTimeout> | undefined;
 const showLoadUp = ref(false);
 const showLoadDown = ref(false);
 const timelineStore = useTimelineStore();
@@ -432,6 +441,7 @@ function handleSearchSelect(entryId: string, year: number, month: number) {
     highlightEntryId.value = entryId;
     highlightYear.value = year;
     highlightMonth.value = month;
+    temporarilyExpandMonth(year, month);
 
     const all = timelineStore.allMonths;
     const idx = all.findIndex((m) => m.year === year && m.month === month);
@@ -456,6 +466,29 @@ function handleSearchSelect(entryId: string, year: number, month: number) {
     setTimeout(() => {
         highlightEntryId.value = undefined;
     }, 2000);
+}
+
+function temporarilyExpandMonth(year: number, month: number) {
+    temporaryExpandedYear.value = year;
+    temporaryExpandedMonth.value = month;
+    if (temporaryExpandTimer) clearTimeout(temporaryExpandTimer);
+
+    temporaryExpandTimer = setTimeout(() => {
+        temporaryExpandedYear.value = 0;
+        temporaryExpandedMonth.value = 0;
+    }, 5000);
+}
+
+function handleAddUnscheduled() {
+    unscheduledVisible.value = false;
+    dialogStore.open({ isUnscheduled: true });
+}
+
+function handleConfirmAutoSchedule() {
+    const firstItem = confirmSchedule();
+    if (!firstItem) return;
+
+    handleSearchSelect(firstItem.entryId, firstItem.targetYear, firstItem.targetMonth);
 }
 
 function confirmFilters(): void {
@@ -568,7 +601,7 @@ function handleDeleteUnscheduled(entryId: string): void {
     transition: border-color 0.3s ease;
 }
 .sync-status-mobile-btn {
-    border-radius: 16px;
+    border-radius: 10px;
     padding: 4px;
 }
 .sync-status-btn {
@@ -587,7 +620,7 @@ function handleDeleteUnscheduled(entryId: string): void {
     padding: 4px 8px;
     font-size: 0.8rem;
     margin-left: 6px;
-    border-radius: 16px;
+    border-radius: 10px;
 }
 .sync-status-content {
     display: flex;

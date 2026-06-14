@@ -17,6 +17,10 @@ interface AutoScheduleResponse {
   };
 }
 
+function isSameTarget(a: AutoSchedulePlanItem, b: AutoSchedulePlanItem) {
+  return a.entryId === b.entryId && a.targetYear === b.targetYear && a.targetMonth === b.targetMonth;
+}
+
 export function useAutoSchedule() {
   const { t } = useI18n();
   const timelineStore = useTimelineStore();
@@ -90,14 +94,39 @@ export function useAutoSchedule() {
       if (error) throw error;
       if (!data?.data?.plan) throw new Error('Auto schedule response is empty');
 
-      const plan = data.data.plan.map((item) => {
-        const entry = timelineStore.unscheduledEntries.find((e) => e.id === item.entryId);
-        return {
+      const entryMap = new Map(timelineStore.unscheduledEntries.map((entry) => [entry.id, entry]));
+      const seenEntryIds = new Set<string>();
+      const plan = data.data.plan.reduce<DisplayPlanItem[]>((items, item) => {
+        const entry = entryMap.get(item.entryId);
+        const targetIsPast = item.targetYear < now.getFullYear() || (
+          item.targetYear === now.getFullYear() && item.targetMonth < now.getMonth() + 1
+        );
+
+        if (!entry || seenEntryIds.has(item.entryId) || targetIsPast) {
+          return items;
+        }
+
+        seenEntryIds.add(item.entryId);
+        const displayItem = {
           ...item,
-          entryName: entry?.name ?? item.entryId,
-          entryType: entry?.type ?? 'learn',
+          entryName: entry.name,
+          entryType: entry.type,
         };
-      });
+
+        if (!items.some((existing) => isSameTarget(existing, displayItem))) {
+          items.push(displayItem);
+        }
+
+        return items;
+      }, []);
+
+      if (plan.length === 0) {
+        throw new Error('Auto schedule response contains no valid plan items');
+      }
+
+      if (plan.length < timelineStore.unscheduledEntries.length) {
+        ElMessage.warning(t('autoSchedule.partial'));
+      }
 
       schedulePlan.value = plan;
       confirmVisible.value = true;
@@ -110,10 +139,12 @@ export function useAutoSchedule() {
   }
 
   function confirmSchedule() {
+    const firstItem = schedulePlan.value[0];
     const count = schedulePlan.value.length;
     timelineStore.batchMoveUnscheduled(schedulePlan.value);
     schedulePlan.value = [];
     ElMessage.success(t('autoSchedule.success', { count }));
+    return firstItem;
   }
 
   return {
