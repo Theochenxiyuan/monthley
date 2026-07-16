@@ -39,21 +39,33 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function isValidPlan(value: unknown): value is SchedulePlan[] {
-  if (!Array.isArray(value)) return false;
-  return value.every(
-    (item) =>
-      typeof item === 'object' &&
-      item !== null &&
-      typeof item.entryId === 'string' &&
-      typeof item.targetYear === 'number' &&
-      typeof item.targetMonth === 'number' &&
-      typeof item.reason === 'string' &&
-      item.targetMonth >= 1 &&
-      item.targetMonth <= 12 &&
-      item.targetYear >= 2020 &&
-      item.targetYear <= 2100,
-  );
+function isValidPlan(value: unknown, expectedEntryIds: Set<string>): value is SchedulePlan[] {
+  if (!Array.isArray(value) || value.length !== expectedEntryIds.size) return false;
+
+  const seenEntryIds = new Set<string>();
+  for (const rawItem of value) {
+    if (typeof rawItem !== 'object' || rawItem === null) return false;
+    const item = rawItem as Record<string, unknown>;
+    if (
+      typeof item.entryId !== 'string' ||
+      !expectedEntryIds.has(item.entryId) ||
+      seenEntryIds.has(item.entryId) ||
+      typeof item.targetYear !== 'number' ||
+      !Number.isInteger(item.targetYear) ||
+      item.targetYear < 2020 ||
+      item.targetYear > 2100 ||
+      typeof item.targetMonth !== 'number' ||
+      !Number.isInteger(item.targetMonth) ||
+      item.targetMonth < 1 ||
+      item.targetMonth > 12 ||
+      typeof item.reason !== 'string'
+    ) {
+      return false;
+    }
+    seenEntryIds.add(item.entryId);
+  }
+
+  return seenEntryIds.size === expectedEntryIds.size;
 }
 
 function buildPrompt(body: AutoScheduleRequest) {
@@ -146,6 +158,20 @@ Deno.serve(async (req) => {
     return jsonResponse({ data: { plan: [] } });
   }
 
+  const expectedEntryIds = new Set<string>();
+  for (const entry of body.unscheduled) {
+    if (
+      typeof entry !== 'object' ||
+      entry === null ||
+      typeof entry.id !== 'string' ||
+      entry.id.length === 0 ||
+      expectedEntryIds.has(entry.id)
+    ) {
+      return jsonResponse({ error: 'Invalid unscheduled entries' }, 400);
+    }
+    expectedEntryIds.add(entry.id);
+  }
+
   const response = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
@@ -183,7 +209,7 @@ Deno.serve(async (req) => {
   try {
     const parsed = JSON.parse(content);
     const plan = parsed.plan;
-    if (!isValidPlan(plan)) {
+    if (!isValidPlan(plan, expectedEntryIds)) {
       return jsonResponse({ error: 'DeepSeek returned an invalid plan shape' }, 502);
     }
     return jsonResponse({ data: { plan } });

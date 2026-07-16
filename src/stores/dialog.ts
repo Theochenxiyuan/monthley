@@ -18,16 +18,16 @@ export const useDialogStore = defineStore('dialog', {
   },
   actions: {
     open(initialData?: Partial<EntryFormData>, entryId: string | null = null) {
-      if (entryId) {
-        this.entryToEdit.id = entryId;
-        this.entryToEdit.isUnscheduled = initialData?.isUnscheduled === true;
-        this.entryToEdit.monthYear = initialData?.month
+      this.entryToEdit = {
+        id: entryId,
+        isUnscheduled: entryId !== null && initialData?.isUnscheduled === true,
+        monthYear: entryId !== null && initialData?.month
           ? {
               month: initialData.month.getMonth() + 1,
               year: initialData.month.getFullYear(),
             }
-          : null;
-      }
+          : null,
+      };
       this.formData = {
         ...initialData,
         name: initialData?.name ? initialData?.name : '',

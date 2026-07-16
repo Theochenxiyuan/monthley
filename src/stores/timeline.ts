@@ -9,6 +9,7 @@ import { dataService, type ImportResult } from "@/services/dataService";
 import { ElMessage } from "element-plus";
 
 let saveFailureNotified = false;
+let loadFailureNotified = false;
 
 const getNextStatus = (status: EntryStatus): EntryStatus => {
   if (status === "not_started") {
@@ -87,26 +88,33 @@ export const useTimelineStore = defineStore("timeline", {
     },
   },
   actions: {
-    _saveTimer: null as number | null,
     init() {
       this.loadLocal();
-      this.clearEmptyMonths();
       this.addCurrentMonthIfMissing();
       this.resetVisible();
     },
-    loadLocal() {
+    loadLocal(): boolean {
       try {
         const saved = localStorage.getItem("timeline");
         if (saved) {
-          const timeline = dataService.validateTimelineData(JSON.parse(saved));
+          const timeline = dataService.validateTimelineData(JSON.parse(saved), {
+            rejectLossy: true,
+          });
           this.months = timeline.months;
           this.unscheduledEntries = timeline.unscheduledEntries;
           this.lastUpdated = timeline.lastUpdated
             ? new Date(timeline.lastUpdated)
             : null;
         }
+        loadFailureNotified = false;
+        return true;
       } catch (err) {
         console.error("Error loading local data:", err);
+        if (!loadFailureNotified) {
+          loadFailureNotified = true;
+          ElMessage.error("本地数据读取失败，原始数据已保留 / Local data could not be loaded; the original data was preserved.");
+        }
+        return false;
       }
     },
     _saveNow() {
@@ -146,18 +154,7 @@ export const useTimelineStore = defineStore("timeline", {
       }
     },
     saveLocal() {
-      if (this._saveTimer) clearTimeout(this._saveTimer);
-
-      // 添加时间戳验证
-      const saveTime = this.lastUpdated?.getTime() || 0;
-      const now = Date.now();
-
-      // 避免过于频繁的保存（5秒内变化只存最后一次）
-      if (now - saveTime < 5000) {
-        this._saveTimer = setTimeout(() => this._saveNow(), 500);
-      } else {
-        this._saveNow();
-      }
+      this._saveNow();
     },
     addEntry(
       monthYear: Omit<TimelineMonth, "entries">,
@@ -272,12 +269,55 @@ export const useTimelineStore = defineStore("timeline", {
       });
     },
     batchMoveUnscheduled(plan: { entryId: string; targetYear: number; targetMonth: number }[]) {
+      const entriesById = new Map(
+        this.unscheduledEntries.map((entry) => [entry.id, entry]),
+      );
+      const seenEntryIds = new Set<string>();
+      const now = new Date();
+
       for (const item of plan) {
-        this.moveUnscheduledToMonth(item.entryId, {
-          year: item.targetYear,
-          month: item.targetMonth,
-        });
+        const targetIsPast = item.targetYear < now.getFullYear() || (
+          item.targetYear === now.getFullYear() &&
+          item.targetMonth < now.getMonth() + 1
+        );
+        if (
+          !Number.isInteger(item.targetYear) ||
+          !Number.isInteger(item.targetMonth) ||
+          item.targetYear < 1900 ||
+          item.targetYear > 9999 ||
+          item.targetMonth < 1 ||
+          item.targetMonth > 12 ||
+          targetIsPast ||
+          seenEntryIds.has(item.entryId) ||
+          !entriesById.has(item.entryId)
+        ) {
+          return false;
+        }
+        seenEntryIds.add(item.entryId);
       }
+
+      this.unscheduledEntries = this.unscheduledEntries.filter(
+        (entry) => !seenEntryIds.has(entry.id),
+      );
+      for (const item of plan) {
+        let targetMonth = this.months.find(
+          (month) => month.year === item.targetYear && month.month === item.targetMonth,
+        );
+        if (!targetMonth) {
+          targetMonth = {
+            year: item.targetYear,
+            month: item.targetMonth,
+            entries: [],
+          };
+          this.months.push(targetMonth);
+        }
+        targetMonth.entries.push(entriesById.get(item.entryId)!);
+      }
+
+      this.sortMonths();
+      this.lastUpdated = new Date();
+      this.saveLocal();
+      return true;
     },
     moveMonthEntryToUnscheduled(
       entryId: string,

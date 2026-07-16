@@ -4,7 +4,7 @@ import EntryItem from './EntryItem.vue';
 import { useDialogStore } from '@/stores/dialog';
 import { useTimelineStore } from '@/stores/timeline';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { formatYearMonth, isCurrentMonth } from '@/utils/dateFormatter';
+import { isCurrentMonth } from '@/utils/dateFormatter';
 import { computed, ref, watch } from 'vue';
 import { useSettingsStore } from '@/stores/settings';
 import { useFiltersStore } from '@/stores/filters';
@@ -312,7 +312,7 @@ const collapsedSummary = computed(() => {
                     @click="
                       dialogStore.open(
                         {
-                          month: new Date(formatYearMonth(month)),
+                          month: new Date(month.year, month.month - 1, 1),
                           ...entry.element,
                         },
                         entry.element.id,
@@ -356,7 +356,7 @@ const collapsedSummary = computed(() => {
               text
               size="small"
               @click="
-                dialogStore.open({ month: new Date(formatYearMonth(month)) })
+                dialogStore.open({ month: new Date(month.year, month.month - 1, 1) })
               "
             >
               <el-icon size="18"><Plus /></el-icon>

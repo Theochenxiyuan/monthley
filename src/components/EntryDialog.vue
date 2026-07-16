@@ -9,6 +9,7 @@
     style="width: 480px; max-width: 92vw"
     :close-on-click-modal="true"
     align-center
+    @close="dialogStore.close()"
   >
     <el-form
       @submit="handleSubmit"

@@ -13,12 +13,26 @@ type DisplayPlanItem = AutoSchedulePlanItem & {
 
 interface AutoScheduleResponse {
   data: {
-    plan: AutoSchedulePlanItem[];
+    plan: unknown;
   };
 }
 
-function isSameTarget(a: AutoSchedulePlanItem, b: AutoSchedulePlanItem) {
-  return a.entryId === b.entryId && a.targetYear === b.targetYear && a.targetMonth === b.targetMonth;
+function isValidPlanItem(value: unknown): value is AutoSchedulePlanItem {
+  if (typeof value !== 'object' || value === null) return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.entryId === 'string' &&
+    item.entryId.length > 0 &&
+    typeof item.targetYear === 'number' &&
+    Number.isInteger(item.targetYear) &&
+    item.targetYear >= 1900 &&
+    item.targetYear <= 9999 &&
+    typeof item.targetMonth === 'number' &&
+    Number.isInteger(item.targetMonth) &&
+    item.targetMonth >= 1 &&
+    item.targetMonth <= 12 &&
+    typeof item.reason === 'string'
+  );
 }
 
 export function useAutoSchedule() {
@@ -91,40 +105,37 @@ export function useAutoSchedule() {
       });
 
       if (error) throw error;
-      if (!data?.data?.plan) throw new Error('Auto schedule response is empty');
+      if (!Array.isArray(data?.data?.plan)) throw new Error('Auto schedule response is empty');
 
       const entryMap = new Map(timelineStore.unscheduledEntries.map((entry) => [entry.id, entry]));
       const seenEntryIds = new Set<string>();
-      const plan = data.data.plan.reduce<DisplayPlanItem[]>((items, item) => {
+      if (data.data.plan.length !== entryMap.size) {
+        throw new Error('Auto schedule response is incomplete');
+      }
+
+      const plan = data.data.plan.map<DisplayPlanItem>((item) => {
+        if (!isValidPlanItem(item)) {
+          throw new Error('Auto schedule response contains an invalid plan item');
+        }
         const entry = entryMap.get(item.entryId);
         const targetIsPast = item.targetYear < now.getFullYear() || (
           item.targetYear === now.getFullYear() && item.targetMonth < now.getMonth() + 1
         );
 
         if (!entry || seenEntryIds.has(item.entryId) || targetIsPast) {
-          return items;
+          throw new Error('Auto schedule response contains an invalid target');
         }
 
         seenEntryIds.add(item.entryId);
-        const displayItem = {
+        return {
           ...item,
           entryName: entry.name,
           entryType: entry.type,
         };
+      });
 
-        if (!items.some((existing) => isSameTarget(existing, displayItem))) {
-          items.push(displayItem);
-        }
-
-        return items;
-      }, []);
-
-      if (plan.length === 0) {
-        throw new Error('Auto schedule response contains no valid plan items');
-      }
-
-      if (plan.length < timelineStore.unscheduledEntries.length) {
-        ElMessage.warning(t('autoSchedule.partial'));
+      if (seenEntryIds.size !== entryMap.size) {
+        throw new Error('Auto schedule response does not cover every entry');
       }
 
       schedulePlan.value = plan;
@@ -139,8 +150,12 @@ export function useAutoSchedule() {
 
   function confirmSchedule() {
     const firstItem = schedulePlan.value[0];
+    if (!firstItem) return null;
     const count = schedulePlan.value.length;
-    timelineStore.batchMoveUnscheduled(schedulePlan.value);
+    if (!timelineStore.batchMoveUnscheduled(schedulePlan.value)) {
+      ElMessage.error(t('autoSchedule.error'));
+      return null;
+    }
     schedulePlan.value = [];
     ElMessage.success(t('autoSchedule.success', { count }));
     return firstItem;

@@ -16,6 +16,14 @@ export interface ImportResult {
 const entryTypeSet = new Set<string>(entryTypes);
 const entryStatusSet = new Set<string>(entryStatuses);
 
+interface ValidationOptions {
+  rejectLossy?: boolean;
+}
+
+interface ValidationDiagnostics {
+  discardedItems: number;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -39,8 +47,15 @@ function isValidMonthValue(year: unknown, month: unknown): boolean {
   );
 }
 
-function normalizeEntry(value: unknown, seenEntryIds: Set<string>): TimelineEntry | null {
-  if (!isRecord(value)) return null;
+function normalizeEntry(
+  value: unknown,
+  seenEntryIds: Set<string>,
+  diagnostics: ValidationDiagnostics,
+): TimelineEntry | null {
+  if (!isRecord(value)) {
+    diagnostics.discardedItems += 1;
+    return null;
+  }
   const { id, name, type, status, notes } = value;
   if (
     typeof id !== 'string' ||
@@ -53,6 +68,7 @@ function normalizeEntry(value: unknown, seenEntryIds: Set<string>): TimelineEntr
     typeof status !== 'string' ||
     !entryStatusSet.has(status)
   ) {
+    diagnostics.discardedItems += 1;
     return null;
   }
 
@@ -67,16 +83,26 @@ function normalizeEntry(value: unknown, seenEntryIds: Set<string>): TimelineEntr
   };
 }
 
-function normalizeMonth(value: unknown, seenEntryIds: Set<string>): TimelineMonth | null {
-  if (!isRecord(value)) return null;
+function normalizeMonth(
+  value: unknown,
+  seenEntryIds: Set<string>,
+  diagnostics: ValidationDiagnostics,
+): TimelineMonth | null {
+  if (!isRecord(value)) {
+    diagnostics.discardedItems += 1;
+    return null;
+  }
   const { year, month, entries } = value;
-  if (!isValidMonthValue(year, month) || !Array.isArray(entries)) return null;
+  if (!isValidMonthValue(year, month) || !Array.isArray(entries)) {
+    diagnostics.discardedItems += 1;
+    return null;
+  }
 
   return {
     year: year as number,
     month: month as number,
     entries: entries
-      .map((entry) => normalizeEntry(entry, seenEntryIds))
+      .map((entry) => normalizeEntry(entry, seenEntryIds, diagnostics))
       .filter((entry): entry is TimelineEntry => entry !== null),
   };
 }
@@ -103,16 +129,17 @@ function waitForNextFrame(): Promise<void> {
 }
 
 export const dataService = {
-  validateTimelineData(value: unknown): ExportData {
+  validateTimelineData(value: unknown, options: ValidationOptions = {}): ExportData {
     if (!isRecord(value) || !Array.isArray(value.months)) {
       throw new Error('Invalid timeline data format');
     }
 
     const seenEntryIds = new Set<string>();
     const monthsByKey = new Map<string, TimelineMonth>();
+    const diagnostics: ValidationDiagnostics = { discardedItems: 0 };
 
     value.months.forEach((rawMonth) => {
-      const month = normalizeMonth(rawMonth, seenEntryIds);
+      const month = normalizeMonth(rawMonth, seenEntryIds, diagnostics);
       if (!month) return;
 
       const key = `${month.year}-${month.month}`;
@@ -126,9 +153,17 @@ export const dataService = {
 
     const unscheduledEntries = Array.isArray(value.unscheduledEntries)
       ? value.unscheduledEntries
-          .map((entry) => normalizeEntry(entry, seenEntryIds))
+          .map((entry) => normalizeEntry(entry, seenEntryIds, diagnostics))
           .filter((entry): entry is TimelineEntry => entry !== null)
       : [];
+
+    if (value.unscheduledEntries !== undefined && !Array.isArray(value.unscheduledEntries)) {
+      diagnostics.discardedItems += 1;
+    }
+
+    if (options.rejectLossy && diagnostics.discardedItems > 0) {
+      throw new Error('Timeline data contains invalid records');
+    }
 
     return {
       months: [...monthsByKey.values()]
